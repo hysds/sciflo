@@ -22,17 +22,3 @@ Installation
 Run test cases
 --------------
   1.  python setup.py test
-
-
-Copyright
----------
-    Copyright 2016, by the California Institute of Technology.
-    ALL RIGHTS RESERVED.
-    United States Government Sponsorship acknowledged.
-
-
-Authors
--------
-    Jet Propulsion Laboratory
-    California Institute of Technology
-    Pasadena, CA, USA
