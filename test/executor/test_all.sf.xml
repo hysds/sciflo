@@ -1,0 +1,978 @@
+<?xml version="1.0"?>
+<sf:sciflo xmlns:sf="http://sciflo.jpl.nasa.gov/2006v1/sf"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:py="http://sciflo.jpl.nasa.gov/2006v1/py">
+
+  <sf:flow id="TestSciflo">
+
+    <sf:description>Test sciflo.</sf:description>
+
+    <sf:inputs>
+      <startDateTime type="xs:ISODateTime" kind="sweet:startTime">2003-01-03 00:00:00</startDateTime>
+      <endDateTime type="xs:ISODateTime">2003-01-03 23:59:59</endDateTime>
+      <var1 type="xs:float">1</var1>
+      <var2 type="xs:float">100</var2>
+      <var3 type="xs:float">1000</var3>
+      <var4 type="xs:float">2.3999994</var4>
+      <var5 type="xs:integer">399</var5>
+      <var6><testElt><testSubElt1><testSubElt2>This is test1.</testSubElt2></testSubElt1></testElt></var6>
+      <var7>
+        <testElt>
+          <testSubElt1>
+            <testSubElt2>This is test2.</testSubElt2>
+          </testSubElt1>
+        </testElt>
+      </var7>
+      <var8>You shouldn't see this.
+        <testElt>
+          <testSubElt1>
+            <testSubElt2>This is test3.</testSubElt2>
+          </testSubElt1>
+        </testElt>
+      </var8>
+      <var9><testSubElt1>This is test4a.</testSubElt1><testSubElt2>This is test4b.</testSubElt2></var9>
+      <var10>
+        <testSubElt1>This is test4a.</testSubElt1>
+        <testSubElt2>This is test4b.</testSubElt2>
+      </var10>
+      <var11>You shouldn't see this.
+        <testSubElt1>This is test5a.</testSubElt1>
+        <testSubElt2>This is test5b.</testSubElt2>
+      </var11>
+    </sf:inputs>
+
+    <sf:outputs>
+      <sumOutput>@#addAndSleep1.sum1</sumOutput>
+      <lsOutput>@#ls.out1</lsOutput>
+      <rand1>@#randomNum.out1</rand1>
+      <lsOutput2>@#ls_template</lsOutput2>
+      <lsOutput3>@#ls_template2</lsOutput3>
+      <redirectedFile>@#echoRedirectedToFile</redirectedFile>
+      <amazonRestCall>@#amazonRestCall</amazonRestCall>
+      <ls_template>@#ls_template3</ls_template>
+    </sf:outputs>
+
+    <sf:processes>
+
+      <sf:process id="addAndSleep1">
+        <sf:inputs>
+          <var1>@#inputs.var1</var1>
+          <var2>@#inputs</var2>
+          <sleep type="xs:int">5</sleep>
+        </sf:inputs>
+        <sf:outputs>
+          <sum1></sum1>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op><sf:binding>python:testModule.py?testModule.sleepAndAdd</sf:binding></sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="addAndSleep2">
+        <sf:inputs>
+          <var1 from="@#inputs"/>
+          <var2>@#inputs.var2</var2>
+          <sleep type="xs:integer">15</sleep>
+        </sf:inputs>
+        <sf:outputs>
+          <sum1></sum1>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op><sf:binding>python:testModule.py?testModule.sleepAndAdd</sf:binding></sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="addAndSleep2a">
+        <sf:inputs>
+          <var1>@#previous</var1>
+          <var2 />
+          <sleep type="xs:integer">13</sleep>
+        </sf:inputs>
+        <sf:outputs>
+          <sum1></sum1>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op><sf:binding>python:testModule.py?testModule.sleepAndAdd</sf:binding></sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="addAndSleep3">
+        <sf:inputs>
+          <var1>@#previous</var1>
+          <var2>@#inputs.var3</var2>
+          <sleep type="xs:int">15</sleep>
+        </sf:inputs>
+        <sf:outputs>
+          <sum1></sum1>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+            <sf:op><sf:binding>python:http://sciflo/sfldev3/testModule.py?testModule.sleepAndAdd</sf:binding></sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="echo">
+        <sf:inputs>
+          <var1>@#addAndSleep1</var1>
+          <var2>@#addAndSleep2</var2>
+          <var3>= Hello World</var3>
+        </sf:inputs>
+        <sf:outputs>
+          <out1></out1>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>binary:linux86?/bin/echo</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="echoRedirectedToFile">
+        <sf:inputs>
+          <var1>@#addAndSleep1</var1>
+          <var2>@#addAndSleep2</var2>
+          <var3>@#echo</var3>
+          <red>> output.txt</red>
+        </sf:inputs>
+        <sf:outputs>
+          <out1></out1>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>binary:linux86?/bin/echo</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="ls">
+        <sf:inputs>
+          <lsArg>/tmp/testdir</lsArg>
+        </sf:inputs>
+        <sf:outputs>
+          <out1></out1>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>binary:linux86:testBundle.tar.gz?ls</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="randomNum">
+        <sf:inputs />
+        <sf:outputs>
+          <out1></out1>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op><sf:binding>python:testBundle.zip?testModule2.getRandomNum</sf:binding></sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="getXml">
+        <sf:inputs/>
+        <sf:outputs>
+          <outputXml/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:testModule.py?testModule.getTestXml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="XQueryTest">
+        <sf:inputs>
+          <inputXml>@#previous</inputXml>
+        </sf:inputs>
+        <sf:outputs>
+          <outputXml/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>xquery:http://sciflo.jpl.nasa.gov/2006v1/sf?<![CDATA[
+let $result:= <myResults>{$top//objectid}</myResults>
+return $result
+                ]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="xpathTest">
+        <sf:inputs>
+          <inputXml type="sf:xpath:.//_default:objectid/text()">@#previous</inputXml>
+        </sf:inputs>
+        <sf:outputs>
+          <objectids/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?def retObj(obj): return obj</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="xpathTest2">
+        <sf:inputs>
+          <inputXml type="sf:xpath:.//_default:objectid">@#XQueryTest</inputXml>
+        </sf:inputs>
+        <sf:outputs>
+          <objectids/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?def retObj(obj): return obj</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="xpathTest3">
+        <sf:inputs>
+          <inputXml type="sf:xpath:.//_default:latMin/text()">@#getXml</inputXml>
+        </sf:inputs>
+        <sf:outputs>
+          <latMins/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?def retObj(obj): return obj</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="xpathTest4">
+        <sf:inputs>
+          <inputXml type="sf:xpath:.//_default:latMin">@#getXml</inputXml>
+        </sf:inputs>
+        <sf:outputs>
+          <latMins/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?def retObj(obj): return obj</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="xpathTest5">
+        <sf:inputs>
+          <inputXml>@#getXml?.//_default:latMin/text()</inputXml>
+        </sf:inputs>
+        <sf:outputs>
+          <latMins/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?def retObj(obj): return obj</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="xpathTest6">
+        <sf:inputs>
+          <inputXml>@#getXml?.//_default:latMin</inputXml>
+        </sf:inputs>
+        <sf:outputs>
+          <latMins/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?def retObj(obj): return obj</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="xpathTest7">
+        <sf:inputs>
+          <inputXml from="@#getXml?.//_default:result[_default:starttime = '2003-01-02T23:59:26']/_default:objectid/text()"/>
+        </sf:inputs>
+        <sf:outputs>
+          <objectid/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?def retObj(obj): return obj</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="xpathTest7a">
+        <sf:inputs>
+          <inputXml from="@#getXml?xpath:.//_default:result[_default:starttime = '2003-01-02T23:59:26']/_default:objectid/text()"/>
+        </sf:inputs>
+        <sf:outputs>
+          <objectid/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?def retObj(obj):  return obj</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="xpathTest7b">
+        <sf:inputs>
+          <inputXml type="xs:float" from="@#getXml?xpath:.//_default:result[_default:starttime = '2003-01-02T23:59:26']/_default:latMin/text()"/>
+        </sf:inputs>
+        <sf:outputs>
+          <latMin/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?def retObj(obj):  return obj</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="xpathTest7c">
+        <sf:inputs>
+          <inputXml type="xs:float">@#getXml?xpath:.//_default:result[_default:starttime = '2003-01-02T23:59:26']/_default:latMin/text()</inputXml>
+        </sf:inputs>
+        <sf:outputs>
+          <latMin/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?def retObj(obj):  return obj</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="xpathTest7d">
+        <sf:inputs>
+          <inputXml from="@#getXml"/>
+        </sf:inputs>
+        <sf:outputs>
+          <latMin/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>xpath:.//_default:result[_default:starttime = '2003-01-02T23:59:26']/_default:latMin</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="xpathTest8">
+        <sf:inputs>
+          <inputXml from="@#getXml"/>
+        </sf:inputs>
+        <sf:outputs>
+          <latMins/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>xpath:.//_default:result[_default:starttime = '2003-01-02T23:59:26']/_default:objectid/text()</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="xpathTest9">
+        <sf:inputs>
+          <inputXml from="@#getXml"/>
+        </sf:inputs>
+        <sf:outputs>
+          <latMins/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>xpath:.//result[starttime = '2003-01-02T23:59:26']/objectid</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="xpathTest10">
+        <sf:inputs>
+          <inputXml from="@#getXml"/>
+        </sf:inputs>
+        <sf:outputs>
+          <latMins/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>xpath:.//_default:result[starttime = '2003-01-02T23:59:26']/_default:objectid</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="xpathTest11">
+        <sf:inputs>
+          <inputXml from="@#getXml"/>
+        </sf:inputs>
+        <sf:outputs>
+          <latMins/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>xpath:.//_default:result[starttime = '2003-01-02T23:59:26']/objectid/text()</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id='amazonTemplate'>
+        <sf:inputs>
+          <Operation doc='legal values: ItemSearch, ' >ItemSearch</Operation>
+          <SubscriptionId doc='Your Amazon Web Services SOAP key'>0E6FZ73M62236CD2AT02</SubscriptionId>
+          <Keywords doc='space-separated keywords' >teddy bear chocolate</Keywords>
+          <SearchIndex doc='e.g. Books, ' >Books</SearchIndex>
+          <ResponseGroup doc='e.g. ItemIds, Small, Medium, Large, ItemAttributes, etc.' >Medium</ResponseGroup>
+        </sf:inputs>
+        <sf:outputs>
+          <matches type='sfl:XmlFragment' />
+        </sf:outputs>
+        <sf:operator>
+          <sf:op>
+            <sf:binding>template:?<![CDATA[
+http://webservices.amazon.com/onca/xml?Service=AWSECommerceService
+&Operation=${Operation}&SubscriptionId=${SubscriptionId}&Keywords=${Keywords}
+&SearchIndex=${SearchIndex}&ResponseGroup=${ResponseGroup}]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id='amazonRestCall'>
+        <sf:inputs>
+          <Operation doc='legal values: ItemSearch, ' >ItemSearch</Operation>
+          <SubscriptionId doc='Your Amazon Web Services SOAP key'>0E6FZ73M62236CD2AT02</SubscriptionId>
+          <Keywords doc='space-separated keywords' >teddy bear chocolate</Keywords>
+          <SearchIndex doc='e.g. Books, ' >Books</SearchIndex>
+          <ResponseGroup doc='e.g. ItemIds, Small, Medium, Large, ItemAttributes, etc.' >Medium</ResponseGroup>
+        </sf:inputs>
+        <sf:outputs>
+          <matches type='sfl:XmlFragment' />
+        </sf:outputs>
+        <sf:operator>
+          <sf:op>
+            <sf:binding>rest:?<![CDATA[
+http://webservices.amazon.com/onca/xml?Service=AWSECommerceService
+&Operation=${Operation}&SubscriptionId=${SubscriptionId}&Keywords=${Keywords}
+&SearchIndex=${SearchIndex}&ResponseGroup=${ResponseGroup}]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="ls_template">
+        <sf:inputs>
+          <lsArg>/tmp/testdir</lsArg>
+          <options>-d</options>
+        </sf:inputs>
+        <sf:outputs>
+          <out1></out1>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>cmdline:?<![CDATA[
+              ls ${options} ${lsArg}]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="ls_template2">
+        <sf:inputs>
+          <lsArg>/tmp/testdir</lsArg>
+          <options>-m</options>
+        </sf:inputs>
+        <sf:outputs>
+          <out1></out1>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>cmdline:?ls ${options} ${lsArg}</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="ls_template3">
+        <sf:inputs>
+          <lsArg>/tmp/testdir</lsArg>
+          <options>-m</options>
+          <outputFile>ls.txt</outputFile>
+        </sf:inputs>
+        <sf:outputs>
+          <out1></out1>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>cmdline:?ls ${options} ${lsArg} > ${outputFile}</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input1">
+        <sf:inputs>
+          <var6/>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(obj):
+  print "%s: %s" % (type(obj), obj)
+  return obj
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input2">
+        <sf:inputs>
+          <var7/>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(obj):
+  print "%s: %s" % (type(obj), obj)
+  return obj
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input3">
+        <sf:inputs>
+          <var8/>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(obj):
+  print "%s: %s" % (type(obj), obj)
+  return obj
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input4">
+        <sf:inputs>
+          <var9/>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(obj):
+  print "%s: %s" % (type(obj), obj)
+  return obj
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input5">
+        <sf:inputs>
+          <var10/>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(obj):
+  print "%s: %s" % (type(obj), obj)
+  return obj
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input6">
+        <sf:inputs>
+          <var11/>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(obj):
+  print "%s: %s" % (type(obj), obj)
+  return obj
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input7">
+        <sf:inputs>
+          <var6><testElt><testSubElt1><testSubElt2>This is test6.</testSubElt2></testSubElt1></testElt></var6>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(obj):
+  print "%s: %s" % (type(obj), obj)
+  return obj
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input8">
+        <sf:inputs>
+          <var7>
+            <testElt>
+              <testSubElt1>
+                <testSubElt2>This is test7.</testSubElt2>
+              </testSubElt1>
+            </testElt>
+          </var7>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(obj):
+  print "%s: %s" % (type(obj), obj)
+  return obj
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input9">
+        <sf:inputs>
+          <var8>You shouldn't see this.
+            <testElt>
+              <testSubElt1>
+                <testSubElt2>This is test8.</testSubElt2>
+              </testSubElt1>
+            </testElt>
+          </var8>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(obj):
+  print "%s: %s" % (type(obj), obj)
+  return obj
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input10">
+        <sf:inputs>
+          <var9><testSubElt1>This is test9a.</testSubElt1><testSubElt2>This is test9b.</testSubElt2></var9>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(obj):
+  print "%s: %s" % (type(obj), obj)
+  return obj
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input11">
+        <sf:inputs>
+          <var10>
+            <testSubElt1>This is test10a.</testSubElt1>
+            <testSubElt2>This is test10b.</testSubElt2>
+          </var10>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(obj):
+  print "%s: %s" % (type(obj), obj)
+  return obj
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input12">
+        <sf:inputs>
+          <var11>You shouldn't see this.
+            <testSubElt1>This is test11a.</testSubElt1>
+            <testSubElt2>This is test11b.</testSubElt2>
+          </var11>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(obj):
+  print "%s: %s" % (type(obj), obj)
+  return obj
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input13">
+        <sf:inputs>
+          <var13 from="@#inputs?var8//testSubElt2/text()"/>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(obj):
+  print "%s: %s" % (type(obj), obj)
+  return obj
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input14">
+        <sf:inputs>
+          <var14>@#inputs?var8//testElt</var14>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(obj):
+  #print "%s: %s" % (type(obj), obj)
+  return obj
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input15">
+        <sf:inputs>
+          <var15 type="document">
+            <testSubElt1>This is test15.</testSubElt1>
+            <testSubElt2 from="@#inputs?var8//testElt"/>
+          </var15>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(obj):
+  #print "%s: %s" % (type(obj), obj)
+  return obj
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input16">
+        <sf:inputs>
+          <var16a type="document">
+            <testSubElt1>This is test16a.</testSubElt1>
+            <testSubElt2 from="@#inputs?var8//testElt"/>
+            <testSubElt3>
+              <testSubElt3a>
+                <testSubElt3b from="@#inputs?var8//testSubElt2/text()"/>
+              </testSubElt3a>
+            </testSubElt3>
+            <testSubElt4>@#inputs.var4</testSubElt4>
+          </var16a>
+          <var16b>@#inputs.var5</var16b>
+          <var16c type="document">
+            <testSubElt1>This is test16c.</testSubElt1>
+            <testSubElt2 from="@#inputs?var9//testSubElt1"/>
+            <testSubElt3>
+              <testSubElt3a>
+                <testSubElt3b from="@#inputs?var9//testSubElt2/text()"/>
+              </testSubElt3a>
+            </testSubElt3>
+            <testSubElt4>@#inputs.var7</testSubElt4>
+          </var16c>
+          <var16d type="document">
+            <testSubElt1>This is test16d.</testSubElt1>
+            <testSubElt2 from="@#previous"/>
+            <testSubElt3>
+              <testSubElt3a>
+                <testSubElt3b from="@#xml_input14"/>
+              </testSubElt3a>
+            </testSubElt3>
+          </var16d>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(*args):
+  retVal = ""
+  for obj in args:
+    retVal += "%s: %s\n" % (type(obj), obj)
+  print "retVal is:", retVal
+  return retVal
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+      
+      <sf:process id="xml_input17">
+        <sf:inputs>
+          <var17a>
+            <testSubElt1>This is test17a.</testSubElt1>
+            <testSubElt2 from="@#inputs?var8//testElt"/>
+            <testSubElt3>
+              <testSubElt3a>
+                <testSubElt3b from="@#inputs?var8//testSubElt2/text()"/>
+              </testSubElt3a>
+            </testSubElt3>
+            <testSubElt4>@#inputs.var4</testSubElt4>
+          </var17a>
+          <var17b>@#inputs.var5</var17b>
+          <var17c>
+            <testSubElt1>This is test17c.</testSubElt1>
+            <testSubElt2 from="@#inputs?var9//testSubElt1"/>
+            <testSubElt3>
+              <testSubElt3a>
+                <testSubElt3b from="@#inputs?var9//testSubElt2/text()"/>
+              </testSubElt3a>
+            </testSubElt3>
+            <testSubElt4>@#inputs.var7</testSubElt4>
+          </var17c>
+          <var17d>
+            <testSubElt1>This is test17d.</testSubElt1>
+            <testSubElt2 from="@#previous"/>
+            <testSubElt3>
+              <testSubElt3a>
+                <testSubElt3b from="@#xml_input14"/>
+              </testSubElt3a>
+            </testSubElt3>
+          </var17d>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?<![CDATA[
+def printAndReturn(*args):
+  retVal = ""
+  for obj in args:
+    retVal += "%s: %s\n" % (type(obj), obj)
+  print "retVal is:", retVal
+  return retVal
+]]>
+            </sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="main_it1">
+        <sf:inputs>
+          <var1>1</var1>
+          <var2>2</var2>
+          <var3>3</var3>
+          <var4>4</var4>
+          <var5>5</var5>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:it.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+    </sf:processes>
+
+  </sf:flow>
+
+</sf:sciflo>

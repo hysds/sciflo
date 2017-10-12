@@ -1,0 +1,144 @@
+commit 779714b2ad3496096dfd4b7e73b251addbeb7743
+Author: gmanipon <gmanipon@jpl.nasa.gov>
+Date:   Thu Jul 13 05:26:39 2017 +0000
+
+    set version, description and url explicitly without importing
+
+commit 1a2621d25d6005b880ee3e7cdab195b7d660c2fb
+Author: gmanipon <gmanipon@jpl.nasa.gov>
+Date:   Thu Jul 13 02:56:24 2017 +0000
+
+    propagate username from sciflo to HySDS jobs for proper PROV-ES Agent tracking
+
+commit f421c9a9fadf13bb76bca041e6840f033a93c679
+Author: gmanipon <gmanipon@jpl.nasa.gov>
+Date:   Wed Jul 12 15:24:19 2017 +0000
+
+    remove install_requires as it causes ContextualVersionConflict errors
+
+commit 287624e514854b087503259cf7fef114ec230927
+Author: gmanipon <gmanipon@jpl.nasa.gov>
+Date:   Wed Jul 12 15:03:17 2017 +0000
+
+    update package info; add install_requires
+
+commit 60cc32d98488439a2f81f78aa91ed12f9232309e
+Author: gmanipon <gmanipon@jpl.nasa.gov>
+Date:   Tue Feb 21 16:28:07 2017 +0000
+
+    add async execution capability to map/parallel work unit types
+    
+    Enable mapreduce jobs to submit jobs to HySDS and bypass waiting for execution.
+    When async=true, passes task IDs of parallel map jobs as results.
+
+commit 3925106c2c6efec547ebe7a0473b6cd3bd69b088
+Author: gmanipon <gmanipon@jpl.nasa.gov>
+Date:   Tue Feb 21 15:50:02 2017 +0000
+
+    propagate container mappings
+
+commit a7bf9c0edcc2576188658a8117e65cd95107af98
+Author: gmanipon <gmanipon@jpl.nasa.gov>
+Date:   Tue Oct 18 18:49:06 2016 +0000
+
+    prefix hysds files with _
+
+commit fb11648f227a7565a627dc1f9faacac72da15531
+Author: gmanipon <gmanipon@jpl.nasa.gov>
+Date:   Fri Sep 16 18:12:08 2016 +0000
+
+    pull job URL of map jobs from bare-bones result of HySDS run_job()
+
+commit be2911c97fd6b7d8c048f550724f47d971ac8fd5
+Author: Gerald Manipon <geraldjohn.m.manipon@jpl.nasa.gov>
+Date:   Thu Jun 2 10:35:14 2016 -0700
+
+    requests already handles .netrc
+
+commit ae8771d15b911b7296394b2fa6127870105cab07
+Author: Gerald Manipon <geraldjohn.m.manipon@jpl.nasa.gov>
+Date:   Thu Jun 2 10:24:56 2016 -0700
+
+    replace urllib.urlretrieve with requests to speed up download
+
+commit f2eeacd8b5cd5ef826d3ce6510a48ae21aeef5d3
+Author: gmanipon <gmanipon@jpl.nasa.gov>
+Date:   Tue May 10 02:24:45 2016 +0000
+
+    propagate container_image_* config to jobs
+
+commit f250b8f217ab48f14c68f2717d28eae8befef8b6
+Author: gmanipon <gmanipon@jpl.nasa.gov>
+Date:   Tue Apr 19 17:52:29 2016 +0000
+
+    update year; test jenkins */dev
+
+commit 2b394a62566875a15eae537f6fb874582ea718f9
+Author: gmanipon <gmanipon@jpl.nasa.gov>
+Date:   Tue Apr 19 16:36:58 2016 +0000
+
+    propagate sciflo job tag to work units
+
+commit a3f584ff8eaca3320680bf4da9761bee00afaaa5
+Author: gmanipon <gmanipon@jpl.nasa.gov>
+Date:   Thu Apr 14 17:24:14 2016 +0000
+
+    disable genesis FTP unit tests since the data is currently unaccessible
+
+commit b3d482291b6743efa968990f4f9e2c2fd5467b02
+Author: gmanipon <gmanipon@jpl.nasa.gov>
+Date:   Thu Apr 14 15:27:01 2016 +0000
+
+    update to markdown
+
+commit d0b6be9215ccf5f5bf32451110826461ff84b86f
+Author: gmanipon <gmanipon@jpl.nasa.gov>
+Date:   Fri Jan 29 01:35:35 2016 +0000
+
+    propagate context through sciflo workflow processs steps
+
+commit 7228f3d7fdac7f62e7fd2d1d44b8d605a3595900
+Author: Gerald Manipon <gmanipon@jpl.nasa.gov>
+Date:   Tue Sep 15 05:33:01 2015 +0000
+
+    remove usage of deprecated simplejson module
+
+commit 5d29f4b65bb51356d979234eebd4ef52e14d42eb
+Author: Gerald Manipon <gmanipon@jpl.nasa.gov>
+Date:   Tue Sep 15 04:42:04 2015 +0000
+
+    handle latest dbxml
+
+commit c096c49862a66ab496c1774435fa61ff0cec0ce3
+Author: Gerald Manipon <gmanipon@jpl.nasa.gov>
+Date:   Tue Sep 15 04:19:24 2015 +0000
+
+    remove dbxml flag causing errors; retrieve IPv4 IP address only
+
+commit 9939b44a24fb2eca55162e2c85c90fb56f86cd06
+Author: Gerald Manipon <gmanipon@jpl.nasa.gov>
+Date:   Mon Jun 15 17:49:35 2015 +0000
+
+    handle new job JSON structure introduced by using task and worker events for status updates
+
+commit 72dd605ce2310813d4c8a7f6559a5c3ab7ed5056
+Author: Gerald Manipon <gmanipon@jpl.nasa.gov>
+Date:   Fri May 8 14:47:39 2015 +0000
+
+    added .gitignore
+
+commit 202801bb9ae5711768ae4ce342bfe1e14388a87b
+Author: Gerald Manipon <gmanipon@jpl.nasa.gov>
+Date:   Fri May 8 14:21:48 2015 +0000
+
+    initial import from svn
+    
+    URL: https://gitlab.jpl.nasa.gov/svn/trunk/HySDS/sciflo
+    Repository Root: https://gitlab.jpl.nasa.gov/svn
+    Repository UUID: ae7fae16-8c10-0410-aa46-954c80f3d31f
+    Revision: 8599
+    Node Kind: directory
+    Schedule: normal
+    Last Changed Author: gmanipon
+    Last Changed Rev: 7671
+    Last Changed Date: 2014-09-18 22:40:32 +0000 (Thu, 18 Sep 2014)

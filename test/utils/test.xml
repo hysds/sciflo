@@ -1,0 +1,130 @@
+<?xml version = "1.0"?>
+<scifloData xmlns = "http://sciflo.jpl.nasa.gov/2006v1/sf"
+            xmlns:xs = "http://www.w3.org/2001/XMLSchema">
+    <name>L2AIRSData</name>
+    <semantics>
+        <dataLevel>2</dataLevel>
+        <dataSource>retrieval</dataSource>
+        <dataType>swath3D</dataType>
+        <listPhysicalDomainKeywords>
+            <keyword>air temperature</keyword>
+            <keyword>water vapor pressure</keyword>
+        </listPhysicalDomainKeywords>
+        <listPhysicalVariables>
+            <physicalVariable>
+                <scifloPhysicalVariableName>latitude</scifloPhysicalVariableName>
+                <physicalVariableNameTranslation>latAIRS</physicalVariableNameTranslation>
+                <units>degree_north</units>
+            </physicalVariable>
+            <physicalVariable>
+                <scifloPhysicalVariableName>longitude</scifloPhysicalVariableName>
+                <physicalVariableNameTranslation>lonAIRS</physicalVariableNameTranslation>
+                <units>degree_east</units>
+            </physicalVariable>
+            <physicalVariable>
+                <scifloPhysicalVariableName>atmosphericTemperature</scifloPhysicalVariableName>
+                <physicalVariableNameTranslation>TAirStd</physicalVariableNameTranslation>
+                <units>K</units>
+            </physicalVariable>
+            <physicalVariable>
+                <scifloPhysicalVariableName>atmosphericWaterVapor</scifloPhysicalVariableName>
+                <physicalVariableNameTranslation>H2OMMRStd</physicalVariableNameTranslation>
+                <units>g/kg</units>
+            </physicalVariable>
+        </listPhysicalVariables>
+    </semantics>
+
+    <catalogQuery>
+        <soap>
+            <name>geoLocationQuery</name>
+            <soapArgs>startTime,endTime,lat,lon, timeTol, distTol</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.geoLocationQuery</method>
+        </soap>
+        <soap>
+            <name>geoRegionQuery</name>
+            <soapArgs>startTime,endTime,N,S,W,E, timeTol, distTol</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.geoRegionQuery</method>
+        </soap>
+        <soap>
+            <name>queryByMetadata</name>
+            <soapArgs>variable=scifloPhysicalVariableName, listOfConstraints, groups</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.queryByMetadata</method>
+        </soap>
+            <soap>
+            <name>getMetadata</name>
+            <soapArgs>type, groups</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.getMetadata</method>
+        </soap>
+            <soap>
+            <name>getHelp</name>
+            <soapArgs>type, groups</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.getHelp</method>
+        </soap>
+        <soap>
+            <name>findByTimeAndNearLocation</name>
+            <soapArgs>startTime,endTime,lat,lon</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.findByTimeAndNearLocation</method>
+        </soap>
+        <soap>
+            <name>findByTimeAndLocationBox</name>
+            <soapArgs>startTime,endTime,N,S,W,E</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.findByTimeAndLocationBox</method>
+        </soap>
+        <soap>
+            <name>getApproxLocationByIdList</name>
+            <soapArgs>xmlListOfIds</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.getApproxLocationByIdList</method>
+        </soap>
+        <soap>
+            <name>getMetadataByIdList</name>
+            <soapArgs>xmlListOfIds</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.getMetadataByIdList</method>
+        </soap>
+        <soap>
+            <name>getLocationByIdList</name>
+            <soapArgs>xmlListOfIds</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.getApproxLocationByIdList</method>
+        </soap>
+    </catalogQuery>
+
+    <dataAccessAndSubsetting>
+        <soap>
+            <name>getDataById</name>
+            <soapArgs>xmlListOfIds</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.getDataById</method>
+        </soap>
+        <soap>
+            <name>getVariableById</name>
+            <soapArgs>id,variable=scifloPhysicalVariableName</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.getVariableById</method>
+        </soap>
+        <soap>
+            <name>getNativeGranuleById</name>
+            <soapArgs>id,bundle</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.getNativeGranuleById</method>
+        </soap>
+        <soap>
+            <name>aggregateOverIdList</name>
+            <soapArgs>xmlListOfIds</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.aggregateOverIdList</method>
+        </soap>
+        <soap>
+            <name>subsetParameters</name>
+            <soapArgs>id,parameters,excludeFlag,mandatoryParameters</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.subsetParameters</method>
+        </soap>
+        <soap>
+            <name>subsetGeoCoverage</name>
+            <soapArgs>id,startTime,endTime,NW,NE,SE,SW,altMin,altMax</soapArgs>
+            <method>sciflo.yadda.yadda.yadda.functionname8</method>
+        </soap>
+    </dataAccessAndSubsetting>
+    <custom>
+        <soap>
+            <name>echo</name>
+            <soapArgs>string</soapArgs>
+            <method>sciflo.webservices.L2AIRSData.echoWithADifferentName</method>
+        </soap>
+    </custom>
+</scifloData>
+

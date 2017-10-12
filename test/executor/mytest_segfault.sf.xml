@@ -1,0 +1,212 @@
+<?xml version="1.0"?>
+<sf:sciflo xmlns:sf="http://sciflo.jpl.nasa.gov/2006v1/sf"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:py="http://sciflo.jpl.nasa.gov/2006v1/py">
+
+  <sf:flow id="main_flow">
+
+    <sf:description>Test sciflo.</sf:description>
+
+    <sf:inputs>
+      <var1 type="xs:float">1</var1>
+      <var2 type="xs:float">100</var2>
+      <var3 type="xs:float">1000</var3>
+      <var4 type="xs:float">2.3999994</var4>
+      <var5 type="xs:integer">100000</var5>
+    </sf:inputs>
+
+    <sf:outputs>
+      <sflFinalResult>@#main_add10</sflFinalResult>
+    </sf:outputs>
+
+    <sf:processes>
+
+      <sf:process id="main_add1">
+        <sf:inputs>
+          <var1/><var2/>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:float"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:<![CDATA[
+def add(v1, v2):
+    return v1 + v2
+            ]]></sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="main_add2">
+        <sf:inputs>
+          <var3/><var4/>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:float"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:<![CDATA[
+def add(v1, v2):
+    return v1 + v2
+            ]]></sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="main_it1">
+        <sf:inputs>
+          <var1>@#main_add1</var1>
+          <var2>@#previous</var2>
+          <var3/><var4/><var5/>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:it.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="main_segFault">
+        <sf:inputs>
+          <var1/><var2/><var3>1325</var3><var4/><var5>10000</var5>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:test_segfault.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="main_it2">
+        <sf:inputs>
+          <var1>29</var1><var2/><var3/><var4/><var5/>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:it2.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="main_it3">
+        <sf:inputs>
+          <var1/><var2/><var3/><var4/><var5>10000</var5>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:it3.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="main_it4">
+        <sf:inputs>
+          <var1/><var2/><var3>12345</var3><var4/><var5>10000</var5>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:it4.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="main_it5">
+        <sf:inputs>
+          <var1/><var2/><var3>4321</var3><var4/><var5>10000</var5>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:it5.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="main_it6">
+        <sf:inputs>
+          <var1/><var2/><var3>8585</var3><var4/><var5>10000</var5>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:it6.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="main_it7">
+        <sf:inputs>
+          <var1/><var2/><var3>1325</var3><var4/><var5>10000</var5>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:it7.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="main_add10">
+        <sf:inputs>
+          <var1>@#main_it1</var1>
+          <var2>@#main_it2</var2>
+          <var3>@#main_it3</var3>
+          <var4>@#main_it4</var4>
+          <var5>@#main_it5</var5>
+          <var6>@#main_it6</var6>
+          <var7>@#main_it7</var7>
+          <var8>@#main_segFault</var8>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:float"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:<![CDATA[
+def add(v1, v2, v3, v4, v5, v6, v7, v8):
+    return v1[0] + v2[0] + v3[0] + v4[0] + v5[0] + v6[0] + v7[0] v8[0]
+            ]]></sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+    </sf:processes>
+
+  </sf:flow>
+
+</sf:sciflo>
+

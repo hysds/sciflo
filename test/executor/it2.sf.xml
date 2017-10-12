@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<sf:sciflo xmlns:sf="http://sciflo.jpl.nasa.gov/2006v1/sf"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:py="http://sciflo.jpl.nasa.gov/2006v1/py">
+
+  <sf:flow id="intenseCpu2">
+
+    <sf:description>Test sciflo.</sf:description>
+
+    <sf:inputs>
+      <var1 type="xs:float">1</var1>
+      <var2 type="xs:float">100</var2>
+      <var3 type="xs:float">1000</var3>
+      <var4 type="xs:float">2.3999994</var4>
+      <var5 type="xs:integer">10000</var5>
+    </sf:inputs>
+
+    <sf:outputs>
+      <finalResult>@#it2_add4</finalResult>
+    </sf:outputs>
+
+    <sf:processes>
+
+      <sf:process id="it2_add1">
+        <sf:inputs>
+          <var1/><var2/>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:float"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:<![CDATA[
+def add(v1, v2):
+    return v1 + v2
+            ]]></sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="it2_add2">
+        <sf:inputs>
+          <var3/><var4/>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:float"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:<![CDATA[
+def add(v1, v2):
+    return v1 + v2
+            ]]></sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="it2_add3_cpuIntense">
+        <sf:inputs>
+          <var5/>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:<![CDATA[
+def cpuTest(c):
+    def add(x, y): return x + y
+    import time
+    a = 0
+    t1 = time.time()
+    while a < c:
+        a = add(a, 1)
+    print "cpuTest took %s seconds." % (time.time() - t1)
+    return a
+            ]]></sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="it2_add4">
+        <sf:inputs>
+          <var1>@#previous</var1><var2>@#it2_add1</var2><var3>@#it2_add2</var3>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:float"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:<![CDATA[
+def add(v1, v2, v3):
+    return v1 + v2 + v3
+            ]]></sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+    </sf:processes>
+
+  </sf:flow>
+
+</sf:sciflo>
+

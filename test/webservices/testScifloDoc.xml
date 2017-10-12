@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<sf:sciflo xmlns:sf="http://sciflo.jpl.nasa.gov/2006v1/sf"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:py="http://sciflo.jpl.nasa.gov/2006v1/py">
+
+  <sf:flow id="TestSciflo">
+
+    <sf:description>Test sciflo.</sf:description>
+
+    <sf:inputs>
+      <var1>This is a test.</var1>
+    </sf:inputs>
+
+    <sf:outputs>
+      <out1>@#echo</out1>
+      <out2>@#echo2</out2>
+    </sf:outputs>
+
+    <sf:processes>
+
+      <sf:process id="echo">
+        <sf:inputs>
+          <var1/>
+          <var2>= Hello World</var2>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>binary:linux86?/bin/echo</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="echo2">
+        <sf:inputs>
+          <var1 from="@#previous"/>
+        </sf:inputs>
+        <sf:outputs>
+          <out/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?def retObj(obj): return str(obj) + " from echo2."</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+    </sf:processes>
+
+  </sf:flow>
+
+</sf:sciflo>
+

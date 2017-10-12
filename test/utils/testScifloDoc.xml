@@ -1,0 +1,295 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="sciflo.xsl"?>
+<sciflo xmlns="http://sciflo.jpl.nasa.gov/2006v1/sf"
+        xmlns:sf="http://sciflo.jpl.nasa.gov/2006v1/sf"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        xmlns:py="http://sciflo.jpl.nasa.gov/2006v1/py">
+
+  <flow name="TestSciflo">
+
+    <imports>
+      <pythonModules>
+        <module id="testModule">
+          <url>testModule.py</url>
+        </module>
+      </pythonModules>
+      <soapServices>
+        <service id="TestService">
+          <wsdl>https://localhost:9999/wsdl?http://sciflo.jpl.nasa.gov/2006v1/sf/TestService</wsdl>
+        </service>
+      </soapServices>
+      <executables>
+        <script id="testPythonScript" language="python">
+          <url>testPythonScript.py</url>
+        </script>
+        <binary id="echoBin" architecture="linux86">
+          <url>/bin/echo</url>
+        </binary>
+      </executables>
+    </imports>
+
+    <description>Test sciflo.</description>
+
+    <inputs>
+      <startDateTime type="xs:ISODateTime" kind="sweet:startTime">2003-01-03 00:00:00</startDateTime>
+      <endDateTime type="xs:ISODateTime">2003-01-03 23:59:59</endDateTime>
+      <var1 type="xs:float">1</var1>
+      <var2 type="xs:float">100</var2>
+      <var3 type="xs:float">1000</var3>
+      <var4 type="xs:float">2.3999994</var4>
+      <var5 type="xs:integer">399</var5>
+    </inputs>
+
+    <outputs>
+      <echoOutput type="xs:string">@echo</echoOutput>
+      <sum>@addAndSleep6</sum>
+      <var1>@addAndSleepInBetween4And5</var1>
+      <var2 type="xs:string">@addAndSleepInBetween4And5</var2>
+      <sleeptime>@addAndSleepInBetween4And5.sleeptime</sleeptime>
+      <sleeptimeInt type="xs:int">@addAndSleepInBetween4And5.sleeptime</sleeptimeInt>
+      <var3 type="xs:string">@addAndSleepInBetween4And5.var2</var3>
+    </outputs>
+
+    <processes>
+
+      <process id="getStartEpoch" kind="sweet:getEpoch">
+        <inputs>
+          <startDateTime>@inputs.startDateTime</startDateTime>
+        </inputs>
+        <outputs>
+          <startEpoch type="xs:float"></startEpoch>
+        </outputs>
+        <operator>
+          <description></description>
+          <binding>@TestService.getEpochFromTimeString</binding>
+        </operator>
+      </process>
+
+      <process id="getEndEpoch" kind="sweet:getEpoch">
+        <inputs>
+          <startDateTime>@inputs.endDateTime</startDateTime>
+        </inputs>
+        <outputs>
+          <endEpoch type="xs:float"></endEpoch>
+        </outputs>
+        <operator>
+          <description></description>
+          <binding>@TestService.getEpochFromTimeString</binding>
+        </operator>
+      </process>
+
+      <process id="addAndSleep1">
+        <inputs>
+          <var1>@getStartEpoch</var1>
+          <var2>@inputs.var1</var2>
+          <sleep>5</sleep>
+        </inputs>
+        <outputs>
+          <sum1></sum1>
+        </outputs>
+        <operator>
+          <description></description>
+          <binding>@testModule.sleepAndAdd</binding>
+        </operator>
+      </process>
+
+      <process id="addAndSleep2">
+        <inputs>
+          <var1>@getEndEpoch</var1>
+          <var2>@inputs.var2</var2>
+          <sleep>15</sleep>
+        </inputs>
+        <outputs>
+          <sum1></sum1>
+        </outputs>
+        <operator>
+          <description></description>
+          <binding>@testModule.sleepAndAdd</binding>
+        </operator>
+      </process>
+
+      <process id="addAndSleep3">
+        <inputs>
+          <var1>@getEndEpoch</var1>
+          <var2>@inputs.var3</var2>
+          <sleep>15</sleep>
+        </inputs>
+        <outputs>
+          <sum1></sum1>
+        </outputs>
+        <operator>
+          <description></description>
+          <inlineBinding>
+            <pythonModule>
+              <call>sleepAndAdd</call>
+              <module id="testModule2">
+                <url>testModule.py</url>
+              </module>
+            </pythonModule>
+          </inlineBinding>
+        </operator>
+      </process>
+
+      <process id="echo">
+        <inputs>
+          <var1>@addAndSleep1</var1>
+          <var2>@addAndSleep2</var2>
+          <var3>= Hello World</var3>
+        </inputs>
+        <outputs>
+          <out1></out1>
+        </outputs>
+        <operator>
+          <description></description>
+          <binding>@echoBin</binding>
+        </operator>
+      </process>
+
+      <process id="inlinePython">
+        <inputs>
+          <var1>@getStartEpoch</var1>
+          <var2>@getEndEpoch</var2>
+        </inputs>
+        <outputs>
+          <sum1></sum1>
+        </outputs>
+        <operator>
+          <description></description>
+          <inlineBinding>
+            <inlinePython>
+def sum(var1,var2):
+  return var1 + var2
+            </inlinePython>
+          </inlineBinding>
+        </operator>
+      </process>
+
+      <process id="reverseList">
+        <inputs>
+          <var1 type="list">@getStartEpoch</var1>
+        </inputs>
+        <outputs>
+          <out1></out1>
+        </outputs>
+        <operator>
+          <description></description>
+          <binding>@testModule.reverseList</binding>
+        </operator>
+      </process>
+
+      <process id="reverseList2">
+        <inputs>
+          <var1 type="sf:list">@getStartEpoch</var1>
+        </inputs>
+        <outputs>
+          <out1></out1>
+        </outputs>
+        <operator>
+          <description></description>
+          <binding>@testModule.reverseList</binding>
+        </operator>
+      </process>
+
+      <process id="builtinFunction">
+        <inputs>
+          <var1>@reverseList</var1>
+          <var2>:</var2>
+        </inputs>
+        <outputs>
+          <out1></out1>
+        </outputs>
+        <operator>
+          <description></description>
+          <binding>python:string.join()</binding>
+        </operator>
+      </process>
+
+      <process id="builtinFunction2">
+        <inputs>
+          <var1>@builtinFunction</var1>
+        </inputs>
+        <outputs>
+          <out1></out1>
+        </outputs>
+        <operator>
+          <description></description>
+          <binding>python:os.path.splitext()</binding>
+        </operator>
+      </process>
+
+      <process id="addAndSleep4">
+        <inputs>
+          <var1>@getEndEpoch</var1>
+          <var2 type="xs:int">@inputs.var4</var2>
+          <sleep>15</sleep>
+        </inputs>
+        <outputs>
+          <sum1></sum1>
+        </outputs>
+        <operator>
+          <description></description>
+          <inlineBinding>
+            <pythonModule>
+              <call>sleepAndAdd</call>
+              <module id="testModule2">
+                <url>testModule.py</url>
+              </module>
+            </pythonModule>
+          </inlineBinding>
+        </operator>
+      </process>
+
+      <process id="addAndSleepInBetween4And5">
+        <inputs>
+          <var1>@getStartEpoch</var1>
+          <var2 type="xs:float">@inputs.var5</var2>
+          <sleep>1</sleep>
+        </inputs>
+        <outputs>
+          <sum1/>
+          <var1/>
+          <var2 type="xs:int"/>
+          <sleeptime/>
+        </outputs>
+        <operator>
+          <description></description>
+          <binding>@testModule.sleepAndAdd</binding>
+        </operator>
+      </process>
+
+      <process id="addAndSleep5">
+        <inputs>
+          <var1>@getStartEpoch</var1>
+          <var2 type="xs:float">@addAndSleepInBetween4And5.var2</var2>
+          <sleep>@previous.sleeptime</sleep>
+        </inputs>
+        <outputs>
+          <sum1></sum1>
+        </outputs>
+        <operator>
+          <description></description>
+          <binding>@testModule.sleepAndAdd</binding>
+        </operator>
+      </process>
+
+      <process id="addAndSleep6">
+        <inputs>
+          <var1>@getStartEpoch</var1>
+          <var2 type="xs:float">@inputs.var5</var2>
+          <sleep>1</sleep>
+        </inputs>
+        <outputs>
+          <sum1></sum1>
+        </outputs>
+        <operator>
+          <description></description>
+          <binding>@testModule.sleepAndAdd</binding>
+        </operator>
+      </process>
+
+    </processes>
+
+  </flow>
+
+</sciflo>
+

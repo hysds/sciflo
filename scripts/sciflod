@@ -1,0 +1,149 @@
+#!/bin/sh
+
+# !!!NOTE: This script needs to be executed as the user that installed SciFlo.!!!
+
+# rc script for startup/shutdown of SciFlo services:
+#  1) MySQL server
+#  2) exposer (python SciFlo SOAP server)
+#  3) grid (python SciFlo grid server)
+
+ARGV="$@"
+ERROR=0
+
+start() {
+    echo "Starting MySQL server..."
+    startMysql.sh
+    echo "Started up MySQL server."
+    
+    echo "Starting exposer (SciFlo SOAP server)..."
+    startExposer.sh
+    echo "Started up exposer (SciFlo SOAP server)."
+    
+    echo "Starting cache server..."
+    startCacheServer.sh
+    echo "Started up SciFlo cache server."
+    
+    echo "Starting grid server..."
+    startGridServer.sh
+    echo "Started up SciFlo grid server."
+}
+
+startweb() {
+    echo "Starting exposer (SciFlo SOAP server)..."
+    startExposer.sh
+    echo "Started up exposer (SciFlo SOAP server)."
+    
+    echo "Starting cache server..."
+    startCacheServer.sh
+    echo "Started up SciFlo cache server."
+    
+    echo "Starting grid server..."
+    startGridServer.sh
+    echo "Started up SciFlo grid server."
+}
+
+cleanstart() {
+    echo "Starting MySQL server..."
+    startMysql.sh
+    echo "Started up MySQL server."
+    
+    echo "Starting exposer (SciFlo SOAP server)..."
+    startExposer.sh
+    echo "Started up exposer (SciFlo SOAP server)."
+    
+    echo "Cleaning and starting cache server..."
+    cleanAndStartCacheServer.sh
+    echo "Cleaned up and started up SciFlo cache server."
+    
+    echo "Cleaning and starting grid server..."
+    cleanAndStartGridServer.sh
+    echo "Cleaned up and started up SciFlo grid server."
+}
+
+cleanstartweb() {
+    echo "Starting exposer (SciFlo SOAP server)..."
+    startExposer.sh
+    echo "Started up exposer (SciFlo SOAP server)."
+    
+    echo "Cleaning and starting cache server..."
+    cleanAndStartCacheServer.sh
+    echo "Cleaned up and started up SciFlo cache server."
+    
+    echo "Cleaning and starting grid server..."
+    cleanAndStartGridServer.sh
+    echo "Cleaned up and started up SciFlo grid server."
+}
+
+stop() {
+    echo "Shutting down MySQL server..."
+    stopMysql.sh
+    echo "Shut down MySQL server."
+    
+    echo "Shutting down exposer (SciFlo SOAP server)..."
+    stopExposer.sh
+    echo "Shut down exposer (SciFlo SOAP server)."
+    
+    echo "Shutting down cache server..."
+    stopCacheServer.sh
+    echo "Shut down SciFlo cache server."
+    
+    echo "Shutting down grid server..."
+    stopGridServer.sh
+    echo "Shut down SciFlo grid server."
+}
+
+stopweb() {
+    echo "Shutting down exposer (SciFlo SOAP server)..."
+    stopExposer.sh
+    echo "Shut down exposer (SciFlo SOAP server)."
+    
+    echo "Shutting down cache server..."
+    stopCacheServer.sh
+    echo "Shut down SciFlo cache server."
+    
+    echo "Shutting down grid server..."
+    stopGridServer.sh
+    echo "Shut down SciFlo grid server."
+}
+
+case $ARGV in
+start)
+    start
+    ;;
+cleanstart)
+    cleanstart
+    ;;
+stop)
+    stop
+    ;;
+restart)
+    stop
+    start
+    ;;
+cleanrestart)
+    stop
+    cleanstart
+    ;;
+startweb)
+    startweb
+    ;;
+cleanstartweb)
+    cleanstartweb
+    ;;
+stopweb)
+    stopweb
+    ;;
+restartweb)
+    stopweb
+    startweb
+    ;;
+cleanrestartweb)
+    stopweb
+    cleanstartweb
+    ;;
+*)
+    echo "Unknown argument $ARGV.  sciflod (start|stop|restart|cleanstart|cleanrestart|startweb|stopweb|restartweb|cleanstartweb|cleanrestartweb)"
+    ERROR=1
+esac
+
+exit $ERROR

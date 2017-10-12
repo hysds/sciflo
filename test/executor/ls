@@ -1,0 +1,7 @@
+#!/bin/sh
+echo "listing $1"
+
+#This will not work using sciflo.  You need to specify full path if the name
+#of the executable is the same as this script.
+#ls $1
+/bin/ls $1

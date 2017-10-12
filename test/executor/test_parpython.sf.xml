@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<sf:sciflo xmlns:sf="http://sciflo.jpl.nasa.gov/2006v1/sf"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:py="http://sciflo.jpl.nasa.gov/2006v1/py">
+
+  <sf:flow id="test_par_python">
+
+    <sf:description>Test par python.</sf:description>
+
+    <sf:inputs>
+      <startdate type="xs:date">2010-01-01T00:00:00Z</startdate>
+      <enddate type="xs:date">2010-12-31T23:59:59Z</enddate>
+      <segmentBy type="xs:int">31</segmentBy>
+      <arg1 type="xs:string">Hello</arg1>
+      <arg2 type="xs:string">World</arg2>
+    </sf:inputs>
+
+    <sf:outputs>
+      <mapped_results>@#map</mapped_results>
+      <reduced_results>@#reduce</reduced_results>
+    </sf:outputs>
+
+    <sf:processes>
+
+      <sf:process id="segment_months">
+        <sf:inputs>
+          <startdate/>
+          <enddate/>
+          <segmentBy/>
+        </sf:inputs>
+        <sf:outputs>
+          <seg_startdate/>
+          <seg_enddate/>
+          <seg_days/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?sciflo.mapreduce.test.date_segmenter</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="map">
+        <sf:inputs>
+          <seg_startdate from="@#previous" />
+          <seg_enddate from="@#previous" />
+          <seg_days from="@#previous" />
+          <arg1/>
+          <arg2/>
+        </sf:inputs>
+        <sf:outputs>
+          <mapped_results/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding amqp_url="amqp://guest:guest@mozart-ccmods.jpl.nasa.gov:5672//"
+                        job_queue="parpython_jobs_processed">map:python:?sciflo.mapreduce.test.test_map</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="reduce">
+        <sf:inputs>
+          <mapped_results from="@#previous" />
+        </sf:inputs>
+        <sf:outputs>
+          <reduced_results/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?sciflo.mapreduce.test.test_reduce</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="map_async">
+        <sf:inputs>
+          <seg_startdate from="@#segment_months" />
+          <seg_enddate from="@#segment_months" />
+          <seg_days from="@#segment_months" />
+          <arg1/>
+          <arg2/>
+        </sf:inputs>
+        <sf:outputs>
+          <mapped_results/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding job_queue="parpython_jobs_processed" async="true">map:python:?sciflo.mapreduce.test.test_map</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="reduce_async">
+        <sf:inputs>
+          <mapped_results from="@#previous" />
+        </sf:inputs>
+        <sf:outputs>
+          <reduced_results/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:?sciflo.mapreduce.test.test_reduce_async</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+    </sf:processes>
+
+  </sf:flow>
+
+</sf:sciflo>
+

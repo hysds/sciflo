@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="crawlerConfig">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="instrument"/>
+                <xs:element ref="level"/>
+                <xs:element ref="dataLocations"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="instrument" type="xs:string"/>
+    <xs:element name="level" type="xs:string"/>
+    <xs:element name="dataLocations">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="location" minOccurs="1" maxOccurs="999"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <element name="location">
+        <complexType>
+            <sequence>
+                <element ref="protocol" minOccurs="1" maxOccurs="1" />
+                <element ref="site" minOccurs="1" maxOccurs="1" />
+                <element ref="user" minOccurs="0" maxOccurs="1" />
+                <element ref="password" minOccurs="0" maxOccurs="1" />
+                <element ref="rootDir" minOccurs="1" maxOccurs="1" />
+                <element ref="matchFileRegEx" minOccurs="1" maxOccurs="1" />
+                <element ref="objectidTemplate" minOccurs="1" maxOccurs="1" />
+            </sequence>
+        </complexType>
+    </element>
+    <element name="protocol">
+        <simpleType>
+            <restriction base="xs:string">
+                <enumeration value="HTTP"/>
+                <enumeration value="FTP"/>
+                <enumeration value="DODS"/>
+                <enumeration value="LOCAL"/>
+            </restriction>
+        </simpleType>
+    </element>
+    <element name="site" type="xs:string" />
+    <element name="user" type="xs:string" />
+    <element name="password" type="xs:string" />
+    <element name="rootDir" type="xs:string"/>
+    <element name="matchFileRegEx" type="xs:string"/>
+    <element name="objectidTemplate" type="xs:string"/>
+</xs:schema>

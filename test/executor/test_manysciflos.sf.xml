@@ -1,0 +1,196 @@
+<?xml version="1.0"?>
+<sf:sciflo xmlns:sf="http://sciflo.jpl.nasa.gov/2006v1/sf"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:py="http://sciflo.jpl.nasa.gov/2006v1/py">
+
+  <sf:flow id="TestManySciflos">
+
+    <sf:description>Test sciflo.</sf:description>
+
+    <sf:inputs>
+      <var1 type="xs:float">1</var1>
+      <var2 type="xs:float">100</var2>
+      <var3 type="xs:float">1000</var3>
+      <var4 type="xs:float">2.3999994</var4>
+      <var5 type="xs:integer">100000000</var5>
+    </sf:inputs>
+
+    <sf:outputs>
+      <sflFinalResult>@#add10</sflFinalResult>
+    </sf:outputs>
+
+    <sf:processes>
+
+      <sf:process id="add1">
+        <sf:inputs>
+          <var1/><var2/>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:float"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:<![CDATA[
+def add(v1, v2):
+    return v1 + v2
+            ]]></sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="add2">
+        <sf:inputs>
+          <var3/><var4/>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:float"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:<![CDATA[
+def add(v1, v2):
+    return v1 + v2
+            ]]></sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="add3_intenseCpuSciflo">
+        <sf:inputs>
+          <var1>@#add1</var1>
+          <var2>@#previous</var2>
+          <var3/><var4/><var5/>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:intenseCpu.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="add4_intenseCpuSciflo">
+        <sf:inputs>
+          <var1/><var2/><var3/><var4/><var5/>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:intenseCpu.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="add5_mediumCpuSciflo">
+        <sf:inputs>
+          <var1/><var2/><var3/><var4/><var5>10000000</var5>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:intenseCpu.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="add6_mediumCpuSciflo">
+        <sf:inputs>
+          <var1/><var2/><var3>12345</var3><var4/><var5>10000000</var5>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:intenseCpu.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="add7_mediumCpuSciflo">
+        <sf:inputs>
+          <var1/><var2/><var3>4321</var3><var4/><var5>10000000</var5>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:intenseCpu.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="add8_mediumCpuSciflo">
+        <sf:inputs>
+          <var1/><var2/><var3>8585</var3><var4/><var5>10000000</var5>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:intenseCpu.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="add9_mediumCpuSciflo">
+        <sf:inputs>
+          <var1/><var2/><var3>1325</var3><var4/><var5>10000000</var5>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:integer"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>sciflo:intenseCpu.sf.xml</sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+      <sf:process id="add10">
+        <sf:inputs>
+          <var1>@#add3_intenseCpuSciflo</var1>
+          <var2>@#add4_intenseCpuSciflo</var2>
+          <var3>@#add5_mediumCpuSciflo</var3>
+          <var4>@#add6_mediumCpuSciflo</var4>
+          <var5>@#add7_mediumCpuSciflo</var5>
+          <var6>@#add8_mediumCpuSciflo</var6>
+          <var7>@#add9_mediumCpuSciflo</var7>
+        </sf:inputs>
+        <sf:outputs>
+          <res type="xs:float"/>
+        </sf:outputs>
+        <sf:operator>
+          <sf:description></sf:description>
+          <sf:op>
+            <sf:binding>python:<![CDATA[
+def add(v1, v2, v3, v4, v5, v6, v7):
+    return v1[0] + v2[0] + v3[0] + v4[0] + v5[0] + v6[0] + v7[0]
+            ]]></sf:binding>
+          </sf:op>
+        </sf:operator>
+      </sf:process>
+
+    </sf:processes>
+
+  </sf:flow>
+
+</sf:sciflo>
+
