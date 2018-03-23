@@ -505,15 +505,20 @@ class ParMapWorkUnit(PythonFunctionWorkUnit):
             # update context in job payload
             job.setdefault('context', {}).update(self._ctx)
  
-            # propagate priority and container configs from HySDS context
-            job['priority'] = int(self._ctx.get('job_priority', 0))
-            job['username'] = self._ctx.get('username', None)
-            job['container_image_name'] = self._ctx.get('container_image_name', None)
-            job['container_image_url'] = self._ctx.get('container_image_url', None)
-            job['container_mappings'] = self._ctx.get('container_mappings', {})
+            # propagate job/container configs from HySDS context
+            if 'priority' not in job:
+                job['priority'] = int(self._ctx.get('job_priority', 0))
+            if 'username' not in job:
+                job['username'] = self._ctx.get('username', None)
+            if 'container_image_name' not in job:
+                job['container_image_name'] = self._ctx.get('container_image_name', None)
+            if 'container_image_url' not in job:
+                job['container_image_url'] = self._ctx.get('container_image_url', None)
+            if 'container_mappings' not in job:
+                job['container_mappings'] = self._ctx.get('container_mappings', {})
             
             # set tag from HySDS context
-            if 'tag' in self._ctx: job['tag'] = self._ctx['tag']
+            if 'tag' not in job and 'tag' in self._ctx: job['tag'] = self._ctx['tag']
             
             jobs.append(job)
 
