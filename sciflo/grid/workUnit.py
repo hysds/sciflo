@@ -538,7 +538,18 @@ class ParMapWorkUnit(PythonFunctionWorkUnit):
                 ready = res.ready()
                 if ready: break
                 time.sleep(5)
-            return [i for i in res.join(timeout=10.)]
+            results = []
+            for r in res.join(timeout=10.):
+                # deduped job?
+                if isinstance(r, (types.ListType, types.TupleType)):
+                    # build resolvable result
+                    task_id = r[0]
+                    results.append({ 'uuid': task_id,
+                                     'job_id': task_id,
+                                     'payload_id': task_id,
+                                     'status': 'job-deduped' })
+                else: results.append(r)
+            return results
 
 class ParWorkUnitError(Exception):
     """ParWorkUnit Exception class."""
