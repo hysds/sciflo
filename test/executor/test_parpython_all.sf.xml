@@ -16,7 +16,8 @@
     </sf:inputs>
 
     <sf:outputs>
-      <res>@#get_reduce_result</res>
+      <res1>@#get_reduce_result</res1>
+      <res2>@#get_reduce_result_async</res2>
     </sf:outputs>
 
     <sf:processes>
@@ -54,8 +55,7 @@
         <sf:operator>
           <sf:description></sf:description>
           <sf:op>
-            <sf:binding amqp_url="amqp://guest:guest@mozart-ccmods.jpl.nasa.gov:5672//"
-                        job_queue="parpython_jobs_processed">map:python:?sciflo.mapreduce.test.test_map</sf:binding>
+            <sf:binding job_queue="jobs_processed">map:python:?sciflo.mapreduce.test.create_map_job</sf:binding>
           </sf:op>
         </sf:operator>
       </sf:process>
@@ -70,8 +70,7 @@
         <sf:operator>
           <sf:description></sf:description>
           <sf:op>
-            <sf:binding amqp_url="amqp://guest:guest@mozart-ccmods.jpl.nasa.gov:5672//"
-                        job_queue="parpython_jobs_processed">parallel:python:?sciflo.mapreduce.test.test_reduce_job</sf:binding>
+            <sf:binding job_queue="jobs_processed">parallel:python:?sciflo.mapreduce.test.create_reduce_job</sf:binding>
           </sf:op>
         </sf:operator>
       </sf:process>
@@ -86,7 +85,7 @@
         <sf:operator>
           <sf:description></sf:description>
           <sf:op>
-            <sf:binding>python:?sciflo.mapreduce.test.get_reduce_result</sf:binding>
+            <sf:binding>python:?sciflo.mapreduce.test.get_reduce_job_result</sf:binding>
           </sf:op>
         </sf:operator>
       </sf:process>
@@ -105,7 +104,7 @@
         <sf:operator>
           <sf:description></sf:description>
           <sf:op>
-            <sf:binding job_queue="parpython_jobs_processed" async="true">map:python:?sciflo.mapreduce.test.test_map</sf:binding>
+            <sf:binding job_queue="jobs_processed" async="true">map:python:?sciflo.mapreduce.test.create_map_job</sf:binding>
           </sf:op>
         </sf:operator>
       </sf:process>
@@ -120,11 +119,10 @@
         <sf:operator>
           <sf:description></sf:description>
           <sf:op>
-            <sf:binding>python:?sciflo.mapreduce.test.test_reduce_async</sf:binding>
+            <sf:binding>python:?sciflo.mapreduce.test.join_map_jobs</sf:binding>
           </sf:op>
         </sf:operator>
       </sf:process>
-    </sf:processes>
 
       <sf:process id="get_reduce_result_async">
         <sf:inputs>
@@ -136,7 +134,7 @@
         <sf:operator>
           <sf:description></sf:description>
           <sf:op>
-            <sf:binding>python:?sciflo.mapreduce.test.get_reduce_result</sf:binding>
+            <sf:binding>python:?sciflo.mapreduce.test.reduce_map_jobs</sf:binding>
           </sf:op>
         </sf:operator>
       </sf:process>
