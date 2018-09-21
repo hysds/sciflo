@@ -1,4 +1,3 @@
-import catalog
 import db
 import utils
 import webservices
