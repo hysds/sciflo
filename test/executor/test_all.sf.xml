@@ -110,7 +110,7 @@
         </sf:outputs>
         <sf:operator>
           <sf:description></sf:description>
-            <sf:op><sf:binding>python:http://sciflo/sfldev3/testModule.py?testModule.sleepAndAdd</sf:binding></sf:op>
+            <sf:op><sf:binding>python:https://raw.githubusercontent.com/hysds/sciflo/master/test/executor/testModule.py?testModule.sleepAndAdd</sf:binding></sf:op>
         </sf:operator>
       </sf:process>
 
