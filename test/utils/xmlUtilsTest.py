@@ -12,7 +12,7 @@ import unittest
 import os
 from tempfile import mkdtemp
 import lxml.etree
-from StringIO import StringIO
+from io import StringIO
 
 from sciflo.utils import *
 from sciflo.utils.xmlIndent import indent

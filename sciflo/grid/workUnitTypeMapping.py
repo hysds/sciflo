@@ -9,7 +9,7 @@
 #              U.S. Government Sponsorship acknowledged.
 #-----------------------------------------------------------------------------
 
-from workUnit import *
+from .workUnit import *
 
 #mapping of work unit types to their respective WorkUnit subclass
 WorkUnitTypeMapping = {

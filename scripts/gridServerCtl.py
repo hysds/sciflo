@@ -26,9 +26,9 @@ lockDir = '/tmp'
 def usage():
     """Print usage info."""
 
-    print """%s [-c|--configFile <config file>] [-k|--key <server key file>] \
+    print(("""%s [-c|--configFile <config file>] [-k|--key <server key file>] \
 [-C|--cert <server cert file>] [--clean] [--kill] [-d|--debug] [-l|--log] \
-[-t|--type <threading|forking|twisted>] [-h|--help]""" % sys.argv[0]
+[-t|--type <threading|forking|twisted>] [-h|--help]""" % sys.argv[0]))
 
 def getRunningServerPid(port):
     """Get pid of any server currently running.  If none, return 0.
@@ -42,7 +42,7 @@ def getRunningServerPid(port):
         lockingPid = open(lockFile,'r').read()
         if os.path.isdir(os.path.join('/proc',lockingPid)): return int(lockingPid)
         else:
-            print "Zombie process?  Remove lock at %s to fix." % lockFile
+            print(("Zombie process?  Remove lock at %s to fix." % lockFile))
             sys.exit(2)
     else: return 0
 
@@ -111,7 +111,7 @@ def start(configFile, serverCertFile=None, serverKeyFile=None, cleanFlag=False,
 
     #check if already running
     if alreadyRunningPid:
-        print "Server already running with pid %s." % alreadyRunningPid
+        print(("Server already running with pid %s." % alreadyRunningPid))
         sys.exit(0)
 
     #instantiate handlers
@@ -150,16 +150,16 @@ def start(configFile, serverCertFile=None, serverKeyFile=None, cleanFlag=False,
                         returnFaultInfo=1, rootDir=rootWorkDir, debug=debug, log=log,
                         proxyUrl=gridProxyUrl, threading=threading)
                 break
-            except Exception, e:
-                print e
-                print "Retrying soap server."
+            except Exception as e:
+                print(e)
+                print("Retrying soap server.")
                 time.sleep(1)
 
         retval = server.registerEndpoint(sciflo.utils.xmlUtils.transformXml(configFile,
             sciflo.utils.xmlUtils.GRID_ENDPOINT_CONFIG_XSL))
         server.serveForever()
         os._exit(0)
-    print "Server process %s started on port %s." % (pid,gridSoapPort)
+    print(("Server process %s started on port %s." % (pid,gridSoapPort)))
 
 def stop(configFile):
 
@@ -173,7 +173,7 @@ def stop(configFile):
     #check if already running
     if alreadyRunningPid: pass
     else:
-        print "No server running."
+        print("No server running.")
         sys.exit(0)
 
     #get pid
@@ -186,18 +186,18 @@ def stop(configFile):
     #make sure it's running
     if os.path.isdir(os.path.join('/proc',pidStr)): pass
     else:
-        print "Zombie process?  Remove orphaned lock at %s to fix." % lockFile
+        print(("Zombie process?  Remove orphaned lock at %s to fix." % lockFile))
         sys.exit(2)
 
     #kill
     try: os.kill(pid,signal.SIGTERM)
-    except: print "Got exception trying to kill pid or unlink lock."
+    except: print("Got exception trying to kill pid or unlink lock.")
 
     #remove lock
     try:
         os.unlink(lockFile)
-        print "Server process %s at port %s stopped." % (pidStr,gridSoapPort)
-    except: print "Got exception trying to unlink lock file."
+        print(("Server process %s at port %s stopped." % (pidStr,gridSoapPort)))
+    except: print("Got exception trying to unlink lock file.")
 
 
 def main():
@@ -239,8 +239,8 @@ def main():
         #set config file
         if o in ("-c","--configFile"):
             if configFileSet:
-                print """Multiple -c|--configFile specifications found.\
-  Only specify one config file."""
+                print("""Multiple -c|--configFile specifications found.\
+  Only specify one config file.""")
                 usage()
                 sys.exit(2)
             else:
@@ -250,8 +250,8 @@ def main():
         #set server key file
         if o in ("-k","--key"):
             if serverKeyFileSet:
-                print """Multiple -k|--key specifications found.\
-  Only specify one server key file."""
+                print("""Multiple -k|--key specifications found.\
+  Only specify one server key file.""")
                 usage()
                 sys.exit(2)
             else:
@@ -261,8 +261,8 @@ def main():
         #set server cert file
         if o in ("-C","--cert"):
             if serverCertFileSet:
-                print """Multiple -C|--cert specifications found.\
-  Only specify one server cert file."""
+                print("""Multiple -C|--cert specifications found.\
+  Only specify one server cert file.""")
                 usage()
                 sys.exit(2)
             else:
@@ -272,12 +272,12 @@ def main():
         #check type
         if o in ("-t","--type"):
             if typeSet:
-                print "Multiple -t|--type specifications found.  Only specify one type."
+                print("Multiple -t|--type specifications found.  Only specify one type.")
                 usage()
                 sys.exit(2)
             else:
                 if a not in ('threading', 'forking', 'twisted'):
-                    print "Invalid server type: %s." % a
+                    print(("Invalid server type: %s." % a))
                     usage()
                     sys.exit(2)
                 if a == 'threading': threading = True

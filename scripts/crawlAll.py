@@ -21,12 +21,12 @@ lockFile = os.path.join(tempfile.gettempdir(),
 if os.path.exists(lockFile):
     lockingPid = open(lockFile, 'r').read()
     if os.path.isdir(os.path.join('/proc', lockingPid)) and lockingPid != '':
-        print "%s: Process %s already running." % \
-            (DT.utcfromtimestamp(time.time()).isoformat(), lockingPid)
+        print(("%s: Process %s already running." % \
+            (DT.utcfromtimestamp(time.time()).isoformat(), lockingPid)))
         sys.exit(0)
     else:
-        print "%s: Zombie process?  Removed lock with pid %s." % \
-            (DT.utcfromtimestamp(time.time()).isoformat(), lockingPid)
+        print(("%s: Zombie process?  Removed lock with pid %s." % \
+            (DT.utcfromtimestamp(time.time()).isoformat(), lockingPid)))
         os.unlink(lockFile)
 
 #create lock file
@@ -55,19 +55,19 @@ else: xmlConfigFiles = sys.argv[1:]
 
 for xmlConfigFile in xmlConfigFiles:
     try:
-        print "Doing", xmlConfigFile
+        print(("Doing", xmlConfigFile))
         libobj=ScifloLibrarian(xmlConfigFile)
         instr=libobj.getInstrument()
         level=libobj.getLevel()
         catalogobj=SqlAlchemyCatalog(schema)
         libobj.setCatalog(catalogobj)
         retval=libobj.crawlAndCatalog(page=True)
-        print "Finished crawlAndCatalog() with: ",retval
+        print(("Finished crawlAndCatalog() with: ",retval))
     except:
         traceback.print_exc()
-        raise SystemExit, 1
+        raise SystemExit(1)
 
 #remove lock file
 os.unlink(lockFile)
-print "%s: Script finished.  Removed lock with pid %s." % \
-    (DT.utcfromtimestamp(time.time()).isoformat(), currentPid)
+print(("%s: Script finished.  Removed lock with pid %s." % \
+    (DT.utcfromtimestamp(time.time()).isoformat(), currentPid)))

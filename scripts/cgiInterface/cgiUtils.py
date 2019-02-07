@@ -6,14 +6,14 @@ from sciflo.utils import isXml, isUrl, escapeCharsForCDATA, getType, getGMapKey
 def urlizeEnumerable(obj):
     resList = []
     for i in obj:
-        if isinstance(i, (types.ListType, types.TupleType)): res = urlizeEnumerable(i)
+        if isinstance(i, (list, tuple)): res = urlizeEnumerable(i)
         else:
             if isUrl(i): res = '<a href="%s" target="_blank">%s</a>' % (i, i)
             else: res = i
         resList.append(res)
-    if isinstance(obj, types.ListType): return resList
-    if isinstance(obj, types.TupleType): return tuple(resList)
-    else: raise RuntimeError, "Cannot recognize type to urlize: %s" % type(obj)
+    if isinstance(obj, list): return resList
+    if isinstance(obj, tuple): return tuple(resList)
+    else: raise RuntimeError("Cannot recognize type to urlize: %s" % type(obj))
 
 class LinkHtmlGenerator(object):
     """Holder class to recognize result types and generate appropriate result links."""
@@ -87,18 +87,18 @@ largeResultLnk = '''<a href="#" onclick="Ext.Msg.alert('Result size exceeded', '
 def isGeneric(obj): return True
 def isException(obj): return isinstance(obj, Exception)
 def isNonXmlOrUrlString(obj):
-    if isinstance(obj, types.StringTypes) and not isXml(obj) and not isUrl(obj): return True
+    if isinstance(obj, str) and not isXml(obj) and not isUrl(obj): return True
     else: return False
 def isUrlList(obj):
     #detect if list of urls exists
     urlCount = 0
-    if isinstance(obj, (types.ListType, types.TupleType)):
+    if isinstance(obj, (list, tuple)):
         for res in obj:
             if isUrl(res) or os.path.exists(str(res)): urlCount += 1
         if urlCount >= 2: return True
     return False
 def isKml(obj):
-    if isinstance(obj, types.StringTypes):
+    if isinstance(obj, str):
         if isUrl(obj) and obj.endswith('.kml'): return True
         elif isXml(obj) and re.search(r'<kml', obj): return True
     return False
@@ -205,7 +205,7 @@ def getResultLinkHtml(wuid, result, resultIndex, *args, **kargs):
     
     #get output tag name
     outputName = None
-    if kargs.has_key('outputName'): outputName = kargs['outputName']
+    if 'outputName' in kargs: outputName = kargs['outputName']
     
     #get type
     resType = getType(result)

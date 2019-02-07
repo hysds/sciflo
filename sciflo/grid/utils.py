@@ -11,14 +11,14 @@
 import time, hashlib, re, types, os, shutil, traceback, sys, json, copy
 from random import Random
 from socket import getfqdn
-import cPickle as pickle
+import pickle as pickle
 from SOAPpy import SOAPProxy
-from UserList import UserList
-from urlparse import urlparse
-from StringIO import StringIO
+from collections import UserList
+from urllib.parse import urlparse
+from io import StringIO
 import lxml.etree
 from string import Template
-import urllib2, contextlib
+import urllib.request, urllib.error, urllib.parse, contextlib
 
 from sciflo.utils import (magic, getListFromUnknownObject, ScifloConfigParser,
 SCIFLO_NAMESPACE, linkFile, runDot, getXmlEtree, validateDirectory,
@@ -34,7 +34,7 @@ def publicizeResultFiles(result, ubt, dir=None):
     replace with url to that file.  Return the converted result."""
 
     #if string, try to get url
-    if isinstance(result, (types.StringType, types.UnicodeType)):
+    if isinstance(result, (bytes, str)):
         try:
             thisResult = result
             if thisResult.startswith('/'): return ubt.getUrl(thisResult)
@@ -42,10 +42,10 @@ def publicizeResultFiles(result, ubt, dir=None):
             if os.path.exists(thisResult): return ubt.getUrl(thisResult)
             else: return result
         except: return result
-    elif isinstance(result, (types.ListType, types.TupleType)):
+    elif isinstance(result, (list, tuple)):
         newResult = []
         for r1 in result: newResult.append(publicizeResultFiles(r1, ubt, dir=dir))
-        if isinstance(result, types.TupleType): return tuple(newResult)
+        if isinstance(result, tuple): return tuple(newResult)
         else: return newResult
     else: return result
     
@@ -62,12 +62,12 @@ def getAbsPathForResultFiles(result, dir=None):
     
     try:
         #if string, try to get url
-        if isinstance(result, (types.StringType, types.UnicodeType)):
+        if isinstance(result, (bytes, str)):
             if os.path.exists(result): result = os.path.abspath(result)
-        elif isinstance(result,(types.TupleType, types.ListType)):
+        elif isinstance(result,(tuple, list)):
             newResult = []
             for r1 in result: newResult.append(getAbsPathForResultFiles(r1))
-            if isinstance(result, types.TupleType): result = tuple(newResult)
+            if isinstance(result, tuple): result = tuple(newResult)
             else: result = newResult
         else: pass
     finally:
@@ -80,7 +80,7 @@ def loadJson(jsonFile, unpickleKeys=[]):
     tryNum = 1
     while True:
         try: 
-            with contextlib.closing(urllib2.urlopen(jsonFile)) as f:
+            with contextlib.closing(urllib.request.urlopen(jsonFile)) as f:
                 val = f.read()
             obj = json.loads(val)
             break
@@ -90,7 +90,7 @@ def loadJson(jsonFile, unpickleKeys=[]):
                 time.sleep(1) 
             else: raise
     #unpickle keys
-    if isinstance(obj, types.DictType) and len(unpickleKeys) > 0:
+    if isinstance(obj, dict) and len(unpickleKeys) > 0:
         for k in unpickleKeys:
             if obj.get(k, None) is not None: obj[k] = unpickleThis(obj[k])
     return obj
@@ -100,19 +100,19 @@ def updateJson(jsonFile, obj, stringifyKeys=[], ubt=None, publicizeKeys=[],
     """Write obj in JSON format to file or update it."""
     
     #publicize
-    if isinstance(obj, types.DictType) and ubt is not None and \
+    if isinstance(obj, dict) and ubt is not None and \
         len(publicizeKeys) > 0:
         obj = copy.deepcopy(obj)
         for k in publicizeKeys: obj[k] = publicizeResultFiles(obj[k], ubt)
         
     #make sure result is stringified
-    if isinstance(obj, types.DictType) and len(stringifyKeys) > 0:
+    if isinstance(obj, dict) and len(stringifyKeys) > 0:
         obj = copy.deepcopy(obj)
         for k in stringifyKeys:
             if obj.get(k, None) is not None: obj[k] = str(obj[k])
         
     #pickle keys
-    if isinstance(obj, types.DictType) and len(pickleKeys) > 0:
+    if isinstance(obj, dict) and len(pickleKeys) > 0:
         obj = copy.deepcopy(obj)
         for k in pickleKeys:
             if obj.get(k, None) is not None: obj[k] = pickleThis(obj[k])
@@ -127,8 +127,8 @@ def updatePdict(pdict, k, v):
     
     try:
         if pdict is not None: pdict[k] = v
-    except Exception, e:
-        print "Got exception trying to update pdict key '%s': %s" % (k, str(e))
+    except Exception as e:
+        print(("Got exception trying to update pdict key '%s': %s" % (k, str(e))))
 
 def runFuncWithRetriesAndSleep(retries, sleep, f, *args, **kargs):
     """Run a function in a retry loop with sleeps."""
@@ -136,9 +136,9 @@ def runFuncWithRetriesAndSleep(retries, sleep, f, *args, **kargs):
     e = None
     for i in range(retries):
         try: return f(*args, **kargs)
-        except Exception, e:
-            print "Got error in runFuncWithRetriesAndSleep() on try %i for \
-function '%s': %s\n%s" % (i + 1, str(f), str(e), getTb())
+        except Exception as e:
+            print(("Got error in runFuncWithRetriesAndSleep() on try %i for \
+function '%s': %s\n%s" % (i + 1, str(f), str(e), getTb())))
         time.sleep(sleep)
     raise e
 
@@ -152,10 +152,10 @@ def runLockedFunction(mutex, f, *args, **kargs):
     runFuncWithRetriesAndSleep(3, 1, mutex.acquire)
     gotError = False
     try: res = f(*args, **kargs)
-    except Exception, res:
+    except Exception as res:
         gotError = True
-        print "Got error in runLockedFunction() for function '%s': %s\n%s" % \
-            (str(f), str(res), getTb())
+        print(("Got error in runLockedFunction() for function '%s': %s\n%s" % \
+            (str(f), str(res), getTb())))
     finally: runFuncWithRetriesAndSleep(3, 1, mutex.release)
     if gotError: raise res
     return res
@@ -171,12 +171,12 @@ def getTb():
 def normalizeScifloArgs(args):
     """Normalize sciflo args to either a list or dict."""
 
-    if isinstance(args,types.DictType) or \
-        (isinstance(args,(types.ListType,types.TupleType)) and (len(args) != 1)): return args
-    elif isinstance(args,(types.ListType,types.TupleType)):
-        if isinstance(args[0],(types.ListType,types.TupleType,types.DictType)): return args[0]
+    if isinstance(args,dict) or \
+        (isinstance(args,(list,tuple)) and (len(args) != 1)): return args
+    elif isinstance(args,(list,tuple)):
+        if isinstance(args[0],(list,tuple,dict)): return args[0]
         else: return args
-    else: raise RuntimeError, "Unrecognized type for sciflo args: %s" % type(args)
+    else: raise RuntimeError("Unrecognized type for sciflo args: %s" % type(args))
 
 def generateUniqueId(prefix='id'):
     """Return a randomly id."""
@@ -199,11 +199,11 @@ def getArgsString(args):
     """Return string representation of args."""
 
     retString = ''
-    if isinstance(args,(types.ListType, types.TupleType, set, UserList)):
+    if isinstance(args,(list, tuple, set, UserList)):
         for arg in args: retString += getArgsString(arg)
         return retString
-    elif isinstance(args, types.DictType):
-        keys = args.keys(); keys.sort()
+    elif isinstance(args, dict):
+        keys = list(args.keys()); keys.sort()
         for key in keys: retString += "%s|%s" % (key, getArgsString(args[key]))
         return retString
     else: return str(args)
@@ -274,17 +274,17 @@ def getFunction(funcStr, addToSysPath=None):
     libmatch = re.match(r'^((?:\w|\.)+)\.\w+\(?.*$',funcStr)
     if libmatch:
         importLib = libmatch.group(1)
-        if addToSysPath: exec "import sys; sys.path.insert(1,'%s')" % addToSysPath
-        exec "import %s" % importLib
-        exec "reload(%s)" % importLib
+        if addToSysPath: exec("import sys; sys.path.insert(1,'%s')" % addToSysPath)
+        exec("import %s" % importLib)
+        exec("reload(%s)" % importLib)
 
     #check there are args
     argsMatch = re.search(r'\((\w+)\..+\)$', funcStr)
     if argsMatch:
         importLib2 = argsMatch.group(1)
-        if addToSysPath: exec "import sys; sys.path.insert(1,'%s')" % addToSysPath
-        exec "import %s" % importLib2
-        exec "reload(%s)" % importLib2
+        if addToSysPath: exec("import sys; sys.path.insert(1,'%s')" % addToSysPath)
+        exec("import %s" % importLib2)
+        exec("reload(%s)" % importLib2)
 
     #return function
     return eval(funcStr)
@@ -320,7 +320,7 @@ def linkResult(res, outputDir, newName = None):
     if os.path.isfile(res):
         res = os.path.abspath(res)
         if res != dest: linkFile(res, dest)
-    else: raise RuntimeError, "Unknown file type for %s" % res
+    else: raise RuntimeError("Unknown file type for %s" % res)
     return dest
 
 def dotFlowChartFromDependencies(processes, outputs, inputs=None):
@@ -423,7 +423,7 @@ def fullDotFlowChartFromDependencies(dotInfoElt):
         procOutputsElt = process[1]
         if procType == 'explicit': shapeInfo = "shape = plaintext"
         elif procType == 'implicit': shapeInfo = 'shape = box, style = "rounded,dotted"'
-        else: raise RuntimeError, "Unknown process type %s." % procType
+        else: raise RuntimeError("Unknown process type %s." % procType)
         inputStubsList = []
         for procInputElt in procInputsElt:
             procInputId = procInputElt.get('id')
@@ -482,12 +482,12 @@ def getScifloFromSvg(xml):
 
     #get xml tree
     #svgElt,svgNsDict = getXmlEtree(xml)
-    raise NotImplementedError, "Not yet implemented."
+    raise NotImplementedError("Not yet implemented.")
 
 def statusUpdateJson(obj, stringifyKeys):
     """Stringify any objects that may not be JSON serializable."""
     
-    if isinstance(obj, types.DictType) and len(stringifyKeys) > 0:
+    if isinstance(obj, dict) and len(stringifyKeys) > 0:
         obj = copy.deepcopy(obj)
         for k in stringifyKeys:
             if obj.get(k, None) is not None:

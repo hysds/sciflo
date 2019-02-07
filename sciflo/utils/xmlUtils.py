@@ -9,7 +9,7 @@
 #              U.S. Government Sponsorship acknowledged.
 # Licence:
 #-----------------------------------------------------------------------------
-from StringIO import StringIO
+from io import StringIO
 from xml.dom.ext import PrettyPrint
 from xml.dom.minidom import getDOMImplementation, parseString
 import types
@@ -22,17 +22,17 @@ import datetime
 import libxml2
 import libxslt
 import lxml.etree
-from urllib2 import urlopen, Request
-from urllib import urlopen as urllibopen
-from urlparse import urlparse
-import httplib
+from urllib.request import urlopen, Request
+from urllib.request import urlopen as urllibopen
+from urllib.parse import urlparse
+import http.client
 import traceback
 import socket
 
 import sciflo
-from misc import (getListFromUnknownObject, getUserScifloConfig,
+from .misc import (getListFromUnknownObject, getUserScifloConfig,
 getDictFromUnknownObject, getTempfileName)
-from namespaces import *
+from .namespaces import *
 
 def isXml(obj):
     """Return True if xml is detect and False otherwise."""
@@ -45,7 +45,7 @@ def isXml(obj):
 def isUrl(obj):
     """Return True if xml is detect and False otherwise."""
 
-    if isinstance(obj,types.StringTypes):
+    if isinstance(obj,str):
         obj.strip()
         if re.search(r'^\w*?:',obj): return True
     return False
@@ -53,7 +53,7 @@ def isUrl(obj):
 def writeXmlFile(xmlString, outputFile=None):
     """Write xml to file."""
 
-    if isinstance(xmlString, (types.ListType,types.TupleType)): xmlString = '\n'.join(xmlString)
+    if isinstance(xmlString, (list,tuple)): xmlString = '\n'.join(xmlString)
     #if output file not specified, get random name
     if outputFile is None: outputFile = os.path.abspath(os.path.basename(getTempfileName(suffix='.xml')))
     f = open(outputFile,'w')
@@ -70,7 +70,7 @@ def getXmlEtree(xml):
         return (lxml.etree.parse(StringIO(xml), parser).getroot(), getNamespacePrefixDict(xml))
     else:
         try: xmlStr = urlopen(xml).read()
-        except Exception, e:
+        except Exception as e:
             if re.search(r'unknown url type', str(e), re.IGNORECASE): xmlStr = urllibopen(xml).read()
             else: raise e
         return (lxml.etree.parse(StringIO(xmlStr), parser).getroot(), getNamespacePrefixDict(xmlStr))
@@ -109,7 +109,7 @@ def runXpath(xml, xpathStr, nsDict={}):
     else: root,nsDict = getXmlEtree(xml)
     
     #add '_' as default namespace prefix also
-    if nsDict.has_key('_default'): nsDict['_'] = nsDict['_default']
+    if '_default' in nsDict: nsDict['_'] = nsDict['_default']
     
     gotException = False
     if re.search(r'(?:/|\[|@){.*}', xpathStr):
@@ -117,24 +117,24 @@ def runXpath(xml, xpathStr, nsDict={}):
         res = expr.evaluate(root)
     else:
         try: res = root.xpath(xpathStr)
-        except Exception, e:
+        except Exception as e:
             if isinstance(e,lxml.etree.XPathSyntaxError):
                 if re.search(r'XPATH_UNDEF_PREFIX_ERROR', str(e.error_log)): pass
-                else: raise RuntimeError, "Error in xpath expression %s: %s" % (xpathStr,e.error_log)
+                else: raise RuntimeError("Error in xpath expression %s: %s" % (xpathStr,e.error_log))
             try: res = root.xpath(xpathStr,namespaces=nsDict)
-            except lxml.etree.XPathSyntaxError, e:
-                raise RuntimeError, "Error in xpath expression %s: %s" % (xpathStr,e.error_log)
+            except lxml.etree.XPathSyntaxError as e:
+                raise RuntimeError("Error in xpath expression %s: %s" % (xpathStr,e.error_log))
             except:
                 gotException = True
                 res = []
-        if isinstance(res, (types.ListType, types.TupleType)) and (gotException or len(res) == 0):
+        if isinstance(res, (list, tuple)) and (gotException or len(res) == 0):
             xpathStr = addDefaultPrefixToXpath(xpathStr)
             lxml.etree.clear_error_log()
             try: res = root.xpath(xpathStr,namespaces=nsDict)
-            except lxml.etree.XPathSyntaxError, e:
-                raise RuntimeError, "Error in xpath expression %s: %s" % (xpathStr,e.error_log)
+            except lxml.etree.XPathSyntaxError as e:
+                raise RuntimeError("Error in xpath expression %s: %s" % (xpathStr,e.error_log))
             except: raise
-    if isinstance(res, (types.ListType, types.TupleType)):
+    if isinstance(res, (list, tuple)):
         for i in range(len(res)):
             if isinstance(res[i], lxml.etree._Element): res[i] = lxml.etree.tostring(res[i],pretty_print=True)
             if isinstance(res[i], lxml.etree._ElementStringResult): res[i] = str(res[i])
@@ -147,15 +147,15 @@ def runXpath(xml, xpathStr, nsDict={}):
 def postCall(url, data, headers, verbose=False):
     """Post data to a url and return result."""
 
-    if verbose: print 'postCall to %s:\n' % url, data
+    if verbose: print(('postCall to %s:\n' % url, data))
     protocol, netloc, path, params, query, frag = urlparse(url)
     port = None
     matchPort = re.search(r'^(.+):(\d+)$', netloc)
     if matchPort:
         netloc,port = matchPort.groups()
         port = int(port)
-    if protocol == 'https': c = httplib.HTTPSConnection(netloc, port)
-    else: c = httplib.HTTPConnection(netloc, port)
+    if protocol == 'https': c = http.client.HTTPSConnection(netloc, port)
+    else: c = http.client.HTTPConnection(netloc, port)
     c.connect()
     try:
         if isXml(data):
@@ -164,18 +164,18 @@ def postCall(url, data, headers, verbose=False):
         else: headers['Content-type'] = 'application/x-www-form-urlencoded'
         headers['Content-length'] = str(len(data))
         c.putrequest("POST", path)
-        for key, val in headers.iteritems():
+        for key, val in list(headers.items()):
             c.putheader(key, val)
         c.endheaders()
         c.send(data)
         r = c.getresponse()
         # 200 means OK. Anything other is a failure.
-        if r.status <> 200:
+        if r.status != 200:
             msg = r.read()
-            raise RuntimeError, 'http-error:' + repr(r.status) + ' ' + repr(r.reason) + ' ' + msg
+            raise RuntimeError('http-error:' + repr(r.status) + ' ' + repr(r.reason) + ' ' + msg)
         xmlOut = r.read()
     finally: c.close()
-    if verbose: print 'postResponse:\n', xmlOut
+    if verbose: print(('postResponse:\n', xmlOut))
     return xmlOut
 
 def getMinidomXmlDocument(rootTag,defaultNamespace=None,xsdNamespace=None,
@@ -223,10 +223,10 @@ def getMinidomXmlDocument(rootTag,defaultNamespace=None,xsdNamespace=None,
         rootElem.setAttributeNode(schema)
 
     #add root attributes if they exist
-    if rootAttribsDict and isinstance(rootAttribsDict,types.DictType):
+    if rootAttribsDict and isinstance(rootAttribsDict,dict):
 
         #loop over each key and value pair
-        for key in rootAttribsDict.keys():
+        for key in list(rootAttribsDict.keys()):
             val = rootAttribsDict[key]
             attr = xmlDoc.createAttribute(key)
             attr.value = val
@@ -245,7 +245,7 @@ def simpleList2Xml(LL,rootElement = "Rows", rowElement = "row",rootAttribsDict=N
     #xmlDoc = getMinidomXmlDocument(rootElement,defaultNamespace,xsdNamespace,
     #                              schemaUrl,xsiNamespace,rootAttribsDict,xslPath)
     #rootElem = xmlDoc.documentElement
-    if not isinstance(rootAttribsDict, types.DictType): rootAttribsDict = {}
+    if not isinstance(rootAttribsDict, dict): rootAttribsDict = {}
     if defaultNamespace is not None: rootAttribsDict[None] = defaultNamespace
     else: rootAttribsDict[None] = SCIFLO_NAMESPACE
     if xsdNamespace is not None: rootAttribsDict['xs'] = xsdNamespace
@@ -254,7 +254,7 @@ def simpleList2Xml(LL,rootElement = "Rows", rowElement = "row",rootAttribsDict=N
     rootElem = lxml.etree.Element(rootElement, nsmap=rootAttribsDict)
 
     # set non-namespace attributes
-    if isinstance(rootAttribsDictNonNS, types.DictType):
+    if isinstance(rootAttribsDictNonNS, dict):
         for k in rootAttribsDictNonNS: rootElem.set(k, str(rootAttribsDictNonNS[k]))
 
     #loop over each record and populate dom
@@ -268,17 +268,17 @@ def simpleList2Xml(LL,rootElement = "Rows", rowElement = "row",rootAttribsDict=N
         recElem.text = str(row)
 
         #set type
-        if isinstance(row,types.FloatType):
+        if isinstance(row,float):
             #floatAttr = xmlDoc.createAttribute('type')
             #floatAttr.value = 'xs:float'
             #rowElem.setAttributeNode(floatAttr)
             recElem.set('type', 'xs:float')
-        elif isinstance(row,types.IntType):
+        elif isinstance(row,int):
             #intAttr = xmlDoc.createAttribute('type')
             #intAttr.value = 'xs:int'
             #rowElem.setAttributeNode(intAttr)
             recElem.set('type', 'xs:int')
-        elif isinstance(row,types.BooleanType):
+        elif isinstance(row,bool):
             #boolAttr = xmlDoc.createAttribute('type')
             #boolAttr.value = 'xs:boolean'
             #rowElem.setAttributeNode(boolAttr)
@@ -330,7 +330,7 @@ def list2Xml(LL,headingsTuple = (), rootElement = "Rows", rowElement = "row",
     #xmlDoc = getMinidomXmlDocument(rootElement,defaultNamespace,xsdNamespace,
     #                               schemaUrl,xsiNamespace,rootAttribsDict,xslPath)
     #rootElem = xmlDoc.documentElement
-    if not isinstance(rootAttribsDict, types.DictType): rootAttribsDict = {}
+    if not isinstance(rootAttribsDict, dict): rootAttribsDict = {}
     if defaultNamespace is not None: rootAttribsDict[None] = defaultNamespace
     else: rootAttribsDict[None] = SCIFLO_NAMESPACE
     if xsdNamespace is not None: rootAttribsDict['xs'] = xsdNamespace
@@ -339,7 +339,7 @@ def list2Xml(LL,headingsTuple = (), rootElement = "Rows", rowElement = "row",
     rootElem = lxml.etree.Element(rootElement, nsmap=rootAttribsDict)
 
     # set non-namespace attributes
-    if isinstance(rootAttribsDictNonNS, types.DictType):
+    if isinstance(rootAttribsDictNonNS, dict):
         for k in rootAttribsDictNonNS: rootElem.set(k, str(rootAttribsDictNonNS[k]))
 
     #loop over each record, get heading and data, and populate dom
@@ -355,7 +355,7 @@ def list2Xml(LL,headingsTuple = (), rootElement = "Rows", rowElement = "row",
         #loop over data and append
         for x in range(numHeadings):
             heading = headingsTuple[x]
-            if isinstance(heading,types.ListType) or isinstance(heading,types.TupleType):
+            if isinstance(heading,list) or isinstance(heading,tuple):
                 recItems = getListFromUnknownObject(rec[x])
                 #xElem = xmlDoc.createElement(heading[0])
                 #recElem.appendChild(xElem)
@@ -383,17 +383,17 @@ def addChildTextNodeToParentNode(parentNode,childTag,childValue):
     childNode.text = str(childValue)
 
     #set type attribute
-    if isinstance(childValue,types.FloatType):
+    if isinstance(childValue,float):
         #floatAttr = xmlDoc.createAttribute('type')
         #floatAttr.value = 'xs:float'
         #childNode.setAttributeNode(floatAttr)
         childNode.set('type', 'xs:float')
-    elif isinstance(childValue,types.IntType):
+    elif isinstance(childValue,int):
         #intAttr = xmlDoc.createAttribute('type')
         #intAttr.value = 'xs:int'
         #childNode.setAttributeNode(intAttr)
         childNode.set('type', 'xs:int')
-    elif isinstance(childValue,types.BooleanType):
+    elif isinstance(childValue,bool):
         #boolAttr = xmlDoc.createAttribute('type')
         #boolAttr.value = 'xs:boolean'
         #childNode.setAttributeNode(boolAttr)
@@ -451,7 +451,7 @@ def xml2List(xmlString):
         #loop over tagnames
         for tagName in tagNames:
             try: thisTagNode = node.getElementsByTagName(tagName)[0]
-            except IndexError, e: raise RuntimeError, e
+            except IndexError as e: raise RuntimeError(e)
 
             #get data value for the tag
             dataVal = thisTagNode.firstChild.data
@@ -489,8 +489,8 @@ def getListDictFromXml(xml,recordTag='Result',keyTag='objectid',
 
         #make sure first subresult is 'objectid'
         if subresults[0].tag == namespaceString+keyTag: objectid = subresults[0].text
-        else:  raise RuntimeError, '''Error parsing xml into metadata dict.  First record
-is not 'objectid' tag: %''' % subresult[0].tag
+        else:  raise RuntimeError('''Error parsing xml into metadata dict.  First record
+is not 'objectid' tag: %''' % subresult[0].tag)
 
         #metadata list
         list = []
@@ -556,8 +556,8 @@ def xmlLoL2PyDoL(xml, defaultNamespace=SCIFLO_NAMESPACE):
         #get key
         key = subElts[0].text
         if key is None:
-            raise RuntimeError, '''Error parsing xml into metadata dict.  First record %s
-                cannot be None.''' % subElts[0].tag
+            raise RuntimeError('''Error parsing xml into metadata dict.  First record %s
+                cannot be None.''' % subElts[0].tag)
         #set list
         metadataDict[key] = getEltsAsList(subElts[1:])
 
@@ -567,7 +567,7 @@ def xmlLoL2PyDoL(xml, defaultNamespace=SCIFLO_NAMESPACE):
 def pyDoL2XmlList(infoDict, rootElement="resultSet", rowElement="objectid"):
     """Return xml list of the dict keys."""
 
-    keys = infoDict.keys()
+    keys = list(infoDict.keys())
     keys.sort()
     return simpleList2Xml(keys, rootElement=rootElement, rowElement=rowElement)
 
@@ -618,7 +618,7 @@ def validateXml(inputXml, schemaXml):
         else: s = StringIO(schemaXml)
         lxml.etree.clear_error_log()
         try: schemaDoc = lxml.etree.parse(s)
-        except lxml.etree.XMLSyntaxError, e:
+        except lxml.etree.XMLSyntaxError as e:
             if str(e) == '':
                 e = lxml.etree.XMLSyntaxError("Error in schema xml: %s" % \
                     str(e.error_log.filter_levels(lxml.etree.ErrorLevels.FATAL)))
@@ -626,13 +626,13 @@ def validateXml(inputXml, schemaXml):
         xmlSchema = lxml.etree.XMLSchema(schemaDoc)
         lxml.etree.clear_error_log()
         try: doc = lxml.etree.parse(f)
-        except Exception, e:
+        except Exception as e:
             if str(e) == '':
                 e = lxml.etree.XMLSyntaxError("Error in input xml: %s" % \
                     str(e.error_log.filter_levels(lxml.etree.ErrorLevels.FATAL)))
             return (False,e)
         ret = xmlSchema.validate(doc)
-    except Exception, e: return (False, e)
+    except Exception as e: return (False, e)
 
     if ret == 0:
         return (False,XmlValidationError("Failed to validate xml: %s" % \
@@ -666,8 +666,8 @@ class ScifloConfigParser(object):
 
         #check to make sure sciflo xml config exists
         if not os.path.isfile(self._configFile):
-            raise ScifloConfigParserError, "Cannot find sciflo configuration file at %s." % \
-            self._configFile
+            raise ScifloConfigParserError("Cannot find sciflo configuration file at %s." % \
+            self._configFile)
 
         #get elementtree doc
         self._xmlDoc = lxml.etree.parse(self._configFile)
@@ -686,8 +686,8 @@ class ScifloConfigParser(object):
 
         val = self.getParameter(param)
         if val is None or val == '':
-            raise ScifloConfigParserError, "Value %s is undefined in sciflo config file %s." % \
-            (param,self._configFile)
+            raise ScifloConfigParserError("Value %s is undefined in sciflo config file %s." % \
+            (param,self._configFile))
         return val
 
     def getParameterViaXPath(self,xpath):
@@ -705,8 +705,8 @@ class ScifloConfigParser(object):
 
         val = self.getParameterViaXPath(xpath)
         if val is None or val == '':
-            raise ScifloConfigParserError, "Value %s is undefined in sciflo config file %s." % \
-            (param,self._configFile)
+            raise ScifloConfigParserError("Value %s is undefined in sciflo config file %s." % \
+            (param,self._configFile))
         return val
 
 def parseTag(eltTag):
@@ -715,7 +715,7 @@ def parseTag(eltTag):
 
     match = re.search(r'\s*(?:{\s*(.+)\s*})?\s*(\w+)', eltTag)
     if match is None:
-        raise RuntimeError, "Failed to parse namespace and tag from elementtree tag %s." % eltTag
+        raise RuntimeError("Failed to parse namespace and tag from elementtree tag %s." % eltTag)
     (namespace,tag) = match.groups()
     return (namespace,tag)
 
@@ -729,7 +729,7 @@ def parseElement(elt, returnChildren=False):
         else: return (None, None, None, None)
     (namespace,tag) = parseTag(elt.tag)
     typ = elt.get('type',None)
-    if elt.attrib.has_key('from'): value = elt.get('from', None)
+    if 'from' in elt.attrib: value = elt.get('from', None)
     else:
         eltKids = elt.getchildren()
         if len(eltKids) > 0:
@@ -756,8 +756,8 @@ XML_DATA_TYPE_MAPPING = {
     'unsignedByte' : int,
     'unsignedShort' : int,
     'unsignedInt' : int,
-    'long' : long,
-    'unsignedLong' : long,
+    'long' : int,
+    'unsignedLong' : int,
     'float' : float,
     'double' : float,
     'real' : float,
@@ -787,7 +787,7 @@ def getTypedValue(typ, val):
     if typ is None: return val
     match = re.search(r'(\w+):(\w+)', typ)
     if match: nsPrefix, typ = match.groups()
-    else: raise RuntimeError, "Unknown namespace prefix for type %s." % typ
+    else: raise RuntimeError("Unknown namespace prefix for type %s." % typ)
 
     #based on xsd type, coerce values to python equivalent
     nsMap = DATA_TYPE_MAPPING[nsPrefix]

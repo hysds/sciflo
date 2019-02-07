@@ -19,12 +19,12 @@ def inIpRange(host, spec):
     """Return True if host is in the ip range specification, False otherwise."""
     #extract host octet values
     match = re.search(r'^(\d+)\.(\d+)\.(\d+)\.(\d+)$', host)
-    if not match: raise RuntimeError, "Format error for host ip: %s"  % host
-    hostOcts = map(int, match.groups())
+    if not match: raise RuntimeError("Format error for host ip: %s"  % host)
+    hostOcts = list(map(int, match.groups()))
     
     #loop over spec octets and check that host's corresponding octet is included
     specOcts = spec.split('.')
-    if len(specOcts) != 4: raise RuntimeError, "Must have 4 octets in spec: %s" % spec
+    if len(specOcts) != 4: raise RuntimeError("Must have 4 octets in spec: %s" % spec)
     for i in range(0,4):
         #match all octets
         if specOcts[i] == '*': continue
@@ -37,14 +37,14 @@ def inIpRange(host, spec):
         #match range
         match = re.search(r'^(\d+)-(\d+)$', specOcts[i])
         if match:
-            startOct, endOct = map(int, match.groups())
+            startOct, endOct = list(map(int, match.groups()))
             if startOct >= endOct:
-                raise RuntimeError, "Start octet cannot be >= end octet: %s" % specOcts[i]
+                raise RuntimeError("Start octet cannot be >= end octet: %s" % specOcts[i])
             if hostOcts[i] < startOct or hostOcts[i] > endOct: return False
             else: continue
             
         #raise
-        raise RuntimeError, "Unknown format for ip range spec: %s" % spec
+        raise RuntimeError("Unknown format for ip range spec: %s" % spec)
     return True
     
 def fetchFromAllowed(netloc):

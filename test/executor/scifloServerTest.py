@@ -1,4 +1,4 @@
-import os, unittest, shutil, SimpleHTTPServer, SocketServer, sys, socket, time
+import os, unittest, shutil, http.server, socketserver, sys, socket, time
 import signal
 from tempfile import mkdtemp
 from twisted.application import internet, service
@@ -139,9 +139,9 @@ class scifloServerTestCase(unittest.TestCase):
                             returnFaultInfo=1, rootDir=rootWorkDir,
                             threading=None, debug=1)
                     break
-                except Exception, e:
-                    print e
-                    print "Retrying soap server."
+                except Exception as e:
+                    print(e)
+                    print("Retrying soap server.")
                     time.sleep(1)
             retval = server.registerEndpoint(transformXml(configFile,
                 GRID_ENDPOINT_CONFIG_XSL))
@@ -169,9 +169,9 @@ class scifloServerTestCase(unittest.TestCase):
                     server = SoapServer(('0.0.0.0', testServicePort),
                         returnFaultInfo=1, debug=1)
                     break
-                except Exception, e:
-                    print e
-                    print "Retrying soap server."
+                except Exception as e:
+                    print(e)
+                    print("Retrying soap server.")
                     time.sleep(1)
             retval = server.registerEndpoint(testServiceXmlFile)
             server.serveForever()
@@ -190,13 +190,13 @@ class scifloServerTestCase(unittest.TestCase):
                     try:
                         sc.connect(('localhost',p))
                         sc.close()
-                        print "Connected to %s at localhost:%s successfully." % (s,p)
+                        print(("Connected to %s at localhost:%s successfully." % (s,p)))
                         break
                     except:
-                        print "Waiting for %s at localhost:%s to come up." % (s,p)
+                        print(("Waiting for %s at localhost:%s to come up." % (s,p)))
                         time.sleep(1)
                     if loopLimit>=30:
-                        raise RuntimeError, "%s failed to come up at localhost:%s." % (s,p)
+                        raise RuntimeError("%s failed to come up at localhost:%s." % (s,p))
                     loopLimit+=1
 
             #first submit
@@ -204,58 +204,58 @@ class scifloServerTestCase(unittest.TestCase):
                                                      self.xmlString, {})
             while True:
                 try: info = loadJson(jsonFile)
-                except IOError, e:
-                    print "Got IOError for %s: %s" % (jsonFile, e)
+                except IOError as e:
+                    print(("Got IOError for %s: %s" % (jsonFile, e)))
                     time.sleep(1)
                     continue
                 if info['status'] in finishedStatusList: break
                 time.sleep(5)
-            for k in info: print "%s: %s" % (k, info[k])
+            for k in info: print(("%s: %s" % (k, info[k])))
             
             #second submit(cached)
             scifloid, jsonFile = submitSciflo_client(wsdl, submitFuncName,
                                                      self.xmlString, {})
             while True:
                 try: info = loadJson(jsonFile)
-                except IOError, e:
-                    print "Got IOError for %s: %s" % (jsonFile, e)
+                except IOError as e:
+                    print(("Got IOError for %s: %s" % (jsonFile, e)))
                     time.sleep(1)
                     continue
                 if info['status'] in finishedStatusList: break
                 time.sleep(5)
-            for k in info: print "%s: %s" % (k, info[k])
+            for k in info: print(("%s: %s" % (k, info[k])))
             
             #no look cache submit
             scifloid, jsonFile = submitSciflo_client(wsdl, submitNoCacheFuncName,
                                                      self.xmlString, {})
             while True:
                 try: info = loadJson(jsonFile)
-                except IOError, e:
-                    print "Got IOError for %s: %s" % (jsonFile, e)
+                except IOError as e:
+                    print(("Got IOError for %s: %s" % (jsonFile, e)))
                     time.sleep(1)
                     continue
                 if info['status'] in finishedStatusList: break
                 time.sleep(5)
-            for k in info: print "%s: %s" % (k, info[k])
+            for k in info: print(("%s: %s" % (k, info[k])))
             
             #fourth submit(cached)
             scifloid, jsonFile = submitSciflo_client(wsdl, submitFuncName,
                                                      self.xmlString, {})
             while True:
                 try: info = loadJson(jsonFile)
-                except IOError, e:
-                    print "Got IOError for %s: %s" % (jsonFile, e)
+                except IOError as e:
+                    print(("Got IOError for %s: %s" % (jsonFile, e)))
                     time.sleep(1)
                     continue
                 if info['status'] in finishedStatusList: break
                 time.sleep(5)
-            for k in info: print "%s: %s" % (k, info[k])
+            for k in info: print(("%s: %s" % (k, info[k])))
             
             #fifth submit(non-cached then cancelled)
             scifloid, jsonFile = submitSciflo_client(wsdl, submitNoCacheFuncName,
                                                      self.xmlString, {})
             time.sleep(10)
-            print cancelSciflo_client(wsdl, cancelFuncName, scifloid)
+            print((cancelSciflo_client(wsdl, cancelFuncName, scifloid)))
             time.sleep(5)
             
         finally:

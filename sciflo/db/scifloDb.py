@@ -20,8 +20,8 @@ def getPyLoD(xml, recordTag):
     """Wrapper function for retrieving python list of dict from xml."""
 
     lod = xmlList2PyLoD(xml, recordTag)
-    if len(lod) == 0: raise RuntimeError, "Cannot extract records.  \
-Make sure '%s' is the correct recordTag." % recordTag
+    if len(lod) == 0: raise RuntimeError("Cannot extract records.  \
+Make sure '%s' is the correct recordTag." % recordTag)
     return lod
 
 class NoIndexedFieldsInXmlError(Exception): pass
@@ -39,7 +39,7 @@ def getIndexedFields(xml, recordTag):
     for subElt in recElt:
         sqltype = subElt.get('sqltype','text')
         if re.search(r'(index|key)', sqltype, re.IGNORECASE): retList.append(subElt.tag)
-    if len(retList) == 0: raise NoIndexedFieldsInXmlError, "Unable to find indexed/keyed fields from xml: %s" % xml
+    if len(retList) == 0: raise NoIndexedFieldsInXmlError("Unable to find indexed/keyed fields from xml: %s" % xml)
     return retList
 
 def getInsertSql(tableName, xml, recordTag, database='mysql'):
@@ -55,7 +55,7 @@ def getUpdateSql(tableName, xml, recordTag, keyTags=[], database='mysql'):
     lod = getPyLoD(xml, recordTag)
     if len(keyTags) == 0: keyTags = getIndexedFields(xml, recordTag)
     for d in lod:
-        whereClause = apply(AND,[d.get(i) == getattr(t,i) for i in keyTags])
+        whereClause = AND(*[d.get(i) == getattr(t,i) for i in keyTags])
         retStrList.append(sqlrepr(Update(t, d, where=whereClause), database))
     return '\n'.join(retStrList)
 
@@ -68,7 +68,7 @@ def getDeleteSql(tableName, xml, recordTag, keyTags=[], database='mysql'):
     lod = getPyLoD(xml, recordTag)
     if len(keyTags) == 0: keyTags = getIndexedFields(xml, recordTag)
     for d in lod:
-        whereClause = apply(AND,[d.get(i) == getattr(t,i) for i in keyTags])
+        whereClause = AND(*[d.get(i) == getattr(t,i) for i in keyTags])
         retStrList.append(sqlrepr(Delete(t, where=whereClause), database))
     return '\n'.join(retStrList)
 
@@ -120,7 +120,7 @@ def insertXml(location, tableName, xml, recordTag='record', keyTags=[],
             if forceDelete:
                 connection.query(getDeleteSql(tableName, xmlRec, recordTag, keyTags, database))
             connection.query(insertSql)
-        except Exception, e:
+        except Exception as e:
             if re.search(r"doesn't exist", str(e), re.IGNORECASE) and createIfNeeded:
                 connection.query(getCreateSql(tableName, xmlRec, recordTag, autoKey))
                 connection.query(insertSql)
@@ -177,7 +177,7 @@ class ScifloDbTable(object):
                 self.keyColSelectMethodStr = 'by' + upper(id[0]) + id[1:]
             elif re.search(r'uni', key, re.IGNORECASE): unique = True
             elif re.search(r'yes', key, re.IGNORECASE): pass
-            else: raise ScifloDbTableError, "Unknown key: %s" % key
+            else: raise ScifloDbTableError("Unknown key: %s" % key)
 
             #get default
             defaultVal = None
@@ -192,7 +192,7 @@ class ScifloDbTable(object):
             elif typ == 'datetime': colClass = "DateTimeCol"
             elif typ.startswith('double'): colClass = "FloatCol"
             elif typ == 'time': colClass = "StringCol"
-            else: raise ScifloDbTableError, "Unknown column type: %s" % typ
+            else: raise ScifloDbTableError("Unknown column type: %s" % typ)
 
             #add col string for class
             colStr = "    %s = %s(" % (id,colClass)
@@ -223,9 +223,9 @@ class ScifloDbTable(object):
 
         #exec class code and create table
         try:
-            exec classDefStr
+            exec(classDefStr)
             self.table = eval(self.tableName)
-        except ValueError, e:
+        except ValueError as e:
             if 'is already in the registry' in str(e):
                 self.table = classregistry.findClass(self.tableName)
             else: raise

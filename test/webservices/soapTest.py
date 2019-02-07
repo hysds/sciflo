@@ -141,7 +141,7 @@ class soapTestCase(unittest.TestCase):
 
             #call echo soap service
             result3 = proxy3.echo(soapArg)
-            print result3
+            print(result3)
 
             #assert
             result3 == echoResultFmt % soapArg

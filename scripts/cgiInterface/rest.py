@@ -101,19 +101,19 @@ def call():
 
         call = 'proxy.%s(%s)' % (method, ', '.join(args))
         result = eval(call)
-    except Exception, e:
+    except Exception as e:
         errMsgs.append(e.message)
         errorResponse(errMsgs, USAGE)
         
-    print "Content-Type: text/xml"
-    print
-    print result
+    print("Content-Type: text/xml")
+    print()
+    print(result)
 
 
 def errorResponse(msgs, usage):
-    print "Content-Type: text/plain"
-    print
-    print usage, '\nError(s):\n', '\n'.join(msgs)
+    print("Content-Type: text/plain")
+    print()
+    print((usage, '\nError(s):\n', '\n'.join(msgs)))
     sys.exit(0)
 
 

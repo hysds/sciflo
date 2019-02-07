@@ -9,16 +9,16 @@
 # Copyright:   (c) 2005, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
 #-----------------------------------------------------------------------------
-import os, re, types, copy, urllib, sys
+import os, re, types, copy, urllib.request, urllib.parse, urllib.error, sys
 import lxml.etree
 from pkg_resources import resource_string
 
 from sciflo.utils import (validateXml, getXmlEtree, SCIFLO_NAMESPACE,
 XSD_NAMESPACE, PY_NAMESPACE, parseTag, isBundle, parseElement, getTypedValue,
 IMPLICIT_CONVERSIONS, runXpath, runDot)
-from utils import (generateWorkUnitConfigId, getHexDigest, getFunction,
+from .utils import (generateWorkUnitConfigId, getHexDigest, getFunction,
 dotFlowChartFromDependencies)
-from postExecution import getConversionFunctionString
+from .postExecution import getConversionFunctionString
 
 NS = {'sf': '{' + SCIFLO_NAMESPACE + '}',
       'xs': '{' + XSD_NAMESPACE + '}',
@@ -31,7 +31,7 @@ def translatePrefixes(xpath, namespaces):
         if elt.find(':') > 0:
             prefix, tag = elt.split(':')
             if prefix in namespaces: elts.append( namespaces[prefix] + tag )
-            else: raise RuntimeError, 'Unknown namespace with prefix %s in XPath: %s' % (prefix, xpath)
+            else: raise RuntimeError('Unknown namespace with prefix %s in XPath: %s' % (prefix, xpath))
         else: elts.append(elt)
     return '/'.join(elts)
 
@@ -156,12 +156,12 @@ class Sciflo(object):
 
         # Make sure not both globalInputArgs and globalInputDict were specified
         if len(self._globalInputArgs) > 0 and len(self._globalInputDict) > 0:
-            raise ScifloError, "Cannot specify both globalInputArgs and globalInputDict args."
+            raise ScifloError("Cannot specify both globalInputArgs and globalInputDict args.")
 
         # Validate sciflo xml with xsd
         validated,validationError = validateXml(self._xmlString,SCIFLO_SCHEMA_XML)
         if not validated:
-            raise ScifloError, "Validation of sciflo xml failed: %s" % str(validationError)
+            raise ScifloError("Validation of sciflo xml failed: %s" % str(validationError))
 
         # Parse XML doc
         self._eltDoc, self._namespacePrefixDict = getXmlEtree(xmlDoc)
@@ -188,7 +188,7 @@ class Sciflo(object):
         for globalInputElt in self._flowInputs:
             inputTag = globalInputElt.tag
             if inputTag is None: continue
-            if inputTag in self.globalInputs: raise ScifloError, "Global input tag '%s' already in use." % inputTag
+            if inputTag in self.globalInputs: raise ScifloError("Global input tag '%s' already in use." % inputTag)
             else: self.globalInputs.append(inputTag)
 
             # Fill inputDict
@@ -199,9 +199,9 @@ class Sciflo(object):
 
         #overwrite global inputs in doc
         if len(self._inputDict) > 0:
-            for k in self._inputDict.keys():
+            for k in list(self._inputDict.keys()):
                 o = doc.find(ns('sf:flow/sf:inputs/%s' % k))
-                if o is None: raise ScifloError, "Unknown global input %s (%s)." % (k, self._inputDict[k])
+                if o is None: raise ScifloError("Unknown global input %s (%s)." % (k, self._inputDict[k]))
                 o.text = str(self._inputDict[k])
 
         # Make sure that global output tagnames were not used more than once
@@ -210,7 +210,7 @@ class Sciflo(object):
             outputTag = globalOutputElt.tag
             if outputTag is None: continue
             if outputTag in self.globalOutputs:
-                raise ScifloError, "Global output tag '%s' already in use." % outputTag
+                raise ScifloError("Global output tag '%s' already in use." % outputTag)
             else: self.globalOutputs.append(outputTag)
 
         # Make sure that process id's were not used more than once
@@ -218,7 +218,7 @@ class Sciflo(object):
         for procElt in self._flowProcessesProcess:
             procId = procElt.get('id')
             if procId in procIds:
-                raise ScifloError, "Id '%s' has been used by a previous process." % procId
+                raise ScifloError("Id '%s' has been used by a previous process." % procId)
             else: procIds.append(procId)
 
         # resolved flag
@@ -253,7 +253,7 @@ class Sciflo(object):
         else: bindingVal = bindingElt.text.strip()
         match = re.search(r'^(.*?):(.*)$', bindingVal, re.S)
         if match: typ,val=match.groups()
-        else: raise ScifloError, "Failed to parse binding: %s" % bindingElt.text.strip()
+        else: raise ScifloError("Failed to parse binding: %s" % bindingElt.text.strip())
 
         #inline python code
         matchPyFunc = re.search(r'(def\s+.*)$', val, re.S)
@@ -265,7 +265,7 @@ class Sciflo(object):
         elif typ == 'sciflo':
             wuType = typ
             endpoint = val
-            call = urllib.urlopen(val).read()
+            call = urllib.request.urlopen(val).read()
         #rest
         elif typ in ('rest','template', 'cmdline'):
             wuType = typ
@@ -314,22 +314,22 @@ class Sciflo(object):
                     if match2:
                         archOrLang,endpoint = match2.groups()
                         if endpoint is None: endpoint = ''
-                    else: raise ScifloError, "Cannot parse executable binding: %s" % endpoint
+                    else: raise ScifloError("Cannot parse executable binding: %s" % endpoint)
                 call = method
-            else: raise ScifloError, "Failed to parse %s binding: %s" % (typ, val)
+            else: raise ScifloError("Failed to parse %s binding: %s" % (typ, val))
         #import and eval python if debugMode
         if self._debugMode:
             sys.path.insert(1, getUserPubPackagesDir())
             sys.path.insert(1, getUserPvtPackagesDir())
             if wuType == 'python function':
                 try: getFunction(call)
-                except Exception, e:
-                    print '''Got exception trying to load module in debug mode.  \
-This module may be a staged file or bundle: %s''' % str(e)
+                except Exception as e:
+                    print(('''Got exception trying to load module in debug mode.  \
+This module may be a staged file or bundle: %s''' % str(e)))
             elif wuType == 'inline python function':
                 try: eval(call)
-                except Exception, e:
-                    print '''Got exception trying to eval inline python in debug mode: %s''' % str(e)
+                except Exception as e:
+                    print(('''Got exception trying to eval inline python in debug mode: %s''' % str(e)))
         isBundle(endpoint)
         return (wuType, endpoint, call)
 
@@ -352,7 +352,7 @@ This module may be a staged file or bundle: %s''' % str(e)
                     xpathStr = match.group(1)
                     return (None, None, runXpath(self._flowInputs,xpathStr,self._namespacePrefixDict))
         if matchingElt is None:
-            raise ScifloError, "Failed to find %s in top level inputs." % tag
+            raise ScifloError("Failed to find %s in top level inputs." % tag)
 
         # Parse matching element
         (eltNs,eltTag,eltType,eltVal) = parseElement(matchingElt)
@@ -368,7 +368,7 @@ This module may be a staged file or bundle: %s''' % str(e)
             './sf:process[@id="%s"]' % resolvingProcId,
             namespaces=self._namespacePrefixDict)
         if len(resolvingProcElts) == 0:
-            raise ScifloError, "Failed to find a resolving process with id %s." % resolvingProcId
+            raise ScifloError("Failed to find a resolving process with id %s." % resolvingProcId)
         else: resolvingProcElt = resolvingProcElts[0]
 
         outputElts = resolvingProcElt.findall(ns('sf:outputs/*'))
@@ -405,13 +405,13 @@ This module may be a staged file or bundle: %s''' % str(e)
                             else: outputTagIndex = index
                             outputElement=outputElt
                             break
-                else: raise ScifloError, "Failed to extract input name from %s." % val
-            else: raise ScifloError, "Failed to extract  %s." % val
+                else: raise ScifloError("Failed to extract input name from %s." % val)
+            else: raise ScifloError("Failed to extract  %s." % val)
 
         # Raise error if outputTagIndex is None
         if outputElement is None:
-            raise ScifloError, "Failed to find output tag %s in resolving process %s." % \
-                (tag, resolvingProcId)
+            raise ScifloError("Failed to find output tag %s in resolving process %s." % \
+                (tag, resolvingProcId))
 
         # Parse matching element
         (eltNs,eltTag,eltType,eltVal) = parseElement(outputElement)
@@ -425,7 +425,7 @@ This module may be a staged file or bundle: %s''' % str(e)
 
     def _resolveFromRedirect(self, tag, val, resolvingProcId):
         """Resolve a work unit input from a redirect."""
-        raise NotImplementedError, "Not yet implemented."
+        raise NotImplementedError("Not yet implemented.")
 
     def resolve(self):
         """Resolve:
@@ -446,12 +446,12 @@ This module may be a staged file or bundle: %s''' % str(e)
             inputTags=[]
             if inputsType == 'arglist': inputsList = inputsElt
             elif inputsType == 'document': inputsList = inputsElt.getiterator()
-            else: raise ScifloError, "Unknown inputsType: %s" % inputsType
+            else: raise ScifloError("Unknown inputsType: %s" % inputsType)
 
             #check
             if inputsType == 'document' and wuType in ('rest','template','xquery', 'cmdline'):
-                raise ScifloError, """Cannot specify 'document' inputs type with rest, template,
-                    cmdline, or xquery work units."""
+                raise ScifloError("""Cannot specify 'document' inputs type with rest, template,
+                    cmdline, or xquery work units.""")
 
             # Loop over input elements
             inputEltIdx = 0
@@ -470,7 +470,7 @@ This module may be a staged file or bundle: %s''' % str(e)
                 #check that inputTag is not already used if argslist mode
                 if inputsType == 'arglist':
                     if inputElt.tag in inputTags:
-                        raise ScifloError, "Input tag '%s' already in use." % inputElt.tag
+                        raise ScifloError("Input tag '%s' already in use." % inputElt.tag)
                     else: inputTags.append(inputElt.tag)
 
                 #implicit?
@@ -514,7 +514,7 @@ This module may be a staged file or bundle: %s''' % str(e)
                     match = re.search(r'@#(\w+)[\.\?]?', inputVal)
                     if match: resolvingProcId = match.group(1)
                     else:
-                        raise ScifloError, "Couldn't parse process id from %s." % inputVal
+                        raise ScifloError("Couldn't parse process id from %s." % inputVal)
 
                     #get inputArgVal
                     (resolvedInputType,resolvedInputArg) = self._resolveFromProcessId(
@@ -549,7 +549,7 @@ This module may be a staged file or bundle: %s''' % str(e)
                     else:
 
                         if inputVal.startswith('@'):
-                            raise ScifloError, "Cannot handle input value %s." % inputVal
+                            raise ScifloError("Cannot handle input value %s." % inputVal)
                         #no resolving needed
                         else:
 
@@ -577,7 +577,7 @@ This module may be a staged file or bundle: %s''' % str(e)
                                 continue
 
                 #check for implicit xpath
-                if isinstance(resolvedInputType, types.StringTypes):
+                if isinstance(resolvedInputType, str):
                     xpathMatch = re.search(r'^sf:xpath:(.*)$', resolvedInputType, re.IGNORECASE)
                     if xpathMatch:
                         xpathMatchStr = xpathMatch.group(1)
@@ -668,7 +668,7 @@ This module may be a staged file or bundle: %s''' % str(e)
 
                         #make sure resolvedInputArg is a UnresolvedArgument type
                         if not isinstance(resolvedInputArg, UnresolvedArgument):
-                            raise ScifloError, "Resolved input argument is not UnresolvedArgument type."
+                            raise ScifloError("Resolved input argument is not UnresolvedArgument type.")
 
                         #get resolving proc id
                         resolvingProcId = resolvedInputArg.getId()
@@ -695,11 +695,11 @@ This module may be a staged file or bundle: %s''' % str(e)
 
                         #raise error if postExecIndex was not set
                         if postExecIndex is None:
-                            raise ScifloError, "Failed to set post execution result index."
+                            raise ScifloError("Failed to set post execution result index.")
 
                     #fail
                     else:
-                        raise ScifloError, "Unrecognized value for resolvedFrom: %s" % resolvedFrom
+                        raise ScifloError("Unrecognized value for resolvedFrom: %s" % resolvedFrom)
 
                 #append to wuArgs; if this is a rest, template or cmdline work unit,
                 #this hack allows these work units to create the dict; it needs to
@@ -739,8 +739,8 @@ This module may be a staged file or bundle: %s''' % str(e)
 
             inputsElt = proc.find(ns('sf:inputs'))
             inputsType = inputsElt.get('type','arglist')
-            if inputsType not in ('document','arglist'): raise ScifloError, "Unknown inputs type: %s" \
-                % inputsType
+            if inputsType not in ('document','arglist'): raise ScifloError("Unknown inputs type: %s" \
+                % inputsType)
             outputsElt = proc.find(ns('sf:outputs'))
             operatorElt = proc.find(ns('sf:operator'))
             opElt = operatorElt.find(ns('sf:op'))
@@ -788,14 +788,14 @@ This module may be a staged file or bundle: %s''' % str(e)
             #get resolving proc id
             match = re.search(r'^@#(\w+)\.?', eltVal)
             if match: resolvingProcId=match.group(1)
-            else: raise ScifloError, "Couldn't parse process id from %s." % eltVal
+            else: raise ScifloError("Couldn't parse process id from %s." % eltVal)
 
             #get resolved type and UnresolvedArgument object
             (resolvedType,resolvedArg) = self._resolveFromProcessId(eltTag,
                 eltVal,resolvingProcId)
 
             #add implicit xpath if detected
-            if isinstance(resolvedType,types.StringTypes):
+            if isinstance(resolvedType,str):
                 xpathMatch = re.search(r'^sf:xpath:(.*)$', resolvedType, re.IGNORECASE)
                 if xpathMatch:
                     xpathMatchStr = xpathMatch.group(1)
@@ -847,8 +847,8 @@ This module may be a staged file or bundle: %s''' % str(e)
                             if re.search(r'File$', eltType):
                                 resolvedArg.addRewrite(globalOutputVal)
                             else:
-                                raise ScifloError, "Cannot rewrite output from process %s.  Specify file type in global output %s." % \
-                                    (resolvingProcId, eltTag)
+                                raise ScifloError("Cannot rewrite output from process %s.  Specify file type in global output %s." % \
+                                    (resolvingProcId, eltTag))
                         #otherwise get rewrite file from file type and extension
                         else:
                             extMatch = re.search(r'^\w+:(\w+)File$', eltType)
@@ -868,7 +868,7 @@ This module may be a staged file or bundle: %s''' % str(e)
 
                 #raise error if postExecIndex was not set
                 if postExecIndex is None:
-                    raise ScifloError, "Failed to resolve flow output %s." % eltTag
+                    raise ScifloError("Failed to resolve flow output %s." % eltTag)
 
             #append
             self._flowOutputConfigs.append(resolvedArg)

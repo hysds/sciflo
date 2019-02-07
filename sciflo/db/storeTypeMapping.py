@@ -9,7 +9,7 @@
 #              U.S. Government Sponsorship acknowledged.
 #-----------------------------------------------------------------------------
 #from rdbmsStore import RdbmsStore
-from bsddbStore import BsddbStore
+from .bsddbStore import BsddbStore
 
 #mapping of store types to their respective Store subclass
 StoreTypeMapping = {

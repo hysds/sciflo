@@ -71,7 +71,7 @@ class Store(object):
             argIndex += 1
 
         #populate fields from keyword
-        for k in kargs.keys():
+        for k in list(kargs.keys()):
 
             #get index
             fieldIndex = self._fieldsList.index(k)
@@ -119,7 +119,7 @@ class Store(object):
         """
 
         #return columns
-        if returnField is None: returnFieldsList = queryDict.keys()
+        if returnField is None: returnFieldsList = list(queryDict.keys())
         else: returnFieldsList = getListFromUnknownObject(returnField)
 
         #get result set
@@ -141,8 +141,8 @@ class Store(object):
             else: return resultSet[0]
         elif len(resultSet)==0: return None
         else:
-            raise StoreError, "More than 1 result found for unique query: %s %s %s" \
-            % (queryField, queryValue, returnedFields)
+            raise StoreError("More than 1 result found for unique query: %s %s %s" \
+            % (queryField, queryValue, returnedFields))
 
     def update(self, id, modifyFieldDataDict):
         """Modify the field data for the matching record id.  Return 1 upon success.
@@ -181,15 +181,15 @@ class Store(object):
         sep3 = "================================================================="
 
         #print info
-        print sep
-        print "Name: %s" % self._name
-        print "Fields:", self._fieldsList
-        print sep3
+        print(sep)
+        print(("Name: %s" % self._name))
+        print(("Fields:", self._fieldsList))
+        print(sep3)
 
         #loop over and print
         for result in resultSet:
 
-            print result
-            print sep2
+            print(result)
+            print(sep2)
 
-        print sep
+        print(sep)

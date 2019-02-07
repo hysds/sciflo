@@ -37,21 +37,21 @@ def bundleFiles(urlList, bundleFile="bundle.tgz", bundleDir=None):
         elif re.search(r'\.zip$', bundleFile, re.IGNORECASE):
             b = zipfile.ZipFile(bundleFile, 'w')
             m = 'write'
-        else: raise RuntimeError, "Unknown extension for bundle type: %s" % bundleFile
+        else: raise RuntimeError("Unknown extension for bundle type: %s" % bundleFile)
         addFile = getattr(b, m)
         os.chdir(tempDir)
         count = 1
         for f in fileList:
-            if isinstance(f, (types.ListType, types.TupleType)):
+            if isinstance(f, (list, tuple)):
                 f = bundleFiles(f, 'bundle_%04d.tgz' % count, tempDir)
                 count += 1
             try:
                 fileToAdd = os.path.basename(f)
                 if not os.path.exists(fileToAdd): shutil.copy(f, os.path.join(tempDir, fileToAdd))
                 addFile(fileToAdd)
-            except Exception, e:
-                print >>sys.stderr, "Got exception trying to add %s to bundle: %s.  Skipping." % \
-                    (fileToAdd, e)
+            except Exception as e:
+                print("Got exception trying to add %s to bundle: %s.  Skipping." % \
+                    (fileToAdd, e), file=sys.stderr)
                 continue
         b.close()
     finally:

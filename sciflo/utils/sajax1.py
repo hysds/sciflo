@@ -3,13 +3,13 @@ import cgitb; cgitb.enable()
 import os
 import sys
 import datetime
-import urllib
-from urlparse import urlparse
+import urllib.request, urllib.parse, urllib.error
+from urllib.parse import urlparse
 import re
 
-from misc import sanitizeHtml
+from .misc import sanitizeHtml
 
-print "Content-type: text/html"
+print("Content-type: text/html")
 
 sajax_debug_mode = False
 sajax_export_list = {}
@@ -27,24 +27,24 @@ def sajax_handle_client_request():
       
    # Make sure text/plain; without this some proxies munge the content
    # and envelope it in <html/> tags
-   print "Content-type: text/plain"
+   print("Content-type: text/plain")
 
    # Bust cache in the head
-   print "Expires: Mon, 26 Jul 1997 05:00:00 GMT"  
-   print "Last-Modified: %s GMT" % datetime.datetime.utcnow().strftime(
-                                                      "%a, %d %m %H:%M:%S")
+   print("Expires: Mon, 26 Jul 1997 05:00:00 GMT")  
+   print("Last-Modified: %s GMT" % datetime.datetime.utcnow().strftime(
+                                                      "%a, %d %m %H:%M:%S"))
    # always modified
-   print "Cache-Control: no-cache, must-revalidate" # HTTP/1.1
-   print "Pragma: no-cache"                         # HTTP/1.0
-   print
+   print("Cache-Control: no-cache, must-revalidate") # HTTP/1.1
+   print("Pragma: no-cache")                         # HTTP/1.0
+   print()
    
    if not func_name in sajax_export_list:
-      print "-:%s not callable" % func_name
+      print("-:%s not callable" % func_name)
    else:
-      print "+:",
+      print("+:", end=' ')
       rsargs = form.getlist('rsargs[]')
       result = sajax_export_list[func_name](*rsargs)
-      print result
+      print(result)
    sys.exit()
       
 def sajax_get_common_js():
@@ -107,24 +107,24 @@ def sajax_get_common_js():
    """ % locals()
 
 def sajax_show_common_js():
-   print sajax_get_common_js()
+   print(sajax_get_common_js())
 
 def sajax_esc(val):
    return sanitizeHtml(val.replace('"', '\\\\"'))
 
 def sajax_get_one_stub(func_name):
    uri = os.environ['SCRIPT_NAME']
-   if os.environ.has_key('HTTP_X_FORWARDED_SERVER'):
+   if 'HTTP_X_FORWARDED_SERVER' in os.environ:
        if '//' in uri: uri = re.sub(r'//', '/', uri)
        referer = os.environ['HTTP_REFERER']
        refererScript = urlparse(referer)[2]
        uriDir = os.path.dirname(uri)
        refererDir = os.path.dirname(refererScript)
        uri = re.sub(r'%s' % uriDir, refererDir, uri)
-   if os.environ.has_key('QUERY_STRING'):
-      uri += "?" + os.environ['QUERY_STRING'] + "&rs=%s" % urllib.quote_plus(func_name)
+   if 'QUERY_STRING' in os.environ:
+      uri += "?" + os.environ['QUERY_STRING'] + "&rs=%s" % urllib.parse.quote_plus(func_name)
    else:
-      uri += "?rs=%s" % urllib.quote_plus(func_name)
+      uri += "?rs=%s" % urllib.parse.quote_plus(func_name)
       
    escapeduri = sajax_esc(uri)
    return """
@@ -140,10 +140,10 @@ def sajax_get_one_stub(func_name):
       """ % locals()
 
 def sajax_show_one_stub(func_name):
-   print sajax_get_one_stub(func_name)
+   print(sajax_get_one_stub(func_name))
 
 def sajax_export(*args):
-   decorated = [(f.func_name, f) for f in args]
+   decorated = [(f.__name__, f) for f in args]
    sajax_export_list.update(dict(decorated))
      
 def sajax_get_javascript():
@@ -154,10 +154,10 @@ def sajax_get_javascript():
       html += sajax_get_common_js()
       sajax_js_has_been_shown = True
    
-   for func_name in sajax_export_list.iterkeys():
+   for func_name in sajax_export_list.keys():
       html += sajax_get_one_stub(func_name)
 
    return html
 
 def sajax_show_javascript():
-   print sajax_get_javascript()
+   print(sajax_get_javascript())

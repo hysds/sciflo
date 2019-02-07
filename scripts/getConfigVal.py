@@ -16,7 +16,7 @@ from sciflo.utils import ScifloConfigParser
 
 def usage():
     """Print usage info."""
-    print """%s <config field>""" % sys.argv[0]
+    print(("""%s <config field>""" % sys.argv[0]))
 
 #make sure right number of arguments provided
 if len(sys.argv) != 2:
@@ -27,5 +27,5 @@ if len(sys.argv) != 2:
 scp = ScifloConfigParser()
 
 #print
-print scp.getParameter(sys.argv[1])
+print((scp.getParameter(sys.argv[1])))
 

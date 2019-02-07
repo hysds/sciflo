@@ -12,7 +12,7 @@ from socket import getfqdn
 
 from sciflo.utils import ScifloConfigParser, validateDirectory, SCIFLO_NAMESPACE
 from sciflo.db import StoreConfig, StoreTypeMapping
-from storeHandler import workUnitStoreFieldsList, scheduleStoreFieldsList
+from .storeHandler import workUnitStoreFieldsList, scheduleStoreFieldsList
 
 def getStoreConfigFromConfiguration(file=None):
     """Return the StoreConfig object as defined by the parameters in the
@@ -33,7 +33,7 @@ def getStoreConfigFromConfiguration(file=None):
         #get home and, if bsddb, validate that it is a directory
         workUnitStoreHome = configParser.getMandatoryParameter('workUnitStoreHome')
         if workUnitStoreType == 'bsddb' and not validateDirectory(workUnitStoreHome):
-            raise RuntimeError, "Couldn't access/create bsddb home %s." % workUnitStoreHome
+            raise RuntimeError("Couldn't access/create bsddb home %s." % workUnitStoreHome)
 
         #get filename for bsddb and validate
         workUnitStoreDb = configParser.getMandatoryParameter('workUnitStoreDb')
@@ -47,7 +47,7 @@ def getStoreConfigFromConfiguration(file=None):
 
         return workUnitStoreConfig
     else:
-        raise RuntimeError, "Unknown workUnitStoreType %s in configuration." % workUnitStoreType
+        raise RuntimeError("Unknown workUnitStoreType %s in configuration." % workUnitStoreType)
 
 def getRootWorkDirFromConfiguration(file=None):
     """Return the dir path for workUnit's work directory."""
@@ -62,7 +62,7 @@ def getRootWorkDirFromConfiguration(file=None):
 
     #validate
     if not validateDirectory(workUnitRootWorkDir):
-        raise RuntimeError, "Couldn't access/create workUnitRootWorkDir %s." % workUnitRootWorkDir
+        raise RuntimeError("Couldn't access/create workUnitRootWorkDir %s." % workUnitRootWorkDir)
 
     return workUnitRootWorkDir
 
@@ -85,7 +85,7 @@ def getScheduleConfigFromConfiguration(file=None):
         #get home and, if bsddb, validate that it is a directory
         scheduleStoreHome = configParser.getMandatoryParameter('scheduleStoreHome')
         if scheduleStoreType == 'bsddb' and not validateDirectory(scheduleStoreHome):
-            raise RuntimeError, "Couldn't access/create bsddb home %s." % scheduleStoreHome
+            raise RuntimeError("Couldn't access/create bsddb home %s." % scheduleStoreHome)
 
         #get filename for bsddb and validate
         scheduleStoreDb = configParser.getMandatoryParameter('scheduleStoreDb')
@@ -99,7 +99,7 @@ def getScheduleConfigFromConfiguration(file=None):
 
         return scheduleStoreConfig
     else:
-        raise RuntimeError, "Unknown scheduleStoreType %s in configuration." % scheduleStoreType
+        raise RuntimeError("Unknown scheduleStoreType %s in configuration." % scheduleStoreType)
 
 class GridServiceConfig(object):
     """Class representing the soap grid service configuration for this node.

@@ -13,5 +13,5 @@ else: raise SystemExit("Invalid arguments.")
 workers = 4
 timeout = 86400
 
-print runSciflo(sflString, args={}, pklFile=pklFile, workers=workers,
-                timeout=timeout)
+print((runSciflo(sflString, args={}, pklFile=pklFile, workers=workers,
+                timeout=timeout)))

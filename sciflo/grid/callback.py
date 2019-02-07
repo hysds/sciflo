@@ -13,10 +13,10 @@ import SOAPpy
 from SOAPpy import WSDL, SOAPProxy
 #import pyGlobus
 import re
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 #from sciflo.webservices import getGSISOAPProxy
-from utils import *
+from .utils import *
 
 def getCallback(config):
     """Return a SciFloCallback object."""
@@ -32,9 +32,9 @@ def getCallback(config):
     print config
     print "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
     '''
-    if not isinstance(config, types.TupleType) and not isinstance(config, types.ListType) and \
+    if not isinstance(config, tuple) and not isinstance(config, list) and \
     not isinstance(config, SOAPpy.Types.arrayType): # and not isinstance(config,pyGlobus.GSISOAP.arrayType):
-        raise RuntimeError, "Argument must be a tuple, list, or ArrayType.  Got %s %s." % (type(config),config)
+        raise RuntimeError("Argument must be a tuple, list, or ArrayType.  Got %s %s." % (type(config),config))
 
     #get type
     callbackType = config[0]
@@ -44,7 +44,7 @@ def getCallback(config):
 
     #validate
     if not callbackType in CallbackMapping:
-        raise RuntimeError, "Cannot recognize callback type: %s." % callbackType
+        raise RuntimeError("Cannot recognize callback type: %s." % callbackType)
 
     #get callback class
     callbackClass = CallbackMapping[callbackType]
@@ -91,7 +91,7 @@ class SOAPCallback(ScifloCallback):
 
             #create proxy
             if self._wsdl.startswith('https://'):
-                wsdl = urllib2.urlopen(self._wsdl)
+                wsdl = urllib.request.urlopen(self._wsdl)
             else: wsdl = self._wsdl
             self._proxy = WSDL.Proxy(wsdl)
 
@@ -103,7 +103,7 @@ class SOAPCallback(ScifloCallback):
 
             #create proxy
             self._proxy = SOAPProxy(self._addr,namespace=self._namespace)
-        else: raise SOAPCallbackError, "Cannot resolve args."
+        else: raise SOAPCallbackError("Cannot resolve args.")
 
         #set callable
         self._callable = eval("self._proxy.%s" % self._method)
@@ -151,7 +151,7 @@ class FunctionCallback(ScifloCallback):
 
         #arg is function call
         if len(self._args) == 1: self._funcCall = self._args[0]
-        else: raise FunctionCallbackError, "Cannot resolve args."
+        else: raise FunctionCallbackError("Cannot resolve args.")
 
         #set callable
         self._callable = getFunction(self._funcCall)

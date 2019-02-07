@@ -19,18 +19,18 @@ def authenticate(user,passwd):
         l.start_tls_s()
         l.simple_bind_s('uid=%s, ou=personnel, dc=dir, dc=jpl, dc=nasa, dc=gov' % user,passwd)
         l.unbind_s()
-    except ldap.NO_SUCH_OBJECT, e:
+    except ldap.NO_SUCH_OBJECT as e:
         info = e.args[0]['info']
         desc = e.args[0]['desc']
-        print "%s: %s" % (info,desc)
-    except ldap.INVALID_CREDENTIALS, e:
+        print(("%s: %s" % (info,desc)))
+    except ldap.INVALID_CREDENTIALS as e:
         info = e.args[0]['info']
         desc = e.args[0]['desc']
-        print "%s: %s" % (info,desc)
-    except ldap.INAPPROPRIATE_AUTH, e:
+        print(("%s: %s" % (info,desc)))
+    except ldap.INAPPROPRIATE_AUTH as e:
         info = e.args[0]['info']
         desc = e.args[0]['desc']
-    	print "%s: %s" % (info,desc)
+    	print(("%s: %s" % (info,desc)))
     os.unlink(certFile)
 
 

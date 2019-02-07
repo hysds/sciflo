@@ -39,7 +39,7 @@ def getAllTestsTestSuite():
         for file in files:
             if file.endswith('Test.py'):
                 if file in skipFiles:
-                    print "Skipping file: %s" % file
+                    print(("Skipping file: %s" % file))
                     continue
                 testScripts.append(file)
     
@@ -53,7 +53,7 @@ def getAllTestsTestSuite():
     allTestsTestSuite = unittest.TestSuite()
     
     #loop over testDict and create list of testSuites
-    testDirs = testDict.keys()
+    testDirs = list(testDict.keys())
     for testDir in testDirs:
     
         #loop over scripts
@@ -66,7 +66,7 @@ def getAllTestsTestSuite():
             (base,ext) = os.path.splitext(testScript)
     
             #import test file
-            exec "import %s" % base
+            exec("import %s" % base)
     
             #get testSuite
             getTestSuiteCall = "%s.getTestSuite()" % base

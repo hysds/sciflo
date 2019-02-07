@@ -81,7 +81,7 @@ immediately synched to disk.
         return data
 
     def insert(key, data):
-        if self.dic.has_key(key):
+        if key in self.dic:
             raise RuntimeError('Persistent dict %s already has key: %s' % (self.path, key))
         if self.lock():
             self.dic.close()
@@ -92,7 +92,7 @@ immediately synched to disk.
             self.unlock()
 
     def delete(key):
-        if not self.dic.has_key(key):
+        if key not in self.dic:
             raise RuntimeError('Persistent dict %s: attempt to delte missing key: %s' % (self.path, key))
         if self.lock():
             del self.dic[key]

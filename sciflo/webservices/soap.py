@@ -24,12 +24,12 @@ import glob
 from socket import getfqdn
 from M2Crypto import SSL
 from getpass import getuser
-from SimpleHTTPServer import SimpleHTTPRequestHandler
+from http.server import SimpleHTTPRequestHandler
 import posixpath
 import mimetypes
 import traceback
-import urllib
-import SocketServer
+import urllib.request, urllib.parse, urllib.error
+import socketserver
 from twisted.web import server, resource, static
 from twisted.internet import reactor, defer, threads, ssl
 from twisted.python import log as twistedLog
@@ -98,8 +98,8 @@ class SoapEndpoint(object):
                 self._endpointXmlString = xmlFile
                 root = XMLID(self._endpointXmlString)[0]
         else:
-            raise SoapEndpointError, "Failed to validate xmlFile %s with ENDPOINT_SCHEMA_XML: %s" % \
-                (xmlFile, str(validationError))
+            raise SoapEndpointError("Failed to validate xmlFile %s with ENDPOINT_SCHEMA_XML: %s" % \
+                (xmlFile, str(validationError)))
 
         #set attributes
         self._soapPort = soapPort
@@ -109,8 +109,8 @@ class SoapEndpoint(object):
         match = re.match(r'^\{(.+)\}.+$',root.tag)
         if match: self._namespace = match.group(1)
         else:
-            raise SoapEndpointError, "Couldn't get default namespace and/or rootTag from endpoint xml: \
-                %s" % self._endpointXmlFile
+            raise SoapEndpointError("Couldn't get default namespace and/or rootTag from endpoint xml: \
+                %s" % self._endpointXmlFile)
 
         #get endpointName
         self._endpointName = root.find('{%s}%s' % (self._namespace,'endpointName')).text
@@ -146,11 +146,11 @@ class SoapEndpoint(object):
                 #append to list
                 self._soapMethodObjects.append(soapmethodObj)
 
-            except SoapMethodError, e:
-                print >>sys.stderr, "SoapMethodError: %s" % e
+            except SoapMethodError as e:
+                print("SoapMethodError: %s" % e, file=sys.stderr)
                 continue
-            except Exception, e:
-                raise SoapEndpointError, "Encountered an exception creating SoapMethod object: %s" % e
+            except Exception as e:
+                raise SoapEndpointError("Encountered an exception creating SoapMethod object: %s" % e)
 
         #set wsdl string
         self._wsdlString = self._generateWsdlString()
@@ -298,7 +298,7 @@ class AsyncFunction(object):
         if pid > 0:
             os.waitpid(pid, 0)
             os._exit(0)
-        result = apply(self.func, args, kargs)
+        result = self.func(*args, **kargs)
         p = open(pickleFile, 'w')
         pickle.dump(result, p)
         p.close()
@@ -313,9 +313,9 @@ def resolveSoapFunction(exposedName, funcOrSflStr, rootDir=None, urlBase=None):
         if funcOrSflStr.startswith('<'): xmlDoc = funcOrSflStr
         elif os.path.exists(funcOrSflStr):
             xmlDoc = open(funcOrSflStr,'r').read()
-        else: xmlDoc = urllib.urlopen(funcOrSflStr).read()
+        else: xmlDoc = urllib.request.urlopen(funcOrSflStr).read()
         sfl = Sciflo(xmlDoc)
-    except Exception, e: pass
+    except Exception as e: pass
     if sfl:
         func = ScifloFunction(str(xmlDoc))
         if funcOrSflStr == xmlDoc: funcOrSflStr = sfl.getName() #no xml
@@ -339,40 +339,40 @@ def resolveSoapFunction(exposedName, funcOrSflStr, rootDir=None, urlBase=None):
             
             #check if internal name is None or empty
             if funcOrSflStr is None or re.match(r'^\s*$',funcOrSflStr):
-                raise RuntimeError, "Undefined specification for %s." % exposedName
+                raise RuntimeError("Undefined specification for %s." % exposedName)
 
             #check if we have to import any libraries
             libmatch = re.match(r'^(.+)\.\w+$',funcOrSflStr)
             if libmatch:
                 importLib = libmatch.group(1)
-                try: exec "import %s" % importLib
-                except Exception, e:
-                    raise RuntimeError, "Failed to import %s for %s (%s): %s" \
-                        % (importLib,funcOrSflStr,exposedName,e)
+                try: exec("import %s" % importLib)
+                except Exception as e:
+                    raise RuntimeError("Failed to import %s for %s (%s): %s" \
+                        % (importLib,funcOrSflStr,exposedName,e))
 
             #get function
             try: func = eval(funcOrSflStr)
-            except Exception, e:
-                raise RuntimeError, "Failed to eval function %s (%s): %s" \
-                    % (funcOrSflStr,exposedName,e)
+            except Exception as e:
+                raise RuntimeError("Failed to eval function %s (%s): %s" \
+                    % (funcOrSflStr,exposedName,e))
 
             #verify function is actually a function
             if isinstance(func,types.FunctionType): pass
             else:
-                raise RuntimeError, "Failed because pythonFunction %s (%s) is not a function." \
-                    % (funcOrSflStr,exposedName)
+                raise RuntimeError("Failed because pythonFunction %s (%s) is not a function." \
+                    % (funcOrSflStr,exposedName))
 
         #get list of argnames
         try:
             (args,varargs,varkw,defaults) = getargspec(func)
             funcOrSflStrArgNames = args
-        except Exception, e:
-            raise RuntimeError, "Failed to inspect function %s for args (%s): %s" \
-                % (funcOrSflStr,exposedName,e)
+        except Exception as e:
+            raise RuntimeError("Failed to inspect function %s for args (%s): %s" \
+                % (funcOrSflStr,exposedName,e))
             
         #wrap if async
         if async and rootDir and urlBase:
-            print "Wrapping %s as an AsyncFunction()." % exposedName
+            print("Wrapping %s as an AsyncFunction()." % exposedName)
             func = AsyncFunction(func, rootDir, urlBase)
     return (func, funcOrSflStr, funcOrSflStrArgNames)
 
@@ -395,7 +395,7 @@ class SoapMethod(object):
         try:
             (self._function, self._pythonFunction, self._pythonFunctionArgNames) = \
                 resolveSoapFunction(exposedName, pythonFunction, self._rootDir, self._urlBase)
-        except Exception, e: raise SoapMethodError(str(e))
+        except Exception as e: raise SoapMethodError(str(e))
 
     #accessors
     def getExposedName(self):
@@ -422,7 +422,7 @@ def callback(arg, handle, identity, context):
     """Callback function for GSI SOAP server."""
     return 1
 
-class ForkingSOAPServer(SOAPServerBase, SocketServer.ForkingTCPServer):
+class ForkingSOAPServer(SOAPServerBase, socketserver.ForkingTCPServer):
     """Forking SOAP server absent from SOAPpy."""
     request_queue_size = 50
     max_children = 50
@@ -434,7 +434,7 @@ class ForkingSOAPServer(SOAPServerBase, SocketServer.ForkingTCPServer):
         if encoding != None: ''.encode(encoding)
 
         if ssl_context != None and not config.SSLserver:
-            raise AttributeError, "SSL server not supported by this Python installation"
+            raise AttributeError("SSL server not supported by this Python installation")
 
         self.namespace = namespace
         self.objmap = {}
@@ -445,7 +445,7 @@ class ForkingSOAPServer(SOAPServerBase, SocketServer.ForkingTCPServer):
         self.log = log
         self.allow_reuse_address = 1
 
-        SocketServer.ForkingTCPServer.__init__(self, addr, RequestHandler)
+        socketserver.ForkingTCPServer.__init__(self, addr, RequestHandler)
     
 class ScifloSOAPPublisher(resource.Resource):
     """SOAP publisher class for TwistedSOAPServer."""
@@ -464,14 +464,14 @@ class ScifloSOAPPublisher(resource.Resource):
         if namespace == '' and path != '':
             namespace = path.replace("/", ":")
             if namespace[0] == ":": namespace = namespace[1:]
-        if self.funcmap.has_key(namespace):
+        if namespace in self.funcmap:
             self.funcmap[namespace][funcName] = function
         else:
             self.funcmap[namespace] = {funcName : function}
             
     def lookupFunction(self, functionName, namespace):
         """Lookup published SOAP function."""
-        if self.funcmap.has_key(namespace) and self.funcmap[namespace].has_key(functionName):
+        if namespace in self.funcmap and functionName in self.funcmap[namespace]:
             return self.funcmap[namespace][functionName]
         else: return None
         
@@ -483,7 +483,7 @@ class ScifloSOAPPublisher(resource.Resource):
             return self.funcmap[query]['wsdl']()
         else:
             #get list of all available wsdl namespaces
-            allNs = self.funcmap.keys()
+            allNs = list(self.funcmap.keys())
             wsdlListStr = '<html><head><title>WSDL Directory</title></head><body><list>'
             for thisNs in allNs:
                 wsdlListStr += '''<li><a href="/wsdl?%s">%s</a></li>\n''' % (thisNs, os.path.basename(thisNs))
@@ -512,7 +512,7 @@ class ScifloSOAPPublisher(resource.Resource):
         else:
             if hasattr(function, "useKeywords"):
                 keywords = {}
-                for k, v in kwargs.items():
+                for k, v in list(kwargs.items()):
                     keywords[str(k)] = v
                 #using threads.deferToThread() allows for better connection
                 #handling for multiple concurrent requests but performs
@@ -536,8 +536,8 @@ class ScifloSOAPPublisher(resource.Resource):
     
     def runDeferredFunc(self, function, methodName, ns, *args, **kargs):
         """Run deferred function."""
-        try: return apply(function, args, kargs)
-        except Exception, e:
+        try: return function(*args, **kargs)
+        except Exception as e:
             info = sys.exc_info()
             if isinstance(e, faultType):
                 fault = e
@@ -685,7 +685,7 @@ class SoapServer(object):
         #validate root dir if defined
         if rootDir:
             if not validateDirectory(rootDir):
-                raise SoapServerError, "Cannot validate root directory: %s." % rootDir
+                raise SoapServerError("Cannot validate root directory: %s." % rootDir)
             self._rootDir = os.path.abspath(rootDir)
         else: self._rootDir = rootDir
 
@@ -695,7 +695,7 @@ class SoapServer(object):
         #validate execute dir if defined
         if executeDir:
             if not validateDirectory(executeDir):
-                raise SoapServerError, "Cannot validate execute directory: %s." % executeDir
+                raise SoapServerError("Cannot validate execute directory: %s." % executeDir)
             self._executeDir = os.path.abspath(executeDir)
             os.chdir(self._executeDir)
         else: self._executeDir = executeDir
@@ -727,20 +727,20 @@ class SoapServer(object):
                     if match: wsdlNamespace = match.group(1)
                     #print self.server.funcmap
                     #print self.server.objmap
-                    if self.server.funcmap.has_key(wsdlNamespace) \
-                            and self.server.funcmap[wsdlNamespace].has_key('wsdl'):
+                    if wsdlNamespace in self.server.funcmap \
+                            and 'wsdl' in self.server.funcmap[wsdlNamespace]:
                         wsdlFunc = self.server.funcmap[wsdlNamespace]['wsdl']
 
                     if wsdlFunc:
                         self.send_response(200)
                         self.send_header("Content-type", 'text/xml')
                         self.end_headers()
-                        response = apply(wsdlFunc, ())
+                        response = wsdlFunc(*())
                         self.wfile.write(str(response))
                         return
 
                     #get list of all available wsdl namespaces
-                    allNs = self.server.funcmap.keys()
+                    allNs = list(self.server.funcmap.keys())
                     wsdlListStr = ''
                     for thisNs in allNs:
                         wsdlListStr += '''<li><a href="wsdl?%s">%s</a></li>\n''' % (thisNs, os.path.basename(thisNs))
@@ -870,7 +870,7 @@ class SoapServer(object):
         if self._threading is True: soapServer = ThreadingSOAPServer #from SOAPpy
         elif self._threading is False: soapServer = ForkingSOAPServer #our own
         elif self._threading is None: soapServer = TwistedSOAPServer
-        else: raise SoapServerError, "Illegal value for threading arg: %s" % self._threading
+        else: raise SoapServerError("Illegal value for threading arg: %s" % self._threading)
         
         #use ssl
         if self._ctx:

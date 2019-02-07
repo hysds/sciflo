@@ -10,13 +10,13 @@
 #-----------------------------------------------------------------------------
 import sys, os, types, re, time
 try:
-    import cPickle
+    import pickle
     pickle = cPickle
 except ImportError: import pickle
 from sqlalchemy import *
 import sqlalchemy.pool as pool
 
-from store import *
+from .store import *
 from sciflo.utils import validateDirectory
 
 DB_SAFE_FIELDS_MAP = {
@@ -67,7 +67,7 @@ class RdbmsStore(Store):
         self._db.echo = False
         self._dbMetadata = MetaData(self._db)
         try: self._table = createTable(self._name, self._dbMetadata, self._fieldsList)
-        except exceptions.SQLError, e:
+        except exceptions.SQLError as e:
             if not re.search(r'already exists', str(e)): raise e
             self._table = Table(self._name, self._dbMetadata, autoload = True)
             if cleanTable is True:
@@ -138,15 +138,15 @@ class RdbmsStore(Store):
         """Update a record."""
         
         updateDict = {}
-        for field in modifyFieldDataDict.keys():
+        for field in list(modifyFieldDataDict.keys()):
 
             #make sure field is in the list
             if not field in self._fieldsList:
-                raise RdbmsStoreError, "Cannot update.  Field %s is not in this store." % field
+                raise RdbmsStoreError("Cannot update.  Field %s is not in this store." % field)
 
             #make sure it is not the id (first field)
             if field == self._fieldsList[0]:
-                raise RdbmsStoreError, "Cannot update.  The id field, %s, cannot be modified." % field
+                raise RdbmsStoreError("Cannot update.  The id field, %s, cannot be modified." % field)
             
             updateDict[getDbSafeFieldName(field)] = modifyFieldDataDict[field]
         tries = 0
@@ -192,7 +192,7 @@ class RdbmsStore(Store):
 
         #create condition dict
         conditionClause = []
-        for key,val in queryDict.items():
+        for key,val in list(queryDict.items()):
             conditionClause.append(getattr(self._table.c, getDbSafeFieldName(key))==val)
 
         #get list of results

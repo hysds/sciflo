@@ -293,7 +293,7 @@ DATEIN = 1
 if DATEIN:
     try:                # try to import the dateutils and time module
         from time import strftime
-        from dateutils import daycount, returndate          # ,counttodate          # counttodate returns a daynumber as a date
+        from .dateutils import daycount, returndate          # ,counttodate          # counttodate returns a daynumber as a date
     except:
         DATEIN = 0
 
@@ -365,7 +365,7 @@ def pass_enc(instring, indict=None, **keywargs):
     if not indict and keywargs:         # if keyword passed in instead of a dictionary - we use that
         indict = keywargs
     for keyword in arglist:             # any keywords not specified we use the default
-        if not indict.has_key(keyword):
+        if keyword not in indict:
             indict[keyword] = arglist[keyword]
             
     if indict['lower']:     # keyword lower :-)
@@ -710,16 +710,16 @@ class bf(object):
         return (self._d >> index) & 1 
 
     def __setitem__(self,index,value):
-        value    = (value&1L)<<index
-        mask     = (1L)<<index
+        value    = (value&1)<<index
+        mask     = (1)<<index
         self._d  = (self._d & ~mask) | value
 
     def __getslice__(self, start, end):
-        mask = 2L**(end - start) -1
+        mask = 2**(end - start) -1
         return (self._d >> start) & mask
 
     def __setslice__(self, start, end, value):
-        mask = 2L**(end - start) -1
+        mask = 2**(end - start) -1
         value = (value & mask) << start
         mask = mask << start
         self._d = (self._d & ~mask) | value
@@ -740,8 +740,8 @@ def bitset(value, bitindex, bit):
     bit should be 1 or 0
     bitindex starts at 0.
     """
-    bit    = (bit&1L)<<bitindex
-    mask     = (1L)<<bitindex
+    bit    = (bit&1)<<bitindex
+    mask     = (1)<<bitindex
     return (value & ~mask) | bit                # set that bit of value to 0 with an & operation and then or it with the 'bit'
 
     
@@ -884,36 +884,36 @@ def internalfunc2(data):
 def test():                     # the test suite
     from time import clock
     from os.path import exists
-    print 'Printing the TABLE : '
+    print('Printing the TABLE : ')
     index = 0
     while index < len(TABLE):
-        print TABLE[index], TABLE.find(TABLE[index])
+        print(TABLE[index], TABLE.find(TABLE[index]))
         index +=1
 
-    print '\nEnter test password to encode using table_enc :\n(Hit enter to continue past this)\n'
+    print('\nEnter test password to encode using table_enc :\n(Hit enter to continue past this)\n')
     while True:
-        dummy = raw_input('>>...')
+        dummy = input('>>...')
         if not dummy: break
         test =  table_enc(dummy)
         test2 = table_dec(test)
-        print test
-        print 'length  : ', len(test), '    modulo 4 of length - 1  : ', (len(test)-1) % 4
-        print 'Decoded : ', test2
-        print 'Length dec : ', len(test2)
+        print(test)
+        print('length  : ', len(test), '    modulo 4 of length - 1  : ', (len(test)-1) % 4)
+        print('Decoded : ', test2)
+        print('Length dec : ', len(test2))
 
-    print '\nEnter password - to timestamp and then encode :\n(Hit enter to continue past this)\n'
+    print('\nEnter password - to timestamp and then encode :\n(Hit enter to continue past this)\n')
     while True:
-        instring = raw_input('>>...')
+        instring = input('>>...')
         if not instring:
             break
         code = pass_enc(instring, sha_hash=False, daynumber=True, timestamp=True)
-        print code
-        print pass_dec(code)
+        print(code)
+        print(pass_dec(code))
 
 
-    print '\n\nTesting interleaving a 1000 byte random string with a 1500 byte random string :'
-    print
-    print 'Overall length of combined string : ',
+    print('\n\nTesting interleaving a 1000 byte random string with a 1500 byte random string :')
+    print()
+    print('Overall length of combined string : ', end=' ')
     a=0
     b=''
     c = ''
@@ -926,12 +926,12 @@ def test():                     # the test suite
         c = c + chr(int(random()*256))
     d = clock()
     test = binleave(c, b, True)
-    print  len(test)
+    print(len(test))
     a1, a2 = binunleave(test)
-    print 'Time taken (including print statements ;-) ', str(clock()-d)[:6], ' seconds'
-    print 'Test for equality of extracted data against original :'
-    print a1 == b
-    print a2 == c
+    print('Time taken (including print statements ;-) ', str(clock()-d)[:6], ' seconds')
+    print('Test for equality of extracted data against original :')
+    print(a1 == b)
+    print(a2 == c)
 
 
 # If you give it two test files 'test1.zip' and 'test2.zip' it will interleave the two files,
@@ -939,11 +939,11 @@ def test():                     # the test suite
 # It prints how long it takes and you can verify that the returned file is undamaged.
     
     if exists('test1.zip') and exists('test2.zip'):
-        print
-        print "Reading 'test1.zip' and 'test2.zip'"
-        print "Interleaving them together and writing the combined file out as 'test3.zip'"
-        print "Then unleaving them and writing 'test1.zip' back out as 'test4.zip'",
-        print " to confirm it is unchanged by the process"
+        print()
+        print("Reading 'test1.zip' and 'test2.zip'")
+        print("Interleaving them together and writing the combined file out as 'test3.zip'")
+        print("Then unleaving them and writing 'test1.zip' back out as 'test4.zip'", end=' ')
+        print(" to confirm it is unchanged by the process")
         a = file('test1.zip','rb')
         b = a.read()
         a.close()
@@ -953,22 +953,22 @@ def test():                     # the test suite
         d = clock()
         test = binleave(c,b, True)
 
-        print len(test)
+        print(len(test))
         a = file('test3.zip','wb')
         a.write(test)
         a.close()
         a1, a2 = binunleave(test)
-        print str(clock()-d)[:6]
+        print(str(clock()-d)[:6])
         a = file('test4.zip','wb')
         a.write(a1)
         a.close()
     else:
-        print
-        print 'Unable to perform final test.'
-        print "We need two files to use for the test : 'test1.zip' and 'test2.zip'"
-        print "We then interleave them together, and write the combined file out as 'test3.zip'"
-        print "Then we unleave them again, and write 'test1.zip' back out as 'test4.zip'",
-        print "(So we can confirm that it's unchanged by the process.)"
+        print()
+        print('Unable to perform final test.')
+        print("We need two files to use for the test : 'test1.zip' and 'test2.zip'")
+        print("We then interleave them together, and write the combined file out as 'test3.zip'")
+        print("Then we unleave them again, and write 'test1.zip' back out as 'test4.zip'", end=' ')
+        print("(So we can confirm that it's unchanged by the process.)")
 
     
 

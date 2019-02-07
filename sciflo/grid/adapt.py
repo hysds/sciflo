@@ -87,7 +87,7 @@ class Adapt:
                         #print_exc()
                         raise AdaptationError
                 return fn(*args, **kwds)
-            newFn.func_name = fn.func_name
+            newFn.__name__ = fn.__name__
             return newFn
         return adaptThenCall
     
@@ -140,11 +140,11 @@ def getTypeStringOrConversion(stringOrTypeOrClassOrFnOrObj):
     """
     obj = stringOrTypeOrClassOrFnOrObj
     ty = type(obj)
-    if ty == types.StringType:
+    if ty == bytes:
         return (obj, None)
-    elif ty == types.TypeType:
+    elif ty == type:
         return (obj.__name__, None)
-    elif ty == types.ClassType:
+    elif ty == type:
         return (str(obj), None)
     elif callable(obj):
         return (obj.__name__, obj)
@@ -157,7 +157,7 @@ def getTypeString(stringOrTypeOrClassOrFnOrObj):
 def getType(obj):
     """Return the type of any object, as a type string for lookup."""
     ty = type(obj)
-    if ty == types.StringType:
+    if ty == bytes:
         return 'str'
     else:
         return getTypeString(ty)
@@ -169,7 +169,7 @@ class SynonymsDict:
         self._synonyms = synonyms
 
     def addSynonyms(self, syns):
-        syns = map(ns, syns)
+        syns = list(map(ns, syns))
         for syn in syns:
             self._synonyms[syn] = syns
         return self
@@ -382,7 +382,7 @@ if __name__ == '__main__':
     # Adapt my function and then call it.
     @adapt(ElementTree, 'py:ListOfDict', float)
     def myfn(xmlDoc, xmlFragment, tolerance):
-        print xmlDoc, xmlFragment, tolerance
+        print((xmlDoc, xmlFragment, tolerance))
 
     myfn('<?xml version="1.0"?><tag1><tag2 type="fake">value</tag2></tag1>',
          records,

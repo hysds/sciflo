@@ -8,8 +8,8 @@
 # Copyright:   (c) 2006, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
 #-----------------------------------------------------------------------------
-from utils import *
-from manager import (addAndExecuteWorkUnit, cancelWorkUnit, queryWorkUnit,
+from .utils import *
+from .manager import (addAndExecuteWorkUnit, cancelWorkUnit, queryWorkUnit,
 workUnitCallback, nonforkingAddAndExecuteWorkUnit)
 import sys
 
@@ -39,7 +39,7 @@ def getGridSoapMethods(protocol, addr, port, ns, configFile=None):
 
     if protocol == 'ssl': proxy = SOAPProxy("https://%s:%s" % (addr, port), ns)
     elif protocol == 'http': proxy = SOAPProxy("http://%s:%s" % (addr, port), ns)
-    else: raise RuntimeError, "Failed to recognize protocol type: %s" % protocol
+    else: raise RuntimeError("Failed to recognize protocol type: %s" % protocol)
 
     #get add, cancel and query workunit methodnames from configuration file
     parserObj = ScifloConfigParser(configFile)

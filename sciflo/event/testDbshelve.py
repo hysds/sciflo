@@ -11,33 +11,33 @@ def test(filename):
 
     t0 = clock()
     db = dbshelve.open(filename, flags='c')
-    for i in xrange(10000):
+    for i in range(10000):
         key = abc+'%4.4d' % i
 #        print key
         db[key] = val1
-    print clock() - t0
+    print((clock() - t0))
 
     t0 = clock()
-    for i in xrange(10000):
+    for i in range(10000):
         key = abc+'%4.4d' % i
 #        print key
         tmp = db[key]
         db[key] = val2
         tmp = db[key]
-    print clock() - t0
+    print((clock() - t0))
 
     t0 = clock()
-    for i in xrange(10000):
+    for i in range(10000):
         j = randint(0, 10000)
         key = abc+'%4.4d' % j
         try:
 	    tmp = db[key]
-            print key
+            print(key)
 	    del db[key]
 #            db.sync()
         except:
             pass
-    print clock() - t0
+    print((clock() - t0))
 
 #    db.close()
 

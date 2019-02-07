@@ -71,7 +71,7 @@ class Stats:
         if (self.labelStr == None or self.labelStr == ""): self.labelStr = "Stats"
         line = self.labelStr + ": "
         if self.formatStr:
-            a = [self.formatStr for i in xrange(5)]
+            a = [self.formatStr for i in range(5)]
             a.insert(0, '%d')
             format = ' '.join(a)
             line += format % self.calc()

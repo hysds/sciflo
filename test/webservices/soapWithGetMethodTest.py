@@ -18,7 +18,7 @@ from signal import SIGTERM
 from threading import *
 import traceback
 import shutil
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import sys
 
 from sciflo.webservices import *
@@ -264,13 +264,13 @@ class soapTestCase(unittest.TestCase):
 
             #get xml contents via server and and file itself and assert
             xmlUrl = 'http://%s:%s/final_endpoint2.xml' % (getfqdn(), port)
-            xmlContentsViaServer = urllib.urlopen(xmlUrl).read()
+            xmlContentsViaServer = urllib.request.urlopen(xmlUrl).read()
             xmlContents = open(xmlFile,'r').read()
             assert xmlContentsViaServer == xmlContents
 
             #get html contents via server and and file itself and assert
             htmlUrl = 'http://%s:%s/index.html' % (getfqdn(), port)
-            htmlContentsViaServer = urllib.urlopen(htmlUrl).read()
+            htmlContentsViaServer = urllib.request.urlopen(htmlUrl).read()
             htmlContents = open(testHtmlFile,'r').read()
             assert htmlContentsViaServer == htmlContents
 
@@ -311,13 +311,13 @@ class soapTestCase(unittest.TestCase):
 
             #get xml contents via server and and file itself and assert
             xmlUrl = 'https://%s:%s/final_endpoint2.xml' % (getfqdn(), sslPort)
-            xmlContentsViaServer = urllib.urlopen(xmlUrl).read()
+            xmlContentsViaServer = urllib.request.urlopen(xmlUrl).read()
             xmlContents = open(xmlFile,'r').read()
             assert xmlContentsViaServer == xmlContents
 
             #get html contents via server and and file itself and assert
             htmlUrl = 'https://%s:%s/index.html' % (getfqdn(), sslPort)
-            htmlContentsViaServer = urllib.urlopen(htmlUrl).read()
+            htmlContentsViaServer = urllib.request.urlopen(htmlUrl).read()
             htmlContents = open(testHtmlFile,'r').read()
             assert htmlContentsViaServer == htmlContents
 

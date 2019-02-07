@@ -8,21 +8,21 @@
 # Copyright:   (c) 2005, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
 #-----------------------------------------------------------------------------
-import types, os, urlparse, re, urllib, shutil, pwd, lxml.etree, traceback
+import types, os, urllib.parse, re, urllib.request, urllib.parse, urllib.error, shutil, pwd, lxml.etree, traceback
 import sys, socket, zipfile, tarfile, hashlib, cgi
-from cStringIO import StringIO
-from UserList import UserList
+from io import StringIO
+from collections import UserList
 from PIL import Image
 from string import Template
 from tempfile import gettempdir, mktemp
-import cPickle as pickle
+import pickle as pickle
 from subprocess import *
 from random import Random
 
 import sciflo
-from namespaces import SCIFLO_NAMESPACE, XSD_NAMESPACE, PY_NAMESPACE
+from .namespaces import SCIFLO_NAMESPACE, XSD_NAMESPACE, PY_NAMESPACE
 from sciflo.utils.xmlIndent import indent
-from security import (FetchNotAllowedError, InstallNotAllowedError, fetchFromAllowed,
+from .security import (FetchNotAllowedError, InstallNotAllowedError, fetchFromAllowed,
 installFromAllowed)
 
 #uid
@@ -54,14 +54,14 @@ def getListFromUnknownObject(obj):
     """
 
     #if this is a list return it already.
-    if isinstance(obj,types.ListType): return obj
+    if isinstance(obj,list): return obj
     #if tuple or set, make list
-    elif isinstance(obj,types.TupleType) or isinstance(obj,set) or \
+    elif isinstance(obj,tuple) or isinstance(obj,set) or \
     isinstance(obj, UserList): return list(obj)
     #if it is None, return an empty list
     elif obj is None: return []
     #if it needs to be eval'd, do it
-    elif isinstance(obj, types.StringTypes) and obj.startswith('[') and \
+    elif isinstance(obj, str) and obj.startswith('[') and \
     obj.endswith(']'): return eval(obj.replace('\r', ''))
     #otherwise create a single item list
     else: return [obj]
@@ -71,16 +71,16 @@ def getDictFromUnknownObject(obj):
     """
 
     #if this is a dict return it already.
-    if isinstance(obj,types.DictType): return obj
+    if isinstance(obj,dict): return obj
     #if it is None, return an empty dict
     elif obj is None: return {}
     #if it needs to be eval'd, do it
-    elif isinstance(obj, types.StringTypes) and obj.startswith('{') and \
+    elif isinstance(obj, str) and obj.startswith('{') and \
     obj.endswith('}'): return eval(obj.replace('\r', ''))
     #otherwise try to call dict() on it
     else: return dict(obj)
 
-def validateDirectory(dir, mode=0755, noExceptionRaise=False):
+def validateDirectory(dir, mode=0o755, noExceptionRaise=False):
     """Validate that a directory can be written to by the current process and return 1.
     Otherwise, try to create it.  If successful, return 1.  Otherwise return None.
     """
@@ -102,16 +102,16 @@ def getHostIp(host=None):
     try:
         if host is None: host = socket.gethostname()
         return socket.gethostbyname(host)
-    except Exception, e:
-        print "Got exception resolving ip address for host %s: %s" % (host, e)
+    except Exception as e:
+        print(("Got exception resolving ip address for host %s: %s" % (host, e)))
         return ''
 
 def extractZipfile(file, dir=".", verbose=False):
     """Extract zipfile contents to directory.  Return list of names in the zip archive upon success."""
     z = zipfile.ZipFile(file)
     namelist = z.namelist()
-    dirlist = filter(lambda x: x.endswith('/'), namelist)
-    filelist = filter(lambda x: not x.endswith('/'), namelist)
+    dirlist = [x for x in namelist if x.endswith('/')]
+    filelist = [x for x in namelist if not x.endswith('/')]
     pushd = os.getcwd()
     if not os.path.isdir(dir): os.mkdir(dir)
     os.chdir(dir)
@@ -138,7 +138,7 @@ def extractZipfile(file, dir=".", verbose=False):
                 datum = buffer.read(buflen)
             out.close()
         finally:
-            if verbose: print fn
+            if verbose: print(fn)
     os.chdir(pushd)
     return namelist
 
@@ -150,14 +150,14 @@ def extractTarfile(file, dir=".", verbose=False):
     for n in namelist:
         try: t.extract(n, dir)
         finally:
-            if verbose: print n
+            if verbose: print(n)
     return namelist
 
 def isBundle(bundleFile, returnCmd=False):
     """Return True if bundle file is detected.  False otherwise.
     If returnCmd flag is True, returns cmd string instead upon success."""
 
-    if bundleFile is None or not isinstance(bundleFile,types.StringTypes) or \
+    if bundleFile is None or not isinstance(bundleFile,str) or \
     not os.path.exists(bundleFile): return False
     if tarfile.is_tarfile(bundleFile):
         if returnCmd: return extractTarfile
@@ -195,8 +195,8 @@ def unpackBundle(bundleFile, dir=None, forceError=False, loc=None):
             packageDir = isPythonPackageInstaller(namelist)
             if packageDir:
                 if loc is not None and not installFromAllowed(loc):
-                    raise FetchNotAllowedError, "Install from %s not allowed.  Modify the 'allowCodeInstallFrom' entry \
-in your sciflo configuration." % loc
+                    raise FetchNotAllowedError("Install from %s not allowed.  Modify the 'allowCodeInstallFrom' entry \
+in your sciflo configuration." % loc)
                 #special directories
                 userPubPackageDir = getUserPubPackagesDir()
                 md5dir = os.path.join(userPubPackageDir, 'MD5SUMS')
@@ -215,16 +215,16 @@ in your sciflo configuration." % loc
                     installScript.write('''#!/bin/sh\n%s\nif [ "$?" -eq "0" ]; then echo $? > SFL_INSTALL_SUCCESS; fi''' \
                                         % ' '.join(installCmdList))
                     installScript.close()
-                    os.chmod(installScriptFile, 0755)
+                    os.chmod(installScriptFile, 0o755)
                     
                     #run install script
                     p = Popen(installScriptFile, shell=True, env=os.environ)
                     try: sts = p.wait()  #wait for child to terminate and get status
-                    except Exception, e: pass
+                    except Exception as e: pass
                     
                     #check if install failed
                     if not os.path.exists('SFL_INSTALL_SUCCESS'):
-                        raise RuntimeError, "Failed to install %s." % packageDir
+                        raise RuntimeError("Failed to install %s." % packageDir)
                     
                     #write to package db
                     open(md5file, 'w').write("%s\n" % packageDir)
@@ -233,11 +233,11 @@ in your sciflo configuration." % loc
                     os.chdir('..')
                     shutil.rmtree(packageDir)
                     
-                else: print "Package %s already installed and is the latest version." % packageDir
+                else: print(("Package %s already installed and is the latest version." % packageDir))
         finally:
             if dir: os.chdir(curDir)
         return True
-    if forceError: raise RuntimeError, "Matched no unpack command for bundle: %s" % bundleFile
+    if forceError: raise RuntimeError("Matched no unpack command for bundle: %s" % bundleFile)
     else: return False
 
 def copyToDir(fileList,destDir,unpackBundles=False):
@@ -247,36 +247,36 @@ def copyToDir(fileList,destDir,unpackBundles=False):
 
     #validate destination directory
     if not validateDirectory(destDir, noExceptionRaise=True):
-        raise RuntimeError, "Couldn't create/validate directory %s." % destDir
+        raise RuntimeError("Couldn't create/validate directory %s." % destDir)
 
     #loop over files/dirs and download
     for item in fileList:
         loc = None
         match = re.search(r'^\w+://', item)
         if match:
-            (scheme,netloc,path,params,query,frag) = urlparse.urlparse(item)
+            (scheme,netloc,path,params,query,frag) = urllib.parse.urlparse(item)
             if netloc.find(':'): loc = netloc.split(':')[0]
             else: loc = netloc
             if not fetchFromAllowed(loc):
-                raise FetchNotAllowedError, "Fetch from %s not allowed.  Modify the 'allowCodeFetchFrom' entry \
-in your sciflo configuration." % loc
+                raise FetchNotAllowedError("Fetch from %s not allowed.  Modify the 'allowCodeFetchFrom' entry \
+in your sciflo configuration." % loc)
             
             try:
                 #get urllib filehandle
-                f = urllib.urlopen(item)
+                f = urllib.request.urlopen(item)
                 actualUrl = f.geturl()
                 
                 #check for any sneaky redirects
-                (scheme2,netloc2,path2,params2,query2,frag2) = urlparse.urlparse(actualUrl)
+                (scheme2,netloc2,path2,params2,query2,frag2) = urllib.parse.urlparse(actualUrl)
                 if netloc2.find(':'): loc2 = netloc2.split(':')[0]
                 else: loc2 = netloc2
-                if loc != loc2: raise RuntimeError, "Redirection was detected for url %s." % item
+                if loc != loc2: raise RuntimeError("Redirection was detected for url %s." % item)
                 f.close()
                 
                 #localize
                 dest = sciflo.data.localize.localizeUrl(item, destDir)
-            except Exception, e:
-                print "Got exception trying to retrieve url %s to %s: %s" % (item,destDir,e)
+            except Exception as e:
+                print(("Got exception trying to retrieve url %s to %s: %s" % (item,destDir,e)))
                 continue
         else:
             dest = os.path.join(destDir,os.path.basename(item))
@@ -291,8 +291,8 @@ def resolvePath(file,pathEnviron):
     if dir: return file
 
     #determine if pathEnviron is a list of paths or a path env i.e. .:/bin:/usr/bin
-    if isinstance(pathEnviron,types.ListType) or \
-      isinstance(pathEnviron,types.TupleType): pathDirs = pathEnviron
+    if isinstance(pathEnviron,list) or \
+      isinstance(pathEnviron,tuple): pathDirs = pathEnviron
     else: pathDirs = pathEnviron.split(':')
 
     #loop over and find
@@ -301,7 +301,7 @@ def resolvePath(file,pathEnviron):
         if os.path.exists(filePath): return filePath
 
     #if nothing came up, raise error
-    raise RuntimeError, "Couldn't resolve file %s to a path using %s." % (file,pathEnviron)
+    raise RuntimeError("Couldn't resolve file %s to a path using %s." % (file,pathEnviron))
 
 def pidIsRunning(pid):
     """Check that a pid is currently running by checking for it in the process
@@ -311,7 +311,7 @@ def pidIsRunning(pid):
     try:
         os.kill(pid,0)
         return 1
-    except OSError, e: return 0
+    except OSError as e: return 0
 
 def getBaseUrl(serverType,serverFqdn,serverPort):
     """Return the base url of the a server based on the protocol and port
@@ -328,7 +328,7 @@ def getBaseUrl(serverType,serverFqdn,serverPort):
 
     #make sure we recognize the server type
     if serverType not in type2ProtoDict:
-        raise RuntimeError, "Server type %s not recognized." % serverType
+        raise RuntimeError("Server type %s not recognized." % serverType)
 
     #get protocol from server type
     serverProtocol = type2ProtoDict[serverType]
@@ -373,8 +373,8 @@ class UrlBaseTracker(object):
         if os.path.exists(url): alreadyLocal = True
         else:
             if not url.startswith(self._urlBase):
-                raise UrlBaseTrackerError, "Url %s not under url base %s." % \
-                    (url, self._urlBase)
+                raise UrlBaseTrackerError("Url %s not under url base %s." % \
+                    (url, self._urlBase))
             alreadyLocal = False
         retUrl = url.replace(self._urlBase, self._rootDir)
         if returnFileUrl: return 'file://%s%s' % (socket.getfqdn(), retUrl)
@@ -392,7 +392,7 @@ class LocalizingFunctionWrapper(object):
     def __call__(self, *args, **kargs):
         self._args = args
         self._kargs = kargs
-        return apply(self._func, self._args, self._kargs)
+        return self._func(*self._args, **self._kargs)
 
 class FileConversionFunction(LocalizingFunctionWrapper): pass
 class FileAggregationFunction(LocalizingFunctionWrapper): pass
@@ -401,10 +401,10 @@ def runCommandLine(cmd):
     """Run command line not caring about capturing stdout/stderr."""
 
     try: retcode = call(cmd, shell=True)
-    except OSError, e:
+    except OSError as e:
         if re.search(r'No child processes',str(e),re.IGNORECASE): retcode = 0
-        else: raise RuntimeError, "Execution failed for %s: %s" % (cmd,str(e))
-    if retcode < 0: raise RuntimeError, "Execution failed for %s: Child was terminated by signal %d" % (cmd,-retcode)
+        else: raise RuntimeError("Execution failed for %s: %s" % (cmd,str(e)))
+    if retcode < 0: raise RuntimeError("Execution failed for %s: Child was terminated by signal %d" % (cmd,-retcode))
     return True
 
 def convertImage(inputFile, outputFile, format=None, convert=None,
@@ -425,8 +425,8 @@ def convertImage(inputFile, outputFile, format=None, convert=None,
         if convert and im.mode != convert:
             im.draft(convert, im.size)
             im = im.convert(convert)
-        if format: apply(im.save, (outputFile, format), options)
-        else: apply(im.save, (outputFile,), options)
+        if format: im.save(*(outputFile, format), **options)
+        else: im.save(*(outputFile,), **options)
     except IOError:
         #print >>sys.stderr, "Error using PIL to convert image: %s" % traceback.format_exc()
         #print >>sys.stderr, "Trying convert."
@@ -485,7 +485,7 @@ def linkFile(src, dest):
         try: os.symlink(src,dest)
         except:
             try: shutil.copy(src,dest)
-            except shutil.Error, e:
+            except shutil.Error as e:
                 if re.search(r'are the same file', str(e), re.IGNORECASE): pass
                 else: raise
     return True
@@ -558,17 +558,17 @@ def getUserInfo():
     userName = userInfo[0]
     homeDir = userInfo[5]
     userScifloDir = os.path.join(homeDir, '.sciflo')
-    if not os.path.isdir(userScifloDir): os.makedirs(userScifloDir,0755)
+    if not os.path.isdir(userScifloDir): os.makedirs(userScifloDir,0o755)
     convFuncDir = os.path.join(userScifloDir,'conversionFunctions')
-    if not os.path.isdir(convFuncDir): os.makedirs(convFuncDir,0755)
+    if not os.path.isdir(convFuncDir): os.makedirs(convFuncDir,0o755)
     userPackagesDir = os.path.join(userScifloDir,'site-packages')
-    if not os.path.isdir(userPackagesDir): os.makedirs(userPackagesDir,0755)
+    if not os.path.isdir(userPackagesDir): os.makedirs(userPackagesDir,0o755)
     pubPackagesDir = os.path.join(userPackagesDir,'pub')
-    if not os.path.isdir(pubPackagesDir): os.makedirs(pubPackagesDir,0755)
+    if not os.path.isdir(pubPackagesDir): os.makedirs(pubPackagesDir,0o755)
     pvtPackagesDir = os.path.join(userPackagesDir,'pvt')
-    if not os.path.isdir(pvtPackagesDir): os.makedirs(pvtPackagesDir,0755)
+    if not os.path.isdir(pvtPackagesDir): os.makedirs(pvtPackagesDir,0o755)
     datasetsDir = os.path.join(userScifloDir,'datasets')
-    if not os.path.isdir(datasetsDir): os.makedirs(datasetsDir,0755)
+    if not os.path.isdir(datasetsDir): os.makedirs(datasetsDir,0o755)
     userConfigFile = os.path.join(userScifloDir,'myconfig.xml')
     if not os.path.isfile(userConfigFile):
         t = Template('''<?xml version="1.0"?>
@@ -847,7 +847,7 @@ def getType(obj):
     #get result type
     resMatch = re.search(r"<(?:type|class) '(.+)'>",str(type(obj)))
     if resMatch: resType = resMatch.group(1)
-    else: raise RuntimeError, "Unable to recognize type: %s" % type(obj)
+    else: raise RuntimeError("Unable to recognize type: %s" % type(obj))
     
     #if instance get class name
     if resType == 'instance': return str(obj.__class__)
@@ -857,7 +857,7 @@ def getFile(item, dir=None):
     """Download file and rewrite path to be local.  Return rewritten path."""
     
     if dir is None: dir = '.'
-    if isinstance(item, types.StringTypes) and item.startswith('/'):
+    if isinstance(item, str) and item.startswith('/'):
         if os.path.exists(item): return item
         else: return None
     return sciflo.data.localize.localizeUrl(item, dir=dir)
@@ -868,9 +868,9 @@ def isDODS(url):
     if not url.startswith('http'): return False
     if '/nph-dods/' in url: return True
     try:
-        ddsStr = urllib.urlopen(url+'.dds').read(9)
+        ddsStr = urllib.request.urlopen(url+'.dds').read(9)
         if re.search(r'^Dataset\s*{', ddsStr): return True
-    except Exception, e: pass #print e
+    except Exception as e: pass #print e
     return False
 
 def makeUrlLocal(url, noDODSFlag, dir=None):
@@ -901,17 +901,17 @@ def makeLocal(urlArg, noDODSFlag=False, dir=None):
         urlArg = urlArg._aslist()
     
     retList = []
-    if isinstance(urlArg,(types.ListType, types.TupleType)):
+    if isinstance(urlArg,(list, tuple)):
         for url in urlArg:
             urlToAdd = ''
-            if isinstance(url, (types.ListType, types.TupleType)):
+            if isinstance(url, (list, tuple)):
                 localUrl = makeLocal(url, noDODSFlag, dir)
             else: localUrl = makeUrlLocal(url,noDODSFlag, dir)
             if localUrl is None: pass
             else: urlToAdd = localUrl
             retList.append(urlToAdd)
         return retList
-    if isinstance(urlArg, types.StringTypes) and not urlArg.startswith('<'):
+    if isinstance(urlArg, str) and not urlArg.startswith('<'):
         localUrl = makeUrlLocal(urlArg, noDODSFlag, dir)
         if localUrl is None: return ''
         else: return localUrl
@@ -948,7 +948,7 @@ def makeLocal(urlArg, noDODSFlag=False, dir=None):
             url = makeUrlLocal(urlElts[0].text,noDODSFlag, dir)
             if url is None: return ''
             else: return url
-        else: raise RuntimeError, "Cannot parse urls from xml:\n%s" % urlArg
+        else: raise RuntimeError("Cannot parse urls from xml:\n%s" % urlArg)
 
 def makeLocalNoDods(urlArg, dir=None): return makeLocal(urlArg, True, dir)
 
@@ -976,9 +976,9 @@ def runDot(dot, outputFile=None, outputType=None):
     if outputType is None:
         ext = os.path.splitext(outputFile)[1][1:]
         if ext in otTypes: outputType = ext
-        else: raise RuntimeError, "Unknown extension %s." % ext
+        else: raise RuntimeError("Unknown extension %s." % ext)
     runCommandLine("dot -T%s -o %s %s" % (ext, outputFile, dotFile))
-    if headers: urllib.urlcleanup()
+    if headers: urllib.request.urlcleanup()
     try:
         if tmpFlag: os.unlink(dotFile)
     except: pass
@@ -990,8 +990,8 @@ def runDot(dot, outputFile=None, outputType=None):
 
 def getRelativeUrl(source, target):
     """Return relative url of target path from source path."""
-    su = urlparse.urlparse(source)
-    tu = urlparse.urlparse(target)
+    su = urllib.parse.urlparse(source)
+    tu = urllib.parse.urlparse(target)
     junk = tu[3:]
 
     #scheme (http) or netloc (www.heise.de) are different
@@ -1018,7 +1018,7 @@ def getRelativeUrl(source, target):
     tu.reverse()
     relativeUrl = ['..' for i in range(len(su)-1)]
     relUrl = "/".join(relativeUrl + tu)
-    relUrl = urlparse.urlunparse(["", "", relUrl, junk[0], junk[1], junk[2]])
+    relUrl = urllib.parse.urlunparse(["", "", relUrl, junk[0], junk[1], junk[2]])
     return relUrl
 
 def sanitizeHtml(value):

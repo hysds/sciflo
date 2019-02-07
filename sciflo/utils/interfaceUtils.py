@@ -1,8 +1,8 @@
 import os, sys, re, json, copy
-from urllib2 import urlopen
-from urlparse import urlparse
+from urllib.request import urlopen
+from urllib.parse import urlparse
 
-from xmlUtils import getXmlEtree
+from .xmlUtils import getXmlEtree
 
 VIEW_RE = re.compile('^(.+?)\((.*)\)$')
 
@@ -448,7 +448,7 @@ def getTabConfig(sfl):
     misItems = []
     for gi in globalInputsNames:
         if gi not in globalInputsUsed:
-            print >>sys.stderr, "%s not used" % gi
+            print("%s not used" % gi, file=sys.stderr)
             giConfig = globalInputsConfig[gi]
             name = gi
             if giConfig['view'] == None:

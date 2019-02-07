@@ -1,13 +1,13 @@
-from xmlUtils import *
-from timeUtils import *
-from misc import *
-import magic
-import filelist
-import xmldb
-from namespaces import *
-from security import *
-import Stats
-from bundler import *
-import validators
-import interfaceUtils
-from mail import *
+from .xmlUtils import *
+from .timeUtils import *
+from .misc import *
+from . import magic
+from . import filelist
+from . import xmldb
+from .namespaces import *
+from .security import *
+from . import Stats
+from .bundler import *
+from . import validators
+from . import interfaceUtils
+from .mail import *

@@ -23,9 +23,9 @@ from sciflo.webservices import *
 def usage():
     """Print usage info."""
 
-    print """%s [-p|--port <port number>] [-x|--xmlDir <endpoint xml directory>] [-w|--wsdlDir <wsdl directory>] \
+    print(("""%s [-p|--port <port number>] [-x|--xmlDir <endpoint xml directory>] [-w|--wsdlDir <wsdl directory>] \
 [-a|--addPath <module search path>] [-s|--serveDir <directory>] [-d|--debug] [-t|--type <threading|forking|twisted>] \
-[-e|--executeDir <execution directory>] [-h|--help]""" % sys.argv[0]
+[-e|--executeDir <execution directory>] [-h|--help]""" % sys.argv[0]))
 
 def main():
 
@@ -75,7 +75,7 @@ def main():
         #check if port
         if o in ("-p","--port"):
             if portSet:
-                print "Multiple -p|--port specifications found.  Only specify one port."
+                print("Multiple -p|--port specifications found.  Only specify one port.")
                 usage()
                 sys.exit(2)
             else:
@@ -85,12 +85,12 @@ def main():
         #check type
         if o in ("-t","--type"):
             if typeSet:
-                print "Multiple -t|--type specifications found.  Only specify one type."
+                print("Multiple -t|--type specifications found.  Only specify one type.")
                 usage()
                 sys.exit(2)
             else:
                 if a not in ('threading', 'forking', 'twisted'):
-                    print "Invalid server type: %s." % a
+                    print(("Invalid server type: %s." % a))
                     usage()
                     sys.exit(2)
                 if a == 'threading': threading = True
@@ -104,7 +104,7 @@ def main():
         #check wsdl directory
         if o in ("-w","--wsdlDir"):
             if wsdlDirSet:
-                print "Multiple -w|--wsdlDir specifications found.  Only specify one wsdl output directory."
+                print("Multiple -w|--wsdlDir specifications found.  Only specify one wsdl output directory.")
                 usage()
                 sys.exit(2)
             else:
@@ -117,7 +117,7 @@ def main():
         #check if serving files
         if o in ("-s","--serveDir"):
             if serveDirSet:
-                print "Multiple -s|--serveDir specifications found.  Only specify one root directory to serve."
+                print("Multiple -s|--serveDir specifications found.  Only specify one root directory to serve.")
                 usage()
                 sys.exit(2)
             else:
@@ -128,7 +128,7 @@ def main():
         #check if chdir to execute directory
         if o in ("-e","--executeDir"):
             if executeDirSet:
-                print "Multiple -e|--executeDir specifications found.  Only specify one root directory to execute in."
+                print("Multiple -e|--executeDir specifications found.  Only specify one root directory to execute in.")
                 usage()
                 sys.exit(2)
             else:

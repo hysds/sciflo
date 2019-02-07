@@ -8,10 +8,10 @@ xmlIndent.py [<document URL>]
 If no document URL specified, then reads from stdin.
 """
 
-import sys, re, urllib, types
+import sys, re, urllib.request, urllib.parse, urllib.error, types
 import xml.sax
 from xml.sax.saxutils import XMLGenerator
-from cStringIO import StringIO
+from io import StringIO
 
 def info(s): sys.stdout.write('xmlIndent' + ": " + str(s) + "\n")
 def warn(s): sys.stderr.write('xmlIndent' + ": " + str(s) + "\n")
@@ -75,7 +75,7 @@ def getInputStream(xml=None):
 	stream = xml
 	if xml is None:
 		stream = sys.stdin
-	elif isinstance(xml, types.StringType):
+	elif isinstance(xml, bytes):
 		if re.match('\s*<', xml):
 			xml = xml.replace('\n', '')
 			if not re.match('(?is)\s*<\?xml', xml):
@@ -84,8 +84,8 @@ def getInputStream(xml=None):
 			stream = StringIO(xml)
 		else:
 			try:
-				stream = urllib.urlopen(xml)
-			except Exception, e:
+				stream = urllib.request.urlopen(xml)
+			except Exception as e:
 				warn("xmlIndent.getInputStream: Cannot open document URL: %s" % url)
 				die(e)
 	return stream
@@ -97,7 +97,7 @@ def indent(xmls, indent='  ', newline='\n', header=True):
 	try:
 		handler = Indenter(indent, newline, out=outs)
 		xml.sax.parse(ins, handler)
-	except Exception, e:
+	except Exception as e:
 		warn("Error encountered while parsing XML document.")
 		die(e)
 	xmlFragment = outs.getvalue()
@@ -108,12 +108,12 @@ def indent(xmls, indent='  ', newline='\n', header=True):
 	
 if __name__ == "__main__":
 	from sys import argv, stdout
-	if len(argv) < 1: print USAGE
+	if len(argv) < 1: print(USAGE)
 	me = argv[0]
 	try:
 		url = argv[1]
 	except:
 		url = None
 
-	print indent(url)
+	print((indent(url)))
 	

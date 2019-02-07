@@ -1,19 +1,19 @@
 import os, sys, traceback, pwd, logging, time, json
-import cPickle as pickle
+import pickle as pickle
 from random import Random
-from Queue import Empty
+from queue import Empty
 from SOAPpy.Errors import HTTPError
 from lxml.etree import _ElementStringResult, _Element, tostring, fromstring
 from celery.exceptions import SoftTimeLimitExceeded
 
 from sciflo.utils import copyToDir, validateDirectory, getTempfileName
 from sciflo.event.pdict import PersistentDict
-from config import GridServiceConfig
-from utils import (generateWorkUnitId, getTb, getThreadSafeRandomObject,
+from .config import GridServiceConfig
+from .utils import (generateWorkUnitId, getTb, getThreadSafeRandomObject,
 getAbsPathForResultFiles, generateScifloId)
-from workUnitTypeMapping import WorkUnitTypeMapping
-from workUnit import workUnitInfo
-from status import *
+from .workUnitTypeMapping import WorkUnitTypeMapping
+from .workUnit import workUnitInfo
+from .status import *
 
 DEBUG_PROCESSING = False
 
@@ -72,7 +72,7 @@ def forkChildAndRun(q, func, *args, **kargs):
             with open(pickleFile, 'w') as p:
                 try: pickle.dump(res, p)
                 except: pickle.dump((RuntimeError(str(res[0])), res[1]), p)
-        except Exception, e:
+        except Exception as e:
             WORKER_LOGGER.debug("Error in forkChildAndRun: %s" % getTb(),
                                 extra={'id': 'child'})
             with open(pickleFile, 'w') as p:
@@ -103,7 +103,7 @@ def forkChildAndRun(q, func, *args, **kargs):
             #otherwise assume user cancelled explicitly through SIGINT
             else: res = (CancelledWorkUnit(CANCELLED_MESSAGE),
                          CANCELLED_MESSAGE)
-    except Exception, e:
+    except Exception as e:
         res = (RuntimeError("Got exception in forChildAndRun: %s" % e),
                getTb())
     
@@ -131,7 +131,7 @@ def workUnitWorker(wu, cacheName, timeout):
         if cacheName is None: pdict = None
         else:
             try: pdict = PersistentDict(cacheName, pickleVals=True)
-            except Exception, e:
+            except Exception as e:
                 WORKER_LOGGER.debug("Caught exception trying to create pdict \
 for '%s': %s\n%s" % (procId, str(e), getTb()), extra={'id': wuid})
                 pdict = None
@@ -140,7 +140,7 @@ for '%s': %s\n%s" % (procId, str(e), getTb()), extra={'id': wuid})
         #just run the work unit
         if pdict is not None:
             try: jsonFile = pdict[hex]
-            except Exception, e:
+            except Exception as e:
                 WORKER_LOGGER.debug("Caught exception for '%s' trying to query \
 pdict with key '%s': %s\n%s" % (procId, hex, str(e), getTb()),
                     extra={'id': wuid})
@@ -163,7 +163,7 @@ previously cached execution: %s" % info['executionLog'])
                     exceptionMessage=info['exceptionMessage'],
                     tracebackMessage=info['tracebackMessage']))
             
-    except Exception, e:
+    except Exception as e:
         WORKER_LOGGER.debug("Got error in workUnitWorker for '%s': %s\n%s" %
                             (procId, str(e), getTb()), extra={'id': wuid})
         return (procId, wu.getInfo())
@@ -197,10 +197,10 @@ previously cached execution: %s" % info['executionLog'])
         res = (getAbsPathForResultFiles(tmpRes[0], dir=wu.getWorkDir()),
                tmpRes[1])
         gotError = False
-    except Empty, e:
+    except Empty as e:
         res = (ExecuteWorkUnitTimeoutError("Got timeout error executing work \
 unit %s: %s" % (procId, e)), None)
-    except Exception, e: res = (e, getTb())
+    except Exception as e: res = (e, getTb())
     WORKER_LOGGER.debug("Finished waiting on process for '%s'." % procId,
                         extra={'id': wuid})
     info = workUnitInfo(info, endTime=time.time())
@@ -256,7 +256,7 @@ def executeWorkUnit(workUnit, pool, timeout=86400, callback=None,
         try:
             res = pool.apply_async(worker, workerArgs)
             return res.get()
-        except Exception, e:
+        except Exception as e:
             return (workUnit.getProcId(),
                     (ExecuteWorkUnitError("Got error executing work unit: %s"
                                           % e), getTb()))

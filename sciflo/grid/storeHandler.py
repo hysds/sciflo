@@ -13,7 +13,7 @@ import types
 import time
 from inspect import isclass
 
-from status import *
+from .status import *
 from sciflo.db import *
 from sciflo.utils import getListFromUnknownObject, validateDirectory
 
@@ -50,7 +50,7 @@ class WorkUnitStoreHandler(object):
 
         #make sure storeConfig is StoreConfig
         if not isinstance(storeConfig, StoreConfig):
-            raise WorkUnitStoreHandlerError, "Must specify a StoreConfig object."
+            raise WorkUnitStoreHandlerError("Must specify a StoreConfig object.")
 
         #set attributes
         self._storeConfig = storeConfig
@@ -63,7 +63,7 @@ class WorkUnitStoreHandler(object):
         #create manager store
         args = [self._storeName,  workUnitManagerStoreFieldsList]
         args.extend(self._storeArgs)
-        self._managerStore = apply(self._storeClass, args)
+        self._managerStore = self._storeClass(*args)
         self._store = None
         self._cachedStore = None
         
@@ -75,8 +75,8 @@ class WorkUnitStoreHandler(object):
         validateDirectory(dbHome, noExceptionRaise=True)
         args.append(dbHome)
         args.extend(self._storeArgs[1:])
-        if cachedStore: self._cachedStore = apply(self._storeClass, args)
-        else: self._store = apply(self._storeClass, args)
+        if cachedStore: self._cachedStore = self._storeClass(*args)
+        else: self._store = self._storeClass(*args)
         return True
 
     def queryUnique(self, queryField, queryValue, returnField=None, dataStore=False, cachedStore=False):
@@ -103,7 +103,7 @@ class WorkUnitStoreHandler(object):
 
         #check that wuid is not here already
         if self.isWorkUnitIdHere(wuid):
-            raise WorkUnitStoreHandlerError, "Work unit id %s is already in the store." % wuid
+            raise WorkUnitStoreHandlerError("Work unit id %s is already in the store." % wuid)
 
         #add
         self._managerStore.add(wuid, digest, executePid, managerPid, entryTime)
@@ -118,7 +118,7 @@ class WorkUnitStoreHandler(object):
 
         #check that wuid is not here already
         if not self.isWorkUnitIdHere(wuid):
-            raise WorkUnitStoreHandlerError, "Work unit id %s is not already in the store." % wuid
+            raise WorkUnitStoreHandlerError("Work unit id %s is not already in the store." % wuid)
 
         #remove
         self._managerStore.remove(wuid)
@@ -145,7 +145,7 @@ class WorkUnitStoreHandler(object):
                     break
                 time.sleep(1)
             if qTryRes is None:
-                raise WorkUnitStoreHandlerError, "Couldn't get digest/status for wuid %s" % wuid
+                raise WorkUnitStoreHandlerError("Couldn't get digest/status for wuid %s" % wuid)
                 
 
             #print "digest,status:",digest,status
@@ -173,8 +173,7 @@ class WorkUnitStoreHandler(object):
                     for f in fields:
                         if f in cFields: results.append(cResults[cFields.index(f)])
                         elif f in dFields: results.append(dResults[dFields.index(f)])
-                        else: raise WorkUnitStoreHandlerError, \
-                            "Cannot find field %s in results." % f
+                        else: raise WorkUnitStoreHandlerError("Cannot find field %s in results." % f)
                         
                     return results
 
@@ -239,8 +238,8 @@ class WorkUnitStoreHandler(object):
 
         #if status is in finished status list, raise error
         if status in finishedStatusList:
-            raise WorkUnitStoreHandlerError, "Cannot modify work unit %s.  Status is %s." % \
-            (wuid, status)
+            raise WorkUnitStoreHandlerError("Cannot modify work unit %s.  Status is %s." % \
+            (wuid, status))
 
         #make data dict
         dataDict = {}
@@ -434,7 +433,7 @@ class WorkUnitStoreHandler(object):
         retList = []
         for wuIds in wuIdList:
             if len(wuIds) != 1:
-                raise WorkUnitStoreHandlerError, "Cannot handle number of wuIds found: %s" % wuIds
+                raise WorkUnitStoreHandlerError("Cannot handle number of wuIds found: %s" % wuIds)
             retList.append(self.getValueByWorkUnitId(wuIds[0], field))
         return retList
 
@@ -465,7 +464,7 @@ class ScheduleStoreHandler(object):
 
         #make sure storeConfig is StoreConfig
         if not isinstance(storeConfig, StoreConfig):
-            raise ScheduleStoreHandlerError, "Must specify a StoreConfig object."
+            raise ScheduleStoreHandlerError("Must specify a StoreConfig object.")
 
         #set attributes
         self._storeConfig = storeConfig
@@ -478,7 +477,7 @@ class ScheduleStoreHandler(object):
         #create manager store
         args = [self._storeName,  scheduleManagerStoreFieldsList]
         args.extend(self._storeArgs)
-        self._managerStore = apply(self._storeClass, args)
+        self._managerStore = self._storeClass(*args)
         self._store = None
         self._cachedStore = None
     
@@ -490,8 +489,8 @@ class ScheduleStoreHandler(object):
         validateDirectory(dbHome, noExceptionRaise=True)
         args.append(dbHome)
         args.extend(self._storeArgs[1:])
-        if cachedStore: self._cachedStore = apply(self._storeClass, args)
-        else: self._store = apply(self._storeClass, args)
+        if cachedStore: self._cachedStore = self._storeClass(*args)
+        else: self._store = self._storeClass(*args)
         return True
 
     def queryUnique(self, queryField, queryValue, returnField=None, dataStore=False, cachedStore=False):
@@ -519,7 +518,7 @@ class ScheduleStoreHandler(object):
 
         #check that wuConfigId is not here already
         if self.isWorkUnitConfigIdHere(wuConfigId):
-            raise ScheduleStoreHandlerError, "Work unit config id %s is already in the store." % wuConfigId
+            raise ScheduleStoreHandlerError("Work unit config id %s is already in the store." % wuConfigId)
 
         #add
         self._managerStore.add(wuConfigId, scifloId, wuId, wuConfigDigest)
@@ -536,7 +535,7 @@ class ScheduleStoreHandler(object):
 
         #check that wuConfigId is not here already
         if not self.isWorkUnitConfigIdHere(wuConfigId):
-            raise ScheduleStoreHandlerError, "Work unit config id %s is not already in the store." % wuConfigId
+            raise ScheduleStoreHandlerError("Work unit config id %s is not already in the store." % wuConfigId)
 
         #remove
         self._managerStore.remove(wuConfigId)
@@ -581,8 +580,7 @@ class ScheduleStoreHandler(object):
                     for f in fields:
                         if f in cFields: results.append(cResults[cFields.index(f)])
                         elif f in dFields: results.append(dResults[dFields.index(f)])
-                        else: raise ScheduleStoreHandlerError, \
-                            "Cannot find field %s in results." % f
+                        else: raise ScheduleStoreHandlerError("Cannot find field %s in results." % f)
                         
                     return results
 
@@ -617,7 +615,7 @@ class ScheduleStoreHandler(object):
         retList = []
         for wuConfigIds in wuConfigIdList:
             if len(wuConfigIds) != 1:
-                raise ScheduleStoreHandlerError, "Cannot handle number of wuConfigIds found: %s" % wuConfigIds
+                raise ScheduleStoreHandlerError("Cannot handle number of wuConfigIds found: %s" % wuConfigIds)
             retList.append(self.getValueByWorkUnitConfigId(wuConfigIds[0], field))
         return retList
     
@@ -699,11 +697,11 @@ class ScheduleStoreHandler(object):
         #loop over and find matching procId
         for wuConfigIds in wuConfigIdList:
             if len(wuConfigIds) != 1:
-                raise ScheduleStoreHandlerError, "Cannot handle number of wuConfigIds found: %s" % wuConfigIds
+                raise ScheduleStoreHandlerError("Cannot handle number of wuConfigIds found: %s" % wuConfigIds)
             thisProcId = self.getValueByWorkUnitConfigId(wuConfigIds[0], ['procId'])
             if procId == thisProcId: return wuConfigIds[0]
             
-        raise ScheduleStoreHandlerError, "Cannot find procId %s in scifloid %s." % (procId, scifloId)
+        raise ScheduleStoreHandlerError("Cannot find procId %s in scifloid %s." % (procId, scifloId))
 
     def getScifloidInfo(self, scifloId, fields):
         """Return sorted list of dicts containing field info.  Sorted by
@@ -723,7 +721,7 @@ class ScheduleStoreHandler(object):
         retList = []
         for wuConfigIds in wuConfigIdList:
             if len(wuConfigIds) != 1:
-                raise ScheduleStoreHandlerError, "Cannot handle number of wuConfigIds found: %s" % wuConfigIds
+                raise ScheduleStoreHandlerError("Cannot handle number of wuConfigIds found: %s" % wuConfigIds)
             retList.append(self.getValueByWorkUnitConfigId(wuConfigIds[0], fields))
 
         #sort

@@ -1,7 +1,7 @@
-import cPickle as pickle
+import pickle as pickle
 import sys, os, re, string, types, shutil
-import urllib, time, traceback, urllib2
-import httplib
+import urllib.request, urllib.parse, urllib.error, time, traceback, urllib.request, urllib.error, urllib.parse
+import http.client
 import SOAPpy
 from SOAPpy import WSDL
 from subprocess import *
@@ -16,7 +16,7 @@ from sciflo.utils import (validateDirectory, resolvePath, xmldb,
 getUserPubPackagesDir, getUserPvtPackagesDir, runXpath, linkFile,
 postCall, writePickleFile)
 from sciflo.utils.xmlIndent import indent
-from utils import verifyExecutable, getFunction, generateScifloId, Tee
+from .utils import verifyExecutable, getFunction, generateScifloId, Tee
 
 from hysds.orchestrator import submit_job
 
@@ -60,7 +60,7 @@ class WorkUnit(object):
         self._configDict = configDict
         self._cancelFlag = False
         if not validateDirectory(self._workDir):    #make sure workDir exists
-            raise WorkUnitError, "Couldn't create work unit work directory: %s." % self._workDir
+            raise WorkUnitError("Couldn't create work unit work directory: %s." % self._workDir)
         self._jsonFile = os.path.join(self._workDir, 'workunit.json')
         self._logFile = os.path.join(self._workDir, 'wu_execution.log')
         self._pidFile = os.path.join(self._workDir, 'workunit.pid')
@@ -109,7 +109,7 @@ class WorkUnit(object):
             #write configDict to pickle
             writePickleFile(self._configDict, os.path.join(self._workDir, 'WORK_UNIT_CONFIG.pkl'))
             result = self._run()
-        except Exception, e:
+        except Exception as e:
             result = e
             etype = sys.exc_info()[0]  #get traceback info
             evalue = sys.exc_info()[1]
@@ -143,10 +143,10 @@ class PythonFunctionWorkUnit(WorkUnit):
         funcCall = self._call
         funcArgs = self._args
         if self._verbose:
-            print "PythonFunctionWorkUnit: %s(*args) where args=%s" % \
-                (funcCall, str(funcArgs))
+            print("PythonFunctionWorkUnit: %s(*args) where args=%s" % \
+                (funcCall, str(funcArgs)))
         func = getFunction(funcCall)   #get function, importing any libraries
-        return apply(func,funcArgs)
+        return func(*funcArgs)
 
 class InlinePythonFunctionWorkUnitError(Exception):
     """Exception class for InlinePythonFunctionWorkUnit class."""
@@ -163,10 +163,10 @@ class InlinePythonFunctionWorkUnit(WorkUnit):
         match = re.search(r'def\s+(\w+)\s*\(',code)  #get function name
         if match: funcCall = match.group(1)
         else:
-            raise InlinePythonFunctionWorkUnitError, "Cannot extract function name from inline code."
-        if self._verbose: print "InlinePythonFunctionWorkUnit: %s" % code
-        exec code in locals()  #exec the inline python in local namespace
-        return apply(eval(funcCall),funcArgs)
+            raise InlinePythonFunctionWorkUnitError("Cannot extract function name from inline code.")
+        if self._verbose: print("InlinePythonFunctionWorkUnit: %s" % code)
+        exec(code, locals())  #exec the inline python in local namespace
+        return eval(funcCall)(*funcArgs)
 
 class SoapWorkUnitError(Exception):
     """Exception class for SoapWorkUnit class."""
@@ -179,7 +179,7 @@ class SoapWorkUnit(WorkUnit):
         """Call the SOAP service and return the result."""
         
         def _adjustSoapArg(arg):
-            if isinstance(arg, types.StringTypes): newArg = "'''%s'''" % arg
+            if isinstance(arg, (str,)): newArg = "'''%s'''" % arg
             elif isinstance(arg, SOAPpy.Types.arrayType): newArg = "%s" % arg._aslist()
             elif isinstance(arg, SOAPpy.Types.structType): newArg = "%s" % arg._asdict()
             else: newArg = "%s" % arg
@@ -192,31 +192,31 @@ class SoapWorkUnit(WorkUnit):
         if self._verbose: SOAPpy.Config.debug = 1
 
         #get proxy
-        if wsdlFile.startswith('https://'): wsdlFile = urllib2.urlopen(wsdlFile)
+        if wsdlFile.startswith('https://'): wsdlFile = urllib.request.urlopen(wsdlFile)
         try: server = WSDL.Proxy(wsdlFile)  #get soap server
-        except ExpatError, e:
-            try: wsdlStr = urllib.urlopen(wsdlFile).read()
-            except Exception, e:
-                raise SoapWorkUnitError, "Got error accessing wsdl at %s.  Check url?\n%s" % (wsdlFile, e)
-            raise SoapWorkUnitError, "Got error parsing wsdl at %s.  Check url?\n%s" % (wsdlFile, e)
+        except ExpatError as e:
+            try: wsdlStr = urllib.request.urlopen(wsdlFile).read()
+            except Exception as e:
+                raise SoapWorkUnitError("Got error accessing wsdl at %s.  Check url?\n%s" % (wsdlFile, e))
+            raise SoapWorkUnitError("Got error parsing wsdl at %s.  Check url?\n%s" % (wsdlFile, e))
 
         argsStrList = []
         for soapArg in soapArgs: argsStrList.append(_adjustSoapArg(soapArg))
         callLine = 'server.%s(%s)' % (soapCall,",".join(argsStrList))
-        if self._verbose: print "SoapWorkUnit: %s" % callLine
+        if self._verbose: print("SoapWorkUnit: %s" % callLine)
         res = eval(callLine)
         
         #check if AsyncResult
-        if isinstance(res, types.StringTypes) and res.startswith('scifloAsync:'):
+        if isinstance(res, (str,)) and res.startswith('scifloAsync:'):
             res = res[12:]
-            print "Querying for async result..."
+            print("Querying for async result...")
             retries = 17280
             sleep = 5
             for i in range(retries):
-                try: return pickle.loads(urllib2.urlopen(res).read())
-                except urllib2.HTTPError, e:
+                try: return pickle.loads(urllib.request.urlopen(res).read())
+                except urllib.error.HTTPError as e:
                     if re.search(r'HTTP Error 404', str(e)):
-                        print "Got 404(Not Found).  Going to sleep and will retry again."
+                        print("Got 404(Not Found).  Going to sleep and will retry again.")
                     else: raise
                 time.sleep(sleep)
             raise SoapWorkUnitError('Timed out trying to query for AsyncResult.')
@@ -238,13 +238,13 @@ class ExecutableWorkUnit(WorkUnit):
         """Return resolved path to executable."""
 
         exePath = resolvePath(call, os.environ['PATH'])
-        if not os.access(exePath,5): os.chmod(exePath,0755)
+        if not os.access(exePath,5): os.chmod(exePath,0o755)
 
         #make sure call is a binary executable or if it's a script,
         #the interpreter is specified at the top of the file, i.e. #!/bin/sh
         if not verifyExecutable(exePath):
-            raise ExecutableWorkUnitError, """Please make sure executable is a binary executable
-            or, if it is a script, specify the interpreter on the first line, i.e. #!/bin/sh."""
+            raise ExecutableWorkUnitError("""Please make sure executable is a binary executable
+            or, if it is a script, specify the interpreter on the first line, i.e. #!/bin/sh.""")
         return exePath
 
     def _getCommandLineList(self):
@@ -253,7 +253,7 @@ class ExecutableWorkUnit(WorkUnit):
         exePath = self._getExePath(self._call)
         commandLineList = [exePath]
         commandLineList.extend(self._args)
-        return map(str,commandLineList)
+        return list(map(str,commandLineList))
 
     def _run(self):
         """Call the command-line executable and return the result."""
@@ -261,8 +261,8 @@ class ExecutableWorkUnit(WorkUnit):
         commandLineList = self._getCommandLineList()
         commandLineStr = ' '.join(commandLineList)
         if '|' in commandLineStr:
-            raise ExecutableWorkUnitError, "Shell pipelines not allowed: %s" % commandLineStr
-        if self._verbose: print "ExecutableWorkUnit: %s" % commandLineStr
+            raise ExecutableWorkUnitError("Shell pipelines not allowed: %s" % commandLineStr)
+        if self._verbose: print("ExecutableWorkUnit: %s" % commandLineStr)
 
         #detect output file specification
         outputFileMatch = None
@@ -280,11 +280,11 @@ class ExecutableWorkUnit(WorkUnit):
                 status = call(commandLineStr, shell=True)
                 if status < 0: stdErr = "Child was terminated by signal %s" % str(-status)
                 else: stdErr = "Child returned %s" % str(status)
-            except OSError, e:
+            except OSError as e:
                 if re.search(r'No child processes', str(e), re.IGNORECASE):
                     status = 0
-                    print >>sys.stderr, "Caught 'No child processes' exception for %s." % \
-                        commandLineStr
+                    print("Caught 'No child processes' exception for %s." % \
+                        commandLineStr, file=sys.stderr)
                 else:
                     stdErr = "Execution failed: %s" % e
                     status = 9999
@@ -292,13 +292,13 @@ class ExecutableWorkUnit(WorkUnit):
         else:
             pop = Popen(commandLineList, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=os.environ)
             try: sts = pop.wait()  #wait for child to terminate and get status
-            except Exception, e: pass
+            except Exception as e: pass
             status = pop.returncode
             #print "returncode is:",status
             result = pop.stdout.read()
             stdErr = pop.stderr.read()
         if status:
-            raise ExecutableWorkUnitError, "Executable failed to give a 0 exit status: %s" % stdErr
+            raise ExecutableWorkUnitError("Executable failed to give a 0 exit status: %s" % stdErr)
 
         return result
 
@@ -307,12 +307,12 @@ def runTemplateSub(tpl, args):
 
     template = string.strip(tpl)
     keyList = []; valList = []
-    if (len(args)%2) != 0: raise RuntimeError, "Uneven number of arguments: %s" % str(args)
+    if (len(args)%2) != 0: raise RuntimeError("Uneven number of arguments: %s" % str(args))
     for i in range(len(args)):
         if (i%2) == 0: keyList.append(args[i])
         elif (i%2) == 1: valList.append(args[i])
-        else: raise RuntimeError, "Unknown remainder for %d%%2." % i
-    substs = dict(zip(keyList,valList))
+        else: raise RuntimeError("Unknown remainder for %d%%2." % i)
+    substs = dict(list(zip(keyList,valList)))
     template = ''.join(template.strip(' \t\r\n').splitlines())
     return string.Template(template).substitute(substs)
 
@@ -327,7 +327,7 @@ class TemplateWorkUnit(WorkUnit):
         """Execute the template interpolation and return the result."""
 
         val = runTemplateSub(self._call, self._args)
-        if self._verbose: print "TemplateWorkUnit: %s" % val
+        if self._verbose: print("TemplateWorkUnit: %s" % val)
         return val
 
 class RestWorkUnitError(Exception):
@@ -342,14 +342,14 @@ class RestWorkUnit(WorkUnit):
         Variables are interpolated into the REST URL template before it is executed."""
 
         restCall = runTemplateSub(self._call, self._args)
-        encodedUrl = urllib.quote(restCall, safe=':/?&=,%')
-        if self._verbose: print "RestWorkUnit: %s" % encodedUrl
-        f,h = urllib.urlretrieve(encodedUrl)
+        encodedUrl = urllib.parse.quote(restCall, safe=':/?&=,%')
+        if self._verbose: print("RestWorkUnit: %s" % encodedUrl)
+        f,h = urllib.request.urlretrieve(encodedUrl)
         mimeType = h.gettype()
         mimeMainType, mimeSubType = mimeType.split('/')
         newFile = '%s.%s' % (os.path.basename(f),mimeSubType)
         shutil.move(f,newFile)
-        os.chmod(newFile,0644)
+        os.chmod(newFile,0o644)
         return newFile
 
 class CommandLineWorkUnitError(Exception):
@@ -370,7 +370,7 @@ class CommandLineWorkUnit(ExecutableWorkUnit):
         del commandLineList[0]; commandLineList.insert(0, exePath)
 
         #return
-        return map(str,commandLineList)
+        return list(map(str,commandLineList))
 
 class XqueryWorkUnitError(Exception):
     """XqueryWorkUnit Exception class."""
@@ -384,7 +384,7 @@ class XqueryWorkUnit(WorkUnit):
 
         query = self._call    # XQuery as string
         xmlDocs = self._args  # XML docs, fragments, or URL's pointing to such
-        if self._verbose: print "XqueryWorkUnit: %s" % query
+        if self._verbose: print("XqueryWorkUnit: %s" % query)
         return indent( xmldb.getXQueryResults(xmlDocs, query) )
 
 class XpathWorkUnitError(Exception):
@@ -399,7 +399,7 @@ class XpathWorkUnit(WorkUnit):
 
         xpath = self._call    # XQuery as string
         xml = self._args[0]  # XML docs, fragments, or URL's pointing to such
-        if self._verbose: print "XpathWorkUnit: %s" % xpath
+        if self._verbose: print("XpathWorkUnit: %s" % xpath)
         return runXpath(xml, xpath)
 
 class PostWorkUnitError(Exception):
@@ -415,7 +415,7 @@ class PostWorkUnit(WorkUnit):
         url = self._call
         headersDict = self._args[0]
         postData = self._args[1]
-        if self._verbose: print "PostWorkUnit: %s %s %s" % (url, str(headersDict), postData)
+        if self._verbose: print("PostWorkUnit: %s %s %s" % (url, str(headersDict), postData))
         return postCall(url, postData, headersDict, self._verbose)
 
 class ScifloWorkUnitError(Exception):
@@ -439,7 +439,7 @@ class ScifloWorkUnit(WorkUnit):
 
     def _run(self):
         """Execute the embedded SciFlo work unit and return the result."""
-        from executor import runSciflo
+        from .executor import runSciflo
         return runSciflo(self._call, self._args, scifloid=self._scifloid,
                          workDir=self._rootWorkDir,
                          outputDir=self._scifloOutputDir)
@@ -468,12 +468,12 @@ class ParMapWorkUnit(PythonFunctionWorkUnit):
         ctx_file = os.path.abspath('_context.json')
         self._ctx = {}
         if os.path.exists(ctx_file):
-            print "Loading HySDS context JSON from %s." % ctx_file
+            print("Loading HySDS context JSON from %s." % ctx_file)
             f = open(ctx_file)
             self._ctx = json.load(f)
             f.close()
         else:
-            print "No HySDS context JSON found at %s. Proceeding without it." % ctx_file
+            print("No HySDS context JSON found at %s. Proceeding without it." % ctx_file)
 
         super(ParMapWorkUnit,self).__init__(call, args, workDir, verbose, wuid,
                                             procId, hexDigest, configDict=configDict)
@@ -486,18 +486,18 @@ class ParMapWorkUnit(PythonFunctionWorkUnit):
 
         # get list of jobs
         jobs = []
-        if not isinstance(self._args[0], (types.ListType, types.TupleType)):
+        if not isinstance(self._args[0], (list, tuple)):
             raise ParMapWorkUnitError("Invalid type for ParWorkUnit argument 1: %s\n%s" % (type(self._args[0]), self._args[0]))
         
         for i, arg in enumerate(self._args[0]):
             workArgs = [arg]
             for mapArg in self._args[1:]:
-                if isinstance(mapArg, (types.ListType, types.TupleType)) and len(mapArg) == len(self._args[0]):
+                if isinstance(mapArg, (list, tuple)) and len(mapArg) == len(self._args[0]):
                     workArgs.append(mapArg[i])
                 else: workArgs.append(mapArg)
 
             # append work unit id and job number for job tracking
-            job = apply(workFunc, workArgs, {
+            job = workFunc(*workArgs, **{
                 'wuid': self._wuid,
                 'job_num': i
             })
@@ -541,7 +541,7 @@ class ParMapWorkUnit(PythonFunctionWorkUnit):
             results = []
             for r in res.join(timeout=10.):
                 # deduped job?
-                if isinstance(r, (types.ListType, types.TupleType)):
+                if isinstance(r, (list, tuple)):
                     # build resolvable result
                     task_id = r[0]
                     results.append({ 'uuid': task_id,

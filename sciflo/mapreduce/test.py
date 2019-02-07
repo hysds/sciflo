@@ -1,7 +1,7 @@
 import uuid, time, types, json, hashlib
 from datetime import timedelta
 from pprint import pprint
-from urllib import urlopen
+from urllib.request import urlopen
 from celery.result import AsyncResult, GroupResult
 
 from sciflo.utils.timeUtils import getDatetimeFromString
@@ -84,14 +84,14 @@ def create_reduce_job(results, wuid=None, job_num=None):
 def get_reduce_job_result(result):
     """Test function for processing a reduced job result."""
 
-    print("got result: {}".format(json.dumps(result, indent=2)))
+    print(("got result: {}".format(json.dumps(result, indent=2))))
     return result['payload_id']
 
 
 def join_map_jobs(task_ids):
     """Test reduce function that manually joins all mapped jobs."""
 
-    print("task_ids: {}".format(json.dumps(task_ids, indent=2)))
+    print(("task_ids: {}".format(json.dumps(task_ids, indent=2))))
     res = GroupResult(id=uuid.uuid4(), results=[AsyncResult(id[0]) for id in task_ids])
     while True:
         ready = res.ready()
@@ -100,7 +100,7 @@ def join_map_jobs(task_ids):
     results = []
     for r in res.join(timeout=10.):
         # deduped job?
-        if isinstance(r, (types.ListType, types.TupleType)):
+        if isinstance(r, (list, tuple)):
             # build resolvable result
             task_id = r[0]
             results.append({ 'uuid': task_id,

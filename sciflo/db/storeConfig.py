@@ -9,7 +9,7 @@
 #              U.S. Government Sponsorship acknowledged.
 #-----------------------------------------------------------------------------
 
-from storeTypeMapping import StoreTypeMapping
+from .storeTypeMapping import StoreTypeMapping
 
 class StoreConfigError(Exception):
     """Exception class for StoreConfig class."""
@@ -23,7 +23,7 @@ class StoreConfig(object):
 
         #make sure store type exists
         if not storeType in StoreTypeMapping:
-            raise StoreConfigError, "Unknown store type %s." % storeType
+            raise StoreConfigError("Unknown store type %s." % storeType)
 
         #set attributes
         self._storeType = storeType

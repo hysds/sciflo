@@ -10,13 +10,13 @@
 #-----------------------------------------------------------------------------
 import os, types, re, time
 try:
-    import cPickle
+    import pickle
     pickle = cPickle
 except ImportError: import pickle
 from bsddb3 import db
 
-from store import *
-import dbtablesCDB
+from .store import *
+from . import dbtablesCDB
 from sciflo.utils import validateDirectory
 
 class BsddbStoreError(Exception):
@@ -38,8 +38,8 @@ class BsddbStore(Store):
 
         #make sure dbHome directory exists
         if not validateDirectory(self._dbHome):
-            raise BsddbStoreError, "Couldn't create dbHome directory: %s." \
-            % self._dbHome
+            raise BsddbStoreError("Couldn't create dbHome directory: %s." \
+            % self._dbHome)
 
         #create flag
         if os.path.isfile(os.path.join(self._dbHome,self._dbName)): createFlag = 0
@@ -94,7 +94,7 @@ class BsddbStore(Store):
                 resultSet = self._dbHandle.Select(self._name, returnFieldsList,
                     conditions={queryField: lambda x: pickle.loads(x)==queryValue})
                 break
-            except Exception, e:
+            except Exception as e:
                 if re.search(r'Locker does not exist', str(e), re.IGNORECASE):
                     if tries < 5: tries += 1
                     else: raise
@@ -115,15 +115,15 @@ class BsddbStore(Store):
 
         #create record data dict to insert
         mappings = {}
-        for field in modifyFieldDataDict.keys():
+        for field in list(modifyFieldDataDict.keys()):
 
             #make sure field is in the list
             if not field in self._fieldsList:
-                raise BsddbStoreError, "Cannot update.  Field %s is not in this store." % field
+                raise BsddbStoreError("Cannot update.  Field %s is not in this store." % field)
 
             #make sure it is not the id (first field)
             if field == self._fieldsList[0]:
-                raise BsddbStoreError, "Cannot update.  The id field, %s, cannot be modified." % field
+                raise BsddbStoreError("Cannot update.  The id field, %s, cannot be modified." % field)
 
             #pickle
             pStr = pickle.dumps(modifyFieldDataDict[field],1)
@@ -163,7 +163,7 @@ class BsddbStore(Store):
 
         #create condition dict
         conditionDict = {}
-        for key,val in queryDict.items():
+        for key,val in list(queryDict.items()):
             conditionDict[key] = lambda x: pickle.loads(x) == val
 
         #get list of results

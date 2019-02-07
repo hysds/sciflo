@@ -19,4 +19,4 @@ style.saveResultToFilename(tmpFile,result,0)
 style.freeStylesheet()
 doc.freeDoc()
 result.freeDoc()
-print tmpFile
+print(tmpFile)

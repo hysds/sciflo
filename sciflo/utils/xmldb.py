@@ -32,10 +32,10 @@ import sys, os, re, types
 from bsddb3 import *
 import dbxml
 from dbxml import XmlManager, XmlValue
-from cStringIO import StringIO
+from io import StringIO
 #from tempfile import mkstemp
 from datetime import datetime
-from urllib import urlopen
+from urllib.request import urlopen
 from lxml.etree import XML
 
 Verbose = True
@@ -139,12 +139,12 @@ class XmlDb:
     
     def getDocument(self, name): return self.container.getDocument(name)
     
-    def printDocument(self, name): print self.getDocument(name).getContent()
+    def printDocument(self, name): print(self.getDocument(name).getContent())
     
     def setNamespaces(self, namespaces=None):
         queryContext = self.dbManager.createQueryContext()
         if namespaces is not None:
-            for prefix, uri in namespaces.iteritems():
+            for prefix, uri in namespaces.items():
                 if self.verbose: warn('xmldb: setNamespace %s: %s' % (prefix, uri)) 
                 queryContext.setNamespace(prefix, uri)
         self.queryContext = queryContext
@@ -173,7 +173,7 @@ class XmlDb:
         results = self.xquery(query, namespaces)
         f = StringIO()
         for item in results:
-            print >>f, item.asString().strip()
+            print(item.asString().strip(), file=f)
         return f.getvalue().strip()
     
     def close(self):
@@ -182,8 +182,8 @@ class XmlDb:
 # Simple query functions follow.
 def createQueryableDocuments(docs, namespaces=None, tempContainerFile=None, verbose=True):
     """Create a temporary XML database and insert the document."""
-    if isinstance(docs, types.StringType): docs = [docs]
-    if isinstance(docs, types.TupleType): docs = dict(docs)
+    if isinstance(docs, bytes): docs = [docs]
+    if isinstance(docs, tuple): docs = dict(docs)
     if namespaces is None: namespaces = {}    
     if tempContainerFile is None:
 #        fh, tempContainerFile = mkstemp('.dbxml', 'xmldbtemp'); os.close(fh)
@@ -191,7 +191,7 @@ def createQueryableDocuments(docs, namespaces=None, tempContainerFile=None, verb
 
     if verbose: warn('xmldb: creating container %s' % tempContainerFile)
     db = XmlDb(tempContainerFile, verbose=True)
-    if isinstance(docs, types.ListType):
+    if isinstance(docs, list):
         for i, doc in enumerate(docs):
             if not doc.strip().startswith('<'):
                 if verbose: warn('xmldb: Retrieving %s' % doc)
@@ -199,8 +199,8 @@ def createQueryableDocuments(docs, namespaces=None, tempContainerFile=None, verb
             name = 'doc%6.6d' % (i+1)
             db.putDocument(name, doc)
             namespaces.update( extractNamespaces(doc) )
-    elif isinstance(docs, types.DictType):
-        for name, doc in docs.iteritems():
+    elif isinstance(docs, dict):
+        for name, doc in docs.items():
             if not doc.strip().startswith('<'):
                 if verbose: warn('xmldb: Retrieving %s' % doc)
                 doc = urlopen(doc).read()
@@ -227,7 +227,7 @@ def xquerySingleDoc(doc, query, namespaces={}, verbose=False):
     mgr = XmlManager(dbxml.DBXML_ALLOW_EXTERNAL_ACCESS)
     queryContext = mgr.createQueryContext()
     namespaces.update( extractNamespaces(doc) )
-    for prefix, uri in namespaces.iteritems():
+    for prefix, uri in namespaces.items():
         if verbose: warn('xmldb: setNamespace %s: %s' % (prefix, uri))
         queryContext.setNamespace(prefix, uri)
 
@@ -245,7 +245,7 @@ def xquerySingleDoc(doc, query, namespaces={}, verbose=False):
 
     f = StringIO()
     for item in results:
-        print >>f, item.asString().strip()
+        print(item.asString().strip(), file=f)
     return f.getvalue().strip()
 
 def extractNamespaces(doc):
@@ -275,7 +275,7 @@ def extractNamespaces2(doc):
     ns = {}
     tree = XML(doc)
     for elt in tree.getiterator():
-        for key, ns in elt.attrib.iteritems():
+        for key, ns in elt.attrib.items():
             if key.startswith('xmlns'):
                 if key.find(':') > 0:
                     junk, prefix = key.split(':')
@@ -295,7 +295,7 @@ def extractNamespaces3(doc):
         else:
             return '_default'
     
-    return dict([ (getPrefix(attrib), ns) for attrib, ns in elt.attrib.iteritems()
+    return dict([ (getPrefix(attrib), ns) for attrib, ns in elt.attrib.items()
                       if attrib.startswith('xmlns') for elt in XML(doc).getiterator() ])
 
     
@@ -318,7 +318,8 @@ if __name__ == "__main__":
     try:
         opts, argv = getopt.getopt(argv[1:], 'hn:p:q:u:v',
             ['help', 'namespace', 'prefix', 'query', 'queryUrl', 'verbose'])
-    except getopt.GetoptError, (msg, bad_opt):
+    except getopt.GetoptError as xxx_todo_changeme:
+        (msg, bad_opt) = xxx_todo_changeme.args
         die("%s error: Bad option: %s, %s" % (argv[0], bad_opt, msg))
 
     query = None; queryUrl = None; namespaces = []; prefixes = []; Verbose = False    
@@ -342,9 +343,9 @@ if __name__ == "__main__":
     if len(docs) == 0: docs['stdin'] = sys.stdin.read()
 
     if len(docs) == 1:
-        print xquerySingleDoc(docs[0], query, namespaceDict, verbose=Verbose)
+        print(xquerySingleDoc(docs[0], query, namespaceDict, verbose=Verbose))
     else:
-        print getXQueryResults(docs, query, namespaceDict, verbose=Verbose)
+        print(getXQueryResults(docs, query, namespaceDict, verbose=Verbose))
 
 #    results, db = doXQuery(docs, query, namespaceDict, verbose=Verbose)
 #    for item in results:

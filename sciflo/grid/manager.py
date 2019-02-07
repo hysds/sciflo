@@ -15,34 +15,34 @@ import shutil
 import types
 import signal
 from socket import getfqdn
-import cPickle as pickle
+import pickle as pickle
 
 import sciflo
 from sciflo.utils import *
-from status import *
-from utils import *
-from workUnit import *
-from storeHandler import *
-from config import *
-from callback import *
-from postExecution import PostExecutionHandler
+from .status import *
+from .utils import *
+from .workUnit import *
+from .storeHandler import *
+from .config import *
+from .callback import *
+from .postExecution import PostExecutionHandler
 
 def publicizeResultFiles(result, urlBaseTrackerObj):
     """Recursively loop through result and check for filenames.  If detected,
     replace with url to that file.  Return the converted result."""
 
     #if string, try to get url
-    if isinstance(result, types.StringType) or isinstance(result, types.UnicodeType):
+    if isinstance(result, bytes) or isinstance(result, str):
         try:
             if os.path.exists(result):
                 newResult = urlBaseTrackerObj.getUrl(result)
                 return newResult
             else: return result
         except: return result
-    elif isinstance(result, types.ListType) or isinstance(result, types.TupleType):
+    elif isinstance(result, list) or isinstance(result, tuple):
         newResult = []
         for r1 in result: newResult.append(publicizeResultFiles(r1, urlBaseTrackerObj))
-        if isinstance(result, types.TupleType): return tuple(newResult)
+        if isinstance(result, tuple): return tuple(newResult)
         else: return newResult
     else: return result
 
@@ -51,17 +51,17 @@ def getAbsPathForResultFiles(result):
     replace with abs path to that file.  Return the converted result."""
 
     #if string, try to get url
-    if isinstance(result, types.StringType) or isinstance(result, types.UnicodeType):
+    if isinstance(result, bytes) or isinstance(result, str):
         try:
             if os.path.exists(result):
                 newResult = os.path.abspath(result)
                 return newResult
             else: return result
         except: return result
-    elif isinstance(result,(types.TupleType,types.ListType)):
+    elif isinstance(result,(tuple,list)):
         newResult = []
         for r1 in result: newResult.append(getAbsPathForResultFiles(r1))
-        if isinstance(result, types.TupleType): return tuple(newResult)
+        if isinstance(result, tuple): return tuple(newResult)
         else: return newResult
     else: return result
 
@@ -110,10 +110,10 @@ class WorkUnitExecutionHandler(object):
 
         #if this is a sciflo type, make sure a scheduleHandler object was passed
         if self._wuType == 'sciflo':
-            if isinstance(self._wuArgs[0],types.DictType) and \
-            ('configFile' in self._wuArgs[0].keys() or \
-             'localExecutionMode' in self._wuArgs[0].keys() or \
-             'debugMode' in self._wuArgs[0].keys()):
+            if isinstance(self._wuArgs[0],dict) and \
+            ('configFile' in list(self._wuArgs[0].keys()) or \
+             'localExecutionMode' in list(self._wuArgs[0].keys()) or \
+             'debugMode' in list(self._wuArgs[0].keys())):
                 configFile = self._wuArgs[0].get('configFile',None)
                 localExecutionMode = self._wuArgs[0].get('localExecutionMode',False)
                 debugMode = self._wuArgs[0].get('debugMode',False)
@@ -129,8 +129,8 @@ class WorkUnitExecutionHandler(object):
         if validateDirectory(workRootDir):
             self._workDir = os.path.join(workRootDir,self._wuid)
         else:
-            raise WorkUnitExecutionHandlerError, "Couldn't create work unit work directory in root work dir: %s." \
-            % workRootDir
+            raise WorkUnitExecutionHandlerError("Couldn't create work unit work directory in root work dir: %s." \
+            % workRootDir)
 
         #if publicize, get url for work dir
         if self._publicBaseUrl:
@@ -161,12 +161,12 @@ class WorkUnitExecutionHandler(object):
         if self._workUrl: thisWorkDir = self._workUrl
 
         #get appropriate WorkUnit subclass based on type
-        from workUnitTypeMapping import WorkUnitTypeMapping
+        from .workUnitTypeMapping import WorkUnitTypeMapping
         wuClass = WorkUnitTypeMapping.get(self._wuType,None)
 
         #if wuClass is None raise error
         if wuClass is None:
-            raise WorkUnitExecutionHandlerError, "Unimplemented WorkUnit subclass for type %s." % self._wuType
+            raise WorkUnitExecutionHandlerError("Unimplemented WorkUnit subclass for type %s." % self._wuType)
 
         #create work unit; if it is a sciflo work unit, generate scifloid from
         #wuid and pass it and the scheduleHandler in
@@ -310,7 +310,7 @@ class WorkUnitExecutionHandler(object):
         #copy stage files/dirs to work dir; set status to staging
         self._wuStatus = stagingStatus
         try: copyToDir(self._stageFiles, self._workDir, unpackBundles = True)
-        except Exception, e:
+        except Exception as e:
 
             #get traceback info
             etype = sys.exc_info()[0]
@@ -323,7 +323,7 @@ class WorkUnitExecutionHandler(object):
             emessage += etb
             self._result = e
 
-            print "Encountered exception during staging: %s" % emessage
+            print(("Encountered exception during staging: %s" % emessage))
 
             #set status to exception and write error
             self._wuHexDigest = None
@@ -365,7 +365,7 @@ class WorkUnitExecutionHandler(object):
 
         #test if result is pickleable
         try: testStr = pickle.dumps(self._result,-1)
-        except Exception, e: self._result = WorkUnitExecutionHandlerError("Unpickleable result: %s" % self._result)
+        except Exception as e: self._result = WorkUnitExecutionHandlerError("Unpickleable result: %s" % self._result)
 
         #if result is not exception
         if isinstance(self._result, Exception):
@@ -384,7 +384,7 @@ class WorkUnitExecutionHandler(object):
             try:
                 #run post execution handlers and get post execution results
                 self._postExecutionResults = self.runPostExecutionHandlers()
-            except Exception, e:
+            except Exception as e:
                 #get traceback info
                 etype = sys.exc_info()[0]
                 evalue = sys.exc_info()[1]
@@ -396,7 +396,7 @@ class WorkUnitExecutionHandler(object):
                 emessage += etb
                 self._result = e
 
-                print "Encountered exception during post execution: %s" % emessage
+                print(("Encountered exception during post execution: %s" % emessage))
 
                 #set status to exception and write error
                 self._wuHexDigest = None
@@ -507,7 +507,7 @@ class WorkUnitManager(object):
                         self._postExecutionHandlers,
                         self._scheduleConfig,self._publicBaseUrl,
                         self._verbose, self._noLookCache, wuid]
-        self._executor = apply(WorkUnitExecutionHandler,executorArgs)
+        self._executor = WorkUnitExecutionHandler(*executorArgs)
 
         #get work unit id
         self._wuid = self._executor.getWorkUnitId()
@@ -538,11 +538,11 @@ class WorkUnitManager(object):
             tryNum += 1
 
         #raise error
-        raise WorkUnitManagerError, "Could not get execute pid."
+        raise WorkUnitManagerError("Could not get execute pid.")
 
     def run(self):
         res = sciflo.grid.funcs.workUnitExecutionHandlerWorker(self._executor, self._timeout)
-        if isinstance(res, types.TupleType) and isinstance(res[0], Exception):
+        if isinstance(res, tuple) and isinstance(res[0], Exception):
             self.killSelf(res[0])
         
         #get status
@@ -672,16 +672,16 @@ def workUnitExecute(managerFunc, owner, type, call, args, stageFiles=None, postE
                        callbackConfig, baseUrl, verbose, noLookCache, wuid, procId)
 
 def overwriteGridFuncArgs(*args, **kargs):
-    if args[8] is not None and kargs.has_key('configFile'):
+    if args[8] is not None and 'configFile' in kargs:
         if args[8] == kargs.get('configFile','') or \
         open(args[8]).read() == open(kargs['configFile']).read():
             args = list(args)
             args[8] = kargs['configFile']
             del kargs['configFile']
         else:
-            raise RuntimeError, "Multiple configFiles specified: %s and %s." % \
-                (args[8],kargs['configFile'])
-    elif args[8] is None and kargs.has_key('configFile'):
+            raise RuntimeError("Multiple configFiles specified: %s and %s." % \
+                (args[8],kargs['configFile']))
+    elif args[8] is None and 'configFile' in kargs:
         args = list(args)
         args[8] = kargs['configFile']
         del kargs['configFile']
@@ -708,7 +708,7 @@ def cancelWorkUnit(wuid, configFile = None, remove = False):
             storeConfig = getStoreConfigFromConfiguration(configFile)
             storeHandler = WorkUnitStoreHandler(storeConfig)
             try: ret = storeHandler.removeWorkUnit(wuid)
-            except WorkUnitStoreHandlerError, e:
+            except WorkUnitStoreHandlerError as e:
                 if re.search(r'is not already in the store', str(e)): pass
                 else: raise
         return True
@@ -783,7 +783,7 @@ def workUnitCallback(wuid, status, configFile=None):
         try:
             #get current status
             curStatus = scheduleHandler.getStatusByWuid(wuid)
-            if status == retryStatus and isinstance(curStatus, types.StringTypes):
+            if status == retryStatus and isinstance(curStatus, str):
                 if curStatus.startswith('retry_'):
                     retryNum = int(re.search(r'^retry_(\d+)$', curStatus).group(1))
                     if retryNum <= 5:
@@ -796,7 +796,7 @@ def workUnitCallback(wuid, status, configFile=None):
             #set status
             scheduleHandler.setStatusByWuid(wuid, calledBackStatus)
             return
-        except Exception, e: pass
+        except Exception as e: pass
         tryNum += 1
 
         #sleep
@@ -804,7 +804,7 @@ def workUnitCallback(wuid, status, configFile=None):
 
     #raise error
     etb = traceback.format_exc()
-    raise RuntimeError, "Failed 5 times to callback: %s" % etb
+    raise RuntimeError("Failed 5 times to callback: %s" % etb)
 
 def nonforkingManager(owner, type, call, args, storeConfig, workRootDir, stageFiles=None,
                       postExecutionConfigList=None, scheduleConfig=None, timeout=86400,

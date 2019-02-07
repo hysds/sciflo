@@ -24,6 +24,6 @@ PY_NAMESPACE = 'http://sciflo.jpl.nasa.gov/2006v1/py'
 def getPrefixForNs(nsDict,ns):
     """Return prefix string for namespace."""
     if nsDict.get('_default',None) == ns: return '_default'
-    for pre in nsDict.keys():
+    for pre in list(nsDict.keys()):
         if nsDict[pre] == ns: return pre
     return None

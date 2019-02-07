@@ -18,7 +18,7 @@ import lxml.etree
 import shutil
 import curses
 import traceback
-from StringIO import StringIO
+from io import StringIO
 from tempfile import mktemp
 import lxml.etree
 import _curses
@@ -29,9 +29,9 @@ import sciflo
 def usage():
     """Print usage info."""
 
-    print """%s [-c|--configFile <config file>] [-i|--init] [-o|--outputDir <output dir>]\
+    print(("""%s [-c|--configFile <config file>] [-i|--init] [-o|--outputDir <output dir>]\
 [-s|--status] [-f|--force] [-d|--debug] [--nocache] [-t|--timeout <seconds>]\
-[-a|--args <input1=val1,input2=val2,...>] [-v|--verbose] [-h|--help] <sciflo doc>""" % sys.argv[0]
+[-a|--args <input1=val1,input2=val2,...>] [-v|--verbose] [-h|--help] <sciflo doc>""" % sys.argv[0]))
 
 def main():
 
@@ -99,8 +99,8 @@ def main():
         #set config file
         if o in ("-c","--configFile"):
             if configFileSet:
-                print """Multiple -c|--configFile specifications found.\
-  Only specify one config file."""
+                print("""Multiple -c|--configFile specifications found.\
+  Only specify one config file.""")
                 usage()
                 sys.exit(2)
             else:
@@ -111,8 +111,8 @@ def main():
         #set output dir
         if o in ("-o","--outputDir"):
             if outputDirSet:
-                print """Multiple -o|--outputDir specifications found.\
-  Only specify one output dir."""
+                print("""Multiple -o|--outputDir specifications found.\
+  Only specify one output dir.""")
                 usage()
                 sys.exit(2)
             else:
@@ -123,8 +123,8 @@ def main():
         #set args
         if o in ("-a","--args"):
             if argsSet:
-                print """Multiple -a|--args specifications found.\
-  Only specify one args option."""
+                print("""Multiple -a|--args specifications found.\
+  Only specify one args option.""")
                 usage()
                 sys.exit(2)
             else:
@@ -134,8 +134,8 @@ def main():
         #set worker timeout
         if o in ("-t","--timeout"):
             if timeoutSet:
-                print """Multiple -t|--timeout specifications found.\
-  Only specify one timeout option."""
+                print("""Multiple -t|--timeout specifications found.\
+  Only specify one timeout option.""")
                 usage()
                 sys.exit(2)
             else:
@@ -145,12 +145,12 @@ def main():
     #if init, make sure nothing else was specified
     if doInit:
         if True in (showStatus, debug, outputDirSet, len(args) != 0):
-            print "Cannot other options or sciflo doc with -i|--init option."
+            print("Cannot other options or sciflo doc with -i|--init option.")
             usage()
             sys.exit(2)
         userScifloConfig = sciflo.utils.getUserScifloConfig(configFile)
-        print "Your sciflo configuration directory has been initialized: %s" % \
-            os.path.dirname(userScifloConfig)
+        print(("Your sciflo configuration directory has been initialized: %s" % \
+            os.path.dirname(userScifloConfig)))
         sys.exit(0)
 
     #if showStatus, do debug mode since stderr and stdout won't be put to the screen
@@ -159,19 +159,19 @@ def main():
 
     #make arg was specified
     if len(args) != 1:
-        print "Please specify one sciflo document."
+        print("Please specify one sciflo document.")
         usage()
         sys.exit(2)
 
     #make sure output dir was specified and doesn't exist
     if outputDir is None:
-        print "Please specify output directory."
+        print("Please specify output directory.")
         usage()
         sys.exit(2)
     if os.path.isdir(outputDir):
         if force: shutil.rmtree(outputDir)
         else:
-            print "Output dir already exists.  Please remove or specify -f|--force."
+            print("Output dir already exists.  Please remove or specify -f|--force.")
             usage()
             sys.exit(2)
 
@@ -233,8 +233,8 @@ if __name__ == '__main__':
         except: pass
         if sys.exc_info()[0] is not None and sys.exc_info()[0] != _curses.error:
             traceback.print_exc(file = tracebackStrIO)
-            print tracebackStrIO.getvalue()
+            print((tracebackStrIO.getvalue()))
     #if resStrList: print '\n'.join(resStrList)
-    print "Results:", results
+    print(("Results:", results))
     if isinstance(results, Exception): sys.exit(1)
     sys.exit(0)

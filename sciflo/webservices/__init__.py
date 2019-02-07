@@ -1,1 +1,1 @@
-from soap import *
+from .soap import *

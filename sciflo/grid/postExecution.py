@@ -10,8 +10,8 @@
 #-----------------------------------------------------------------------------
 import re
 from tempfile import mkdtemp
-import urllib
-import urlparse
+import urllib.request, urllib.parse, urllib.error
+import urllib.parse
 import os
 from string import Template
 import types
@@ -20,7 +20,7 @@ from sciflo.utils import (SCIFLO_NAMESPACE, XSD_NAMESPACE, PY_NAMESPACE,
 FileConversionFunction, validateDirectory, getXmlEtree,
 DEFAULT_CONVERSION_FUNCTIONS, getUserInfo, getUserConversionFunctionsDir,
 LocalizingFunctionWrapper)
-from utils import getFunction
+from .utils import getFunction
 
 def parseNamespacePrefixAndTypeString(typeString):
     """Parse type string and return namespace key and type."""
@@ -41,17 +41,17 @@ def getConversionFunctionString(fromType, toType, namespacePrefixDict={}):
     xml doc."""
 
     #force xpath type coersion
-    if isinstance(fromType, types.StringTypes) and \
+    if isinstance(fromType, str) and \
         re.search(r'^(sf:)?(xpath:)', fromType, re.IGNORECASE): fromType = '*:*'
 
     #get conv func xml elt and ns prefix dict
     convFuncElt,convNsDict = getXmlEtree(CONVERSION_FUNCTIONS_CONFIG)
-    convNsToPrefixDict = dict(zip(convNsDict.values(), convNsDict.keys()))
+    convNsToPrefixDict = dict(list(zip(list(convNsDict.values()), list(convNsDict.keys()))))
 
     #get overwrite conv funcs from user config
     (userName,homeDir,userScifloDir,userConfigFile) = getUserInfo()
     userConfElt,userConfNsDict = getXmlEtree(userConfigFile)
-    userConfNsToPrefixDict = dict(zip(userConfNsDict.values(), userConfNsDict.keys()))
+    userConfNsToPrefixDict = dict(list(zip(list(userConfNsDict.values()), list(userConfNsDict.keys()))))
     ops = userConfElt.xpath('.//_default:conversionOperators/_default:op',namespaces=userConfNsDict)
     for op in ops:
         opFromNs,opFromVal = parseNamespacePrefixAndTypeString(op.get('from'))
@@ -63,8 +63,8 @@ def getConversionFunctionString(fromType, toType, namespacePrefixDict={}):
         if opToNs is None:
             opToNs = userConfNsToPrefixDict[namespacePrefixDict['_default']]
         elif opToNs == '*':
-            raise RuntimeError, "Cannot convert to type %s with unspecified namespace prefix %s." % \
-            (opToVal, opToNs)
+            raise RuntimeError("Cannot convert to type %s with unspecified namespace prefix %s." % \
+            (opToVal, opToNs))
         else: opToNs=userConfNsToPrefixDict[namespacePrefixDict[opToNs]]
         overwriteMatch = convFuncElt.xpath(".//_default:op[@from='%s:%s' and @to='%s:%s']" % \
             (opFromNs, opFromVal, opToNs, opToVal), namespaces=convNsDict)
@@ -74,7 +74,7 @@ def getConversionFunctionString(fromType, toType, namespacePrefixDict={}):
                 convFuncElt.append(op)
             else: continue
         elif len(overwriteMatch) == 0: convFuncElt.append(op)
-        else: raise RuntimeError, "Found more than one match."
+        else: raise RuntimeError("Found more than one match.")
 
     #get fromType namespace prefix, type, and namespace
     (fromNsPrefix,fromTypeVal) = parseNamespacePrefixAndTypeString(fromType)
@@ -86,8 +86,8 @@ def getConversionFunctionString(fromType, toType, namespacePrefixDict={}):
     (toNsPrefix,toTypeVal) = parseNamespacePrefixAndTypeString(toType)
     if toNsPrefix is None: toNs = convNsToPrefixDict[namespacePrefixDict['_default']]
     elif toNsPrefix == '*':
-        raise RuntimeError, "Cannot convert to type %s with unspecified namespace prefix %s." % \
-            (toTypeVal, toNsPrefix)
+        raise RuntimeError("Cannot convert to type %s with unspecified namespace prefix %s." % \
+            (toTypeVal, toNsPrefix))
     else: toNs = convNsToPrefixDict[namespacePrefixDict[toNsPrefix]]
 
     #return xpath conversion
@@ -101,8 +101,8 @@ def getConversionFunctionString(fromType, toType, namespacePrefixDict={}):
         matches = convFuncElt.xpath(".//_default:op[@from='*:*' and @to='%s:%s']" % \
         (toNs,toTypeVal),namespaces=convNsDict)
         if len(matches) == 0:
-            raise RuntimeError, "Cannot find conversion function for %s:%s -> %s:%s." % \
-                (fromNs,fromTypeVal,toNs,toTypeVal)
+            raise RuntimeError("Cannot find conversion function for %s:%s -> %s:%s." % \
+                (fromNs,fromTypeVal,toNs,toTypeVal))
     return str(matches[0].text)
 
 #conversion functions config xml
@@ -178,21 +178,20 @@ class PostExecutionHandler(object):
         if isinstance(convFunc, LocalizingFunctionWrapper):
             tempDir=os.path.join(workDir,'fileConversions')
             validateDirectory(tempDir)
-            if not isinstance(inputResult, (types.ListType,types.TupleType)):
+            if not isinstance(inputResult, (list,tuple)):
                 singleArgFlag = True
                 tmpInput = [inputResult]
             else:
                 singleArgFlag = False
                 tmpInput = inputResult
             for ip in tmpInput:
-                if not isinstance(ip,types.StringTypes):
-                    raise PostExecutionHandlerError, \
-                        "Cannot localize input %s.  Please check return value of work unit." % str(ip)
+                if not isinstance(ip,str):
+                    raise PostExecutionHandlerError("Cannot localize input %s.  Please check return value of work unit." % str(ip))
                 match = re.search(r'^\w*?://', ip)
-                if match: filebase = urlparse.urlparse(ip)[2].split('/')[-1]
+                if match: filebase = urllib.parse.urlparse(ip)[2].split('/')[-1]
                 else: filebase=os.path.basename(ip)
                 tempFile = os.path.join(tempDir,filebase)
-                (ip,headers) = urllib.urlretrieve(ip, tempFile)
+                (ip,headers) = urllib.request.urlretrieve(ip, tempFile)
                 tmpInputRes.append(tempFile)
             if singleArgFlag: inputResult = tmpInputRes[0]
             else: inputResult = tmpInputRes

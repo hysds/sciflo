@@ -14,8 +14,8 @@ try:
     # you should  set the next option to ldap.VERSION2 if you're using a v2 directory
     l.protocol_version = ldap.VERSION3    
     #l.simple_bind_s('uid=gmanipon, ou=personnel, dc=dir, dc=jpl, dc=nasa, dc=gov','bogus')
-except ldap.LDAPError, e:
-    print e
+except ldap.LDAPError as e:
+    print(e)
     # handle error however you like
 
 ## The next lines will also need to be changed to support your search requirements and directory
@@ -39,14 +39,14 @@ try:
             if result_type == ldap.RES_SEARCH_ENTRY:
                 result_set.append(result_data)
     #print result_set
-except ldap.LDAPError, e:
-    print e
+except ldap.LDAPError as e:
+    print(e)
 
 if len(result_set)>0:
     for result in result_set:
-        print "#" * 80
-        print result[0][0]
-        for key in result[0][1].keys(): print "%s: %s" % (key,'\n\t'.join(result[0][1][key]))
-        print "#" * 80
+        print(("#" * 80))
+        print((result[0][0]))
+        for key in list(result[0][1].keys()): print(("%s: %s" % (key,'\n\t'.join(result[0][1][key]))))
+        print(("#" * 80))
 else:
-    print "No entries found."
+    print("No entries found.")

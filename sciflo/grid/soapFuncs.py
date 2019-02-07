@@ -1,15 +1,15 @@
-import os, sys, urllib2, signal, json, time
+import os, sys, urllib.request, urllib.error, urllib.parse, signal, json, time
 from SOAPpy import WSDL
 
 from sciflo.utils import UrlBaseTracker
-from utils import (generateScifloId, pickleArgsList, unpickleArgsList,
+from .utils import (generateScifloId, pickleArgsList, unpickleArgsList,
 updateJson, getTb, pickleThis)
-from executor import runSciflo, ScifloExecutorError
-from config import GridServiceConfig
+from .executor import runSciflo, ScifloExecutorError
+from .config import GridServiceConfig
 
 def getWSDLProxy(wsdl):
     """Return proxy object from wsdl."""
-    return WSDL.Proxy(urllib2.urlopen(wsdl).read())
+    return WSDL.Proxy(urllib.request.urlopen(wsdl).read())
 
 def submitSciflo_server(sflStr, pickledArgs, configFile=None, lookupCache=True):
     """Server function implementation to submit sciflo and args for execution.
@@ -28,7 +28,7 @@ def submitSciflo_server(sflStr, pickledArgs, configFile=None, lookupCache=True):
             results = runSciflo(sflStr, args, scifloid=scifloid, workDir=workDir,
                                 outputDir=None, publicize=True,
                                 configFile=configFile, lookupCache=lookupCache)
-        except Exception, e:
+        except Exception as e:
             if not os.path.exists(os.path.join(workDir, scifloid, 'sciflo.json')):
                 updateJson(os.path.join(workDir, scifloid, 'sciflo.json'),
                            {'scifloid': scifloid,
@@ -102,8 +102,8 @@ def cancelSciflo_server(scifloid, configFile=None):
                     os.kill(pid, signal.SIGINT)
                     killed = True
                     break
-            except Exception, e:
-                print >>sys.stderr, "Error in cancelSciflo_server for pid %d: %s" % (pid, e)
+            except Exception as e:
+                print("Error in cancelSciflo_server for pid %d: %s" % (pid, e), file=sys.stderr)
         if killed: break
         time.sleep(1)
     return True
