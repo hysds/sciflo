@@ -1,6 +1,8 @@
 
-import sys, os
+import sys
+import os
 from bsddb import dbshelve
+
 
 def test(filename):
     from random import randint
@@ -31,9 +33,9 @@ def test(filename):
         j = randint(0, 10000)
         key = abc+'%4.4d' % j
         try:
-	    tmp = db[key]
+            tmp = db[key]
             print(key)
-	    del db[key]
+            del db[key]
 #            db.sync()
         except:
             pass
@@ -50,7 +52,6 @@ def main():
         filename = '/tmp/testDbshelve'
     test(filename)
 
+
 if __name__ == '__main__':
     main()
-
-

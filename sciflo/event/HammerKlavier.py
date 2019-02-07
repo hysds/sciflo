@@ -12,12 +12,15 @@ from .pdict import PersistentDict
 
 def multiProcessTest(n, funcs):
     """Fork N processes and run a testing function in each."""
-    if type(funcs) != list: funcs = [funcs] * n
+    if type(funcs) != list:
+        funcs = [funcs] * n
     procs = []
     for f, args in funcs:
-        procs.append( Process(target=f, args=args) )
-    for p in procs: p.start()
-    for p in procs: p.join()
+        procs.append(Process(target=f, args=args))
+    for p in procs:
+        p.start()
+    for p in procs:
+        p.join()
 
 
 def testPDict(dictName, keyRoot):
@@ -50,9 +53,9 @@ def testPDict(dictName, keyRoot):
         j = randint(0, 10000)
         key = abc+'%4.4d' % j
         try:
-	    tmp = db[key]
+            tmp = db[key]
 #            print key
-	    del db[key]
+            del db[key]
 #            db.sync()
         except:
             pass
@@ -65,6 +68,7 @@ def testPDict(dictName, keyRoot):
 def main():
     multiProcessTest(4, [(testPDict, ['EventStore', 'p1']), (testPDict, ['EventStore', 'p2']),
                          (testPDict, ['EventStore', 'p3']), (testPDict, ['EventStore', 'p4'])])
+
 
 if __name__ == '__main__':
     main()

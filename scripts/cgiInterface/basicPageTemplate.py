@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        basicPageTemplate.py
 # Purpose:     Custom web page layout templates.
 #
@@ -8,9 +8,10 @@
 # Created:     Thu Jul 27 11:10:00 2006
 # Copyright:   (c) 2006, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 from string import Template
-import os, re
+import os
+import re
 from sciflo.utils import getHtmlBaseHref, getCgiBaseHref, getRelativeUrl, sanitizeHtml
 
 CGI_URL_BASE = getCgiBaseHref()

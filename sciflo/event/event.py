@@ -43,6 +43,7 @@ from tempfile import mkdtemp
 
 PendingEvents = EventsToWaitOn()
 
+
 def postEvent(event):
     """The SOAP service method, only remotely-callable interface, which receives
 the XML event message.
@@ -54,6 +55,7 @@ def processEvent(event):
     """Process an incoming event by looking it up in the registry of events being
 waited for.
     """
+
 
 def waitForEvent(id, type, action, auxInfo):
     """Register an event to be waited for, under that id, and save auxiliary information
@@ -82,22 +84,26 @@ immediately synched to disk.
 
     def insert(key, data):
         if key in self.dic:
-            raise RuntimeError('Persistent dict %s already has key: %s' % (self.path, key))
+            raise RuntimeError(
+                'Persistent dict %s already has key: %s' % (self.path, key))
         if self.lock():
             self.dic.close()
             dic = shelve.open(self.path, flag='r', writeback=False, *options)
             dic[key] = data
             dic.close()
-            self.dic = shelve.open(self.path, flag='r', writeback=False, *options)
+            self.dic = shelve.open(self.path, flag='r',
+                                   writeback=False, *options)
             self.unlock()
 
     def delete(key):
         if key not in self.dic:
-            raise RuntimeError('Persistent dict %s: attempt to delte missing key: %s' % (self.path, key))
+            raise RuntimeError(
+                'Persistent dict %s: attempt to delte missing key: %s' % (self.path, key))
         if self.lock():
             del self.dic[key]
             self.dic.close()
-            self.dic = shelve.open(self.path, flag='r', writeback=False, *options)
+            self.dic = shelve.open(self.path, flag='r',
+                                   writeback=False, *options)
             self.unlock()
 
     def lock():
@@ -108,7 +114,8 @@ immediately synched to disk.
                 return True
             except:
                 os.sleep(1)
-        raise RuntimeError('Cannot acquire lock %s to update persistent dict %s' % (self.lockFile, self.path))
+        raise RuntimeError('Cannot acquire lock %s to update persistent dict %s' % (
+            self.lockFile, self.path))
 
     def unlock():
         os.unlink(self.lockFile)
@@ -119,19 +126,21 @@ class EventsToWaitOn:
         self.events = AtomicPersistenceDictUsingShelve()
 
     def waitForEvent(self, id, type, action, auxInfo):
-        events[id] = pickle( (type, action, auxInfo) )
+        events[id] = pickle((type, action, auxInfo))
 
     def processEvent(event):
         pass
+
 
 PendingEvents = EventsToWaitOn()
 
 
 EventXmlTemplate = \
-"""<sf:event id='${eventId}' type='${eventType}' action='${processingAction}'>
+    """<sf:event id='${eventId}' type='${eventType}' action='${processingAction}'>
 ${payload}
 </sf:event>
 """
+
 
 class Event:
     """Event class contains all the information needed to interpret the payload
@@ -140,6 +149,7 @@ and process the event.  When we decide to wait on an event, an incomplete event 
 (arrives), the payload is added to the event object and the event is removed from
 the store and processed.
     """
+
     def __init__(self, id, type, action, payload='', auxInfo=None):
         """Event class.
   @param id   - unique ID string naming the event (determined by remote service)
@@ -147,11 +157,14 @@ the store and processed.
   @param action - action type to process event (e.g. resumeWorkflow)
   @param auxInfo - tuple of arguments passed to function processing action
         """
-        self.id = id; self.type = type; self.action = action
-        self.payload = payload; self.auxInfo = auxInfo
+        self.id = id
+        self.type = type
+        self.action = action
+        self.payload = payload
+        self.auxInfo = auxInfo
 
     def __xml__(self):
-        substs = {'id': self.id, 'type': self.type, 'action': self.action, 
+        substs = {'id': self.id, 'type': self.type, 'action': self.action,
                   'payload': self.payload, 'action': self.action}
         return Template(EventXmlTemplate).substitute(substs)
 
@@ -166,5 +179,3 @@ the store and processed.
 
     def process(self, eventStore):
         pass
-
-

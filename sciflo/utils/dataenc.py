@@ -1,4 +1,4 @@
-#13-09-04
+# 13-09-04
 # v1.1.5
 
 # **build 3**
@@ -23,7 +23,7 @@
 
 # do binary to ascii encoding using a TABLE mapping (and ascii to binary)
 # binary interleave - to disperse one set of binary data into another (e.g. as a 'watermark' or date/time stamp)
-# to extract the watermark again 
+# to extract the watermark again
 # convert a decimal value to base 64 digits, and base 64 digits back to 8 bit digits..
 # Creating and retrieving a timestamp from the current time/date
 # functions for testing and setting bits in a byte (or larger value)
@@ -293,7 +293,8 @@ DATEIN = 1
 if DATEIN:
     try:                # try to import the dateutils and time module
         from time import strftime
-        from .dateutils import daycount, returndate          # ,counttodate          # counttodate returns a daynumber as a date
+        # ,counttodate          # counttodate returns a daynumber as a date
+        from .dateutils import daycount, returndate
     except:
         DATEIN = 0
 
@@ -309,8 +310,8 @@ if PSYCOIN:
 
 # note - changing the order of the TABLE here can be used to change the mapping.
 TABLE = '_-0123456789' + \
-         'abcdefghijklmnopqrstuvwxyz'+ \
-         'NOPQRSTUVWXYZABCDEFGHIJKLM'
+    'abcdefghijklmnopqrstuvwxyz' + \
+    'NOPQRSTUVWXYZABCDEFGHIJKLM'
 # table should be exactly 64 printable characters long... or we'll all die horribly
 # Obviously the same TABLE should be used for decoding as for encoding....
 # This version of TABLE (v1.1.2) uses only characters that are safe to pass in URLs
@@ -318,8 +319,8 @@ TABLE = '_-0123456789' + \
 
 
 OLD_TABLE = '!$%^&*()_-+=' + \
-         'abcdefghijklmnopqrstuvwxyz'+ \
-         'NOPQRSTUVWXYZABCDEFGHIJKLM'
+    'abcdefghijklmnopqrstuvwxyz' + \
+    'NOPQRSTUVWXYZABCDEFGHIJKLM'
 # OLD_TABLE is the old encoding. If anyone has stuff encoded with this then it can be decoded using :
 # data = table_dec(encodedstring, OLD_TABLE)
 
@@ -330,7 +331,7 @@ def pass_enc(instring, indict=None, **keywargs):
 
     It also accepts the following keyword args (or a dictionary conatining the following keys).
     (Keywords shown - with default values).
-    
+
     lower = False, sha_hash = False, daynumber = None, timestamp = None, endleave = False
 
     Setting lower to True makes instring lowercase before hashing/encoding.
@@ -359,15 +360,17 @@ def pass_enc(instring, indict=None, **keywargs):
     because the stamp is so short and we subsequently encode using table_enc.
     If the string is long this will slow down the process - because we interleave twice.
     """
-    if indict == None: indict = {}
-    arglist = {'lower' : False, 'sha_hash' : False, 'daynumber' : None, 'timestamp' : None, 'endleave' : False}
+    if indict == None:
+        indict = {}
+    arglist = {'lower': False, 'sha_hash': False,
+               'daynumber': None, 'timestamp': None, 'endleave': False}
 
     if not indict and keywargs:         # if keyword passed in instead of a dictionary - we use that
         indict = keywargs
     for keyword in arglist:             # any keywords not specified we use the default
         if keyword not in indict:
             indict[keyword] = arglist[keyword]
-            
+
     if indict['lower']:     # keyword lower :-)
         instring = instring.lower()
     if indict['sha_hash']:
@@ -377,19 +380,21 @@ def pass_enc(instring, indict=None, **keywargs):
         if not DATEIN:
             indict['daynumber'] = None
         else:
-            a,b,c = returndate()
-            indict['daynumber'] = daycount(a,b,c)       # set the daycount to today
-    if indict['timestamp']== True:
+            a, b, c = returndate()
+            # set the daycount to today
+            indict['daynumber'] = daycount(a, b, c)
+    if indict['timestamp'] == True:
         if not DATEIN:
             indict['timestamp'] = None
         else:
             indict['timestamp'] = return_now()          # set the time to now.
 
     datestamp = makestamp(indict['daynumber'], indict['timestamp'])
-    if len(instring) == len(datestamp): instring = instring + '&mjf-end;'               # otherwise we can't tell which is which when we unleave them later :-)
+    if len(instring) == len(datestamp):
+        # otherwise we can't tell which is which when we unleave them later :-)
+        instring = instring + '&mjf-end;'
     outdata = binleave(instring, datestamp, indict['endleave'])
     return table_enc(outdata)         # do the encoding of the actual string
-
 
 
 def pass_dec(incode):
@@ -412,7 +417,6 @@ def pass_dec(incode):
         instring = out1
     daynumber, timestamp = dec_datestamp(datestamp)
     return instring, daynumber, timestamp
-
 
 
 def expired(daynumber, timestamp, validity):
@@ -438,7 +442,8 @@ True
 >>> 
     """
     if not DATEIN:
-        raise ImportError("Need the dateutils module to use the 'expired' function.")
+        raise ImportError(
+            "Need the dateutils module to use the 'expired' function.")
 
     h1, m1 = timestamp
 # h1, m1 are the hours and minutes of the timestamp
@@ -476,7 +481,10 @@ True
     else:
         return True
 
-unexpired = expired             # Technically unexpired is a better name since this function returns True if the timestamp is unexpired.
+
+# Technically unexpired is a better name since this function returns True if the timestamp is unexpired.
+unexpired = expired
+
 
 def makestamp(daynumber, timestamp):
     """Receives a Julian daynumber (integer 1 to 16777215) and an (HOUR, MINUTES) tuple timestamp.
@@ -491,7 +499,7 @@ def makestamp(daynumber, timestamp):
         day1 = daynumber//65536
         daynumber = daynumber % 65536
         day2 = daynumber//256
-        daynumber = daynumber%256
+        daynumber = daynumber % 256
         datestamp = chr(day1) + chr(day2) + chr(daynumber)
     if not timestamp:
         datestamp = datestamp + chr(255)*2
@@ -510,14 +518,15 @@ def dec_datestamp(datestamp):
     The function 'counttodate' in dateutils will turn a daynumber back into a date."""
     daynumber = datestamp[:3]
     timechars = datestamp[3:]
-    daynumber = ord(daynumber[0])*65536 + ord(daynumber[1])*256 + ord(daynumber[2])
-    if daynumber == 0: daynumber = None
+    daynumber = ord(daynumber[0])*65536 + \
+        ord(daynumber[1])*256 + ord(daynumber[2])
+    if daynumber == 0:
+        daynumber = None
     if ord(timechars[0]) == 255:
         timestamp = None
     else:
         timestamp = (ord(timechars[0]), ord(timechars[1]))
     return daynumber, timestamp
-
 
 
 def sixbit(invalue):
@@ -530,16 +539,17 @@ def sixbit(invalue):
         return [0]
     power = -1
     outlist = []
-    test = 0 
+    test = 0
     while test <= invalue:
         power += 1
-        test = pow(64,power)
-        
+        test = pow(64, power)
+
     while power:
         power -= 1
-        outlist.append(int(invalue//pow(64,power)))
-        invalue = invalue % pow(64,power)
+        outlist.append(int(invalue//pow(64, power)))
+        invalue = invalue % pow(64, power)
     return outlist
+
 
 def sixtoeight(intuple):
     """Given four base 64 (6-bit) digits... it returns three 8 bit digits that represent
@@ -548,7 +558,8 @@ def sixtoeight(intuple):
 
     **NOTE**
     Not quite the reverse of the sixbit function."""
-    if len(intuple) != 4: return None
+    if len(intuple) != 4:
+        return None
     for entry in intuple:
         if entry > 63:
             return None
@@ -569,10 +580,13 @@ def table_enc(instring, table=None):
     The number of Null bytes to remove is then encoded as a semi-random character at the start of the string.
     You can pass in an alternative 64 character string to do the encoding with if you want.
     """
-    if table == None: table = TABLE
+    if table == None:
+        table = TABLE
     out = []
     test = len(instring) % 3
-    if test: instring = instring + chr(0)*(3-test)          # make sure the length of instring is divisible by 3
+    if test:
+        # make sure the length of instring is divisible by 3
+        instring = instring + chr(0)*(3-test)
 #    print test,'  ', len(instring) % 3
     while instring:
         chunk = instring[:3]
@@ -584,12 +598,16 @@ def table_enc(instring, table=None):
         for char in newdat:
             out.append(table[char])
     if not test:
-        out.insert(0, table[int(random()*21)])                # if we added 0 extra characters we add a character from 0 to 20
+        # if we added 0 extra characters we add a character from 0 to 20
+        out.insert(0, table[int(random()*21)])
     elif test == 1:
-        out.insert(0, table[int(random()*21)+21])                # if we added 1 extra characters we add a character from 21 to 41
+        # if we added 1 extra characters we add a character from 21 to 41
+        out.insert(0, table[int(random()*21)+21])
     elif test == 2:
-        out.insert(0, table[int(random()*22)+42])                 # if we added 1 extra characters we add a character from 42 to 63
+        # if we added 1 extra characters we add a character from 42 to 63
+        out.insert(0, table[int(random()*22)+42])
     return ''.join(out)
+
 
 def table_dec(instring, table=None):
     """The function that performs TABLE decoding.
@@ -598,22 +616,27 @@ def table_dec(instring, table=None):
     (definition of invalid : not consisting of characters in the TABLE or length not len(instring) % 4 = 1).
     You can pass in an alternative 64 character string to do the decoding with if you want.
     """
-    if table == None: table = TABLE
+    if table == None:
+        table = TABLE
     out = []
     rem_test = table.find(instring[0])      # remove the length data at the end
-    if rem_test == -1: return None
+    if rem_test == -1:
+        return None
     instring = instring[1:]
-    if len(instring)%4 != 0: return None        # check the length is now divisible by 4
+    if len(instring) % 4 != 0:
+        return None        # check the length is now divisible by 4
     while instring:
         chunk = instring[:4]
         instring = instring[4:]
         newchunk = []
         for char in chunk:
             test = table.find(char)
-            if test == -1: return None
+            if test == -1:
+                return None
             newchunk.append(test)
         newchars = sixtoeight(newchunk)
-        if not newchars: return None
+        if not newchars:
+            return None
         for char in newchars:
             out.append(chr(char))
     if rem_test > 41:
@@ -622,10 +645,12 @@ def table_dec(instring, table=None):
         out = out[:-2]
     return ''.join(out)
 
+
 def return_now():
     """Returns the time now.
     As (HOUR, MINUTES)."""
     return int(strftime('%I')), int(strftime('%M'))
+
 
 def check_pass(inhash, pswdhash, EXPIRE):
     """Given the hash (possibly from a webpage) it checks that it is still valid and matches the password it is supposed
@@ -634,17 +659,21 @@ def check_pass(inhash, pswdhash, EXPIRE):
     If expired it returns -1.
     If the pass is invalid it returns False."""
     try:
-        instring, daynumber, timestamp = pass_dec(inhash)         # of course a fake or mangled password will cause an exception here
+        # of course a fake or mangled password will cause an exception here
+        instring, daynumber, timestamp = pass_dec(inhash)
         if not table_dec(pswdhash) == instring:
             return False
-        if not unexpired(daynumber, timestamp, EXPIRE):            # this tests if the hash is still valid and is the password hash the same as the password hash encoded in the page ?
+        # this tests if the hash is still valid and is the password hash the same as the password hash encoded in the page ?
+        if not unexpired(daynumber, timestamp, EXPIRE):
             return -1
         else:
-            return pass_enc(instring, daynumber = True, timestamp = True)       # generate a new hash, with the current time
+            # generate a new hash, with the current time
+            return pass_enc(instring, daynumber=True, timestamp=True)
     except:
         return False
 
-def binleave(data1, data2, endleave = False):
+
+def binleave(data1, data2, endleave=False):
     """Given two strings of binary data it interleaves data1 into data2 on a bitwise basis
     and returns a single string combining both. (bits interleaved not just the bytes).
     The returned string will be 4 bytes or so longer than the two strings passed in.
@@ -666,7 +695,7 @@ def binleave(data1, data2, endleave = False):
     Interleaving a file with a watermark of pretty much any size makes it unreadable - this is because *every* byte is changed.
     (Except perhaps a few at the end - see the endleave keyword). However it shouldn't be relied on if you need
     a really secure method of encryption. For many purposes it will be sufficient however.
-    
+
     In practise any file not an exact multiple of the size of the watermark will have a chunk at the end that is untouched.
     To get round this you can set endleave = True.. which then releaves the end data back into itself.
     (and therefore takes twice as long - it shouldn't be necessary where you have a short watermark.)
@@ -674,13 +703,15 @@ def binleave(data1, data2, endleave = False):
     data2 ought to be the smaller string - or they will be swapped round internally.
     This could cause you to get them back in an unexpected order from binunleave.    
     """
-    header, out, data1 = internalfunc(data1,data2)
+    header, out, data1 = internalfunc(data1, data2)
 #    print len(data1), len(out), len(header)
-    header = chr(int(random()*128)) + header            # making it a 4 byte header
+    # making it a 4 byte header
+    header = chr(int(random()*128)) + header
     if endleave and data1 and len(data1) < 65536:
         header, out, data1 = internalfunc(header + out, data1)
-        header = chr(int(random()*128)+ 128) + header
+        header = chr(int(random()*128) + 128) + header
     return header + out + data1
+
 
 def binunleave(data):
     """Given a chunk of data woven by binleave - it returns the two seperate pieces of data."""
@@ -688,7 +719,7 @@ def binunleave(data):
     data = data[1:]
     data1, data2 = internalfunc2(data)
     if ord(header) > 127:
-#        print len(data1)
+        #        print len(data1)
         data = data2 + data1
         data = data[1:]
         data1, data2 = internalfunc2(data)
@@ -700,26 +731,28 @@ def binunleave(data):
 # There are still many places this could be useful, but I now use binary operations inline.
 # Included for reference is the bf object and the binary operations as functions.
 
+
 class bf(object):
     """the bf(object) from activestate python cookbook - by Sebastien Keim - Many Thanks
     http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/113799"""
-    def __init__(self,value=0):
+
+    def __init__(self, value=0):
         self._d = value
 
     def __getitem__(self, index):
-        return (self._d >> index) & 1 
+        return (self._d >> index) & 1
 
-    def __setitem__(self,index,value):
-        value    = (value&1)<<index
-        mask     = (1)<<index
-        self._d  = (self._d & ~mask) | value
+    def __setitem__(self, index, value):
+        value = (value & 1) << index
+        mask = (1) << index
+        self._d = (self._d & ~mask) | value
 
     def __getslice__(self, start, end):
-        mask = 2**(end - start) -1
+        mask = 2**(end - start) - 1
         return (self._d >> start) & mask
 
     def __setslice__(self, start, end, value):
-        mask = 2**(end - start) -1
+        mask = 2**(end - start) - 1
         value = (value & mask) << start
         mask = mask << start
         self._d = (self._d & ~mask) | value
@@ -733,18 +766,19 @@ def bittest(value, bitindex):
     """This function returns the setting of any bit from a value.
     bitindex starts at 0.
     """
-    return (value&(1<<bitindex))>>bitindex
+    return (value & (1 << bitindex)) >> bitindex
+
 
 def bitset(value, bitindex, bit):
     """Sets a bit, specified by bitindex, in 'value' to 'bit'.
     bit should be 1 or 0
     bitindex starts at 0.
     """
-    bit    = (bit&1)<<bitindex
-    mask     = (1)<<bitindex
-    return (value & ~mask) | bit                # set that bit of value to 0 with an & operation and then or it with the 'bit'
+    bit = (bit & 1) << bitindex
+    mask = (1) << bitindex
+    # set that bit of value to 0 with an & operation and then or it with the 'bit'
+    return (value & ~mask) | bit
 
-    
 
 ##################################################################
 
@@ -757,21 +791,26 @@ def internalfunc(data1, data2):
         dummy = data1
         data1 = data2
         data2 = dummy
-    if not data2 or not data1: return None      # check for empty data
+    if not data2 or not data1:
+        return None      # check for empty data
     length = len(data2)
-    if length >= pow(2,24): return None         # if the strings are oversized
-    multiple = len(data1)//length       # this is how often we should interleave bits
-    if multiple > 65535: multiple = 65535   # in practise we'll set to max 65535
+    if length >= pow(2, 24):
+        return None         # if the strings are oversized
+    # this is how often we should interleave bits
+    multiple = len(data1)//length
+    if multiple > 65535:
+        multiple = 65535   # in practise we'll set to max 65535
     header1 = length//65536
     header3 = length % 65536
     header2 = header3//256
     header3 = header3 % 256
-    header = chr(header1) + chr(header2) + chr(header3)      # these are the 3 bytes we will put at the start of the string
+    # these are the 3 bytes we will put at the start of the string
+    header = chr(header1) + chr(header2) + chr(header3)
 # so - to encode one byte of data2 (the watermark) we need multiple bytes of data1
     data1 = [ord(char) for char in list(data1)]
     startpos = 0
     data2 = [ord(char) for char in list(data2)]
-    BINLIST=[1,2,4,8,16,32,64,128]
+    BINLIST = [1, 2, 4, 8, 16, 32, 64, 128]
     out = []
     bitlen = multiple*8 + 8     # the total number of bits we'll have
 #    print bitlen, multiple
@@ -786,58 +825,66 @@ def internalfunc(data1, data2):
         heapindex = 0
         charindex = 0
         while mainindex < bitlen:
-    #        print  mainindex, heapindex, charindex, bitindex
-            if heapindex == 8:       #    if we've got all 8 bit's
+            #        print  mainindex, heapindex, charindex, bitindex
+            if heapindex == 8:  # if we've got all 8 bit's
                 out.append(chr(heapobj))
                 heapobj = 0
                 heapindex = 0
-            if not mainindex%(multiple+1):            # we've got to a point where we should nick another bit from the byte
-                if mainobj&BINLIST[bitindex]:       # if the bit at binindex is set
-                    heapobj = heapobj|BINLIST[heapindex] # set the bit at heapindex
+            # we've got to a point where we should nick another bit from the byte
+            if not mainindex % (multiple+1):
+                # if the bit at binindex is set
+                if mainobj & BINLIST[bitindex]:
+                    # set the bit at heapindex
+                    heapobj = heapobj | BINLIST[heapindex]
                 heapindex += 1
                 bitindex += 1
                 mainindex += 1
                 continue
             if charindex == 7 and chunklist:                   # we've used up the current character from the chunk
-                if charobj&BINLIST[charindex]:
-                    heapobj = heapobj|BINLIST[heapindex]
+                if charobj & BINLIST[charindex]:
+                    heapobj = heapobj | BINLIST[heapindex]
                 charobj = chunklist.pop(0)
                 charindex = 0
                 heapindex += 1
-                mainindex += 1 
+                mainindex += 1
                 continue
-            if charobj&BINLIST[charindex]:
-                heapobj = heapobj|BINLIST[heapindex]
+            if charobj & BINLIST[charindex]:
+                heapobj = heapobj | BINLIST[heapindex]
             heapindex += 1
             charindex += 1
             mainindex += 1
-            
-        if heapindex == 8:       #    if we've got all 8 bit's.. but the loop has ended...
+
+        if heapindex == 8:  # if we've got all 8 bit's.. but the loop has ended...
             out.append(chr(heapobj))
 
     return header, ''.join(out), ''.join([chr(char) for char in data1[startpos:]])
+
 
 def internalfunc2(data):
     """Used by binunleave.
     This function extracts data that has been interleaved using binleave."""
     lenstr = data[:3]           # extract the length of the watermark
     data = list(data[3:])
-    length2 = ord(lenstr[0])*65536 + ord(lenstr[1])*256 + ord(lenstr[2])       # length of watermark
-    length1 = len(data) - length2                                               # overall length
+    length2 = ord(lenstr[0])*65536 + ord(lenstr[1])*256 + \
+        ord(lenstr[2])       # length of watermark
+    # overall length
+    length1 = len(data) - length2
     multiple = length1//length2 + 1
-    if multiple > 65536: multiple = 65536   # in practise we'll set to max 65535 + 1
+    if multiple > 65536:
+        multiple = 65536   # in practise we'll set to max 65535 + 1
     bitlen = multiple*8
 #    print len(data), length1, length2, multiple
     out1 = []
     out = []
     index = 0
-    BINLIST=[1,2,4,8,16,32,64,128]
-#    print len(chunk)    
+    BINLIST = [1, 2, 4, 8, 16, 32, 64, 128]
+#    print len(chunk)
     while index < length2:
         index += 1
         chunk = data[:multiple]
         data = data[multiple:]
-        chunklist = [ord(char) for char in chunk]       # turn chunk into a list of it's values
+        # turn chunk into a list of it's values
+        chunklist = [ord(char) for char in chunk]
         heapobj = 0
         outbyte = 0
         charobj = chunklist.pop(0)
@@ -846,40 +893,41 @@ def internalfunc2(data):
         heapindex = 0
         charindex = 0
         while mainindex < bitlen:
-    #        print  mainindex, heapindex, charindex, bitindex
-            if heapindex == 8:       #    if we've got all 8 bit's
+            #        print  mainindex, heapindex, charindex, bitindex
+            if heapindex == 8:  # if we've got all 8 bit's
                 out.append(chr(heapobj))
                 heapobj = 0
-                heapindex = 0    
-            if not mainindex%multiple:            # we've got to a point where we should add another bit to the byte
-                if charobj&BINLIST[charindex]:
-                    outbyte = outbyte|BINLIST[bitindex]
+                heapindex = 0
+            if not mainindex % multiple:            # we've got to a point where we should add another bit to the byte
+                if charobj & BINLIST[charindex]:
+                    outbyte = outbyte | BINLIST[bitindex]
                 if not charindex == 7:
                     charindex += 1
                 else:
                     charobj = chunklist.pop(0)
-                    charindex = 0                
+                    charindex = 0
                 bitindex += 1
                 mainindex += 1
                 continue
             if charindex == 7 and chunklist:                   # we've used up the current character from the chunk
-                if charobj&BINLIST[charindex]:
-                    heapobj = heapobj|BINLIST[heapindex]
+                if charobj & BINLIST[charindex]:
+                    heapobj = heapobj | BINLIST[heapindex]
                 charobj = chunklist.pop(0)
                 charindex = 0
                 heapindex += 1
-                mainindex += 1 
+                mainindex += 1
                 continue
-            if charobj&BINLIST[charindex]:
-                heapobj = heapobj|BINLIST[heapindex]
+            if charobj & BINLIST[charindex]:
+                heapobj = heapobj | BINLIST[heapindex]
             heapindex += 1
             charindex += 1
             mainindex += 1
-        if heapindex == 8:       #    if we've got all 8 bit's.. but the loop has ended...
+        if heapindex == 8:  # if we've got all 8 bit's.. but the loop has ended...
             out.append(chr(heapobj))
         out1.append(chr(outbyte))
 
     return ''.join(out1), ''.join(out+data)
+
 
 def test():                     # the test suite
     from time import clock
@@ -888,16 +936,18 @@ def test():                     # the test suite
     index = 0
     while index < len(TABLE):
         print(TABLE[index], TABLE.find(TABLE[index]))
-        index +=1
+        index += 1
 
     print('\nEnter test password to encode using table_enc :\n(Hit enter to continue past this)\n')
     while True:
         dummy = input('>>...')
-        if not dummy: break
-        test =  table_enc(dummy)
+        if not dummy:
+            break
+        test = table_enc(dummy)
         test2 = table_dec(test)
         print(test)
-        print('length  : ', len(test), '    modulo 4 of length - 1  : ', (len(test)-1) % 4)
+        print('length  : ', len(test),
+              '    modulo 4 of length - 1  : ', (len(test)-1) % 4)
         print('Decoded : ', test2)
         print('Length dec : ', len(test2))
 
@@ -906,16 +956,16 @@ def test():                     # the test suite
         instring = input('>>...')
         if not instring:
             break
-        code = pass_enc(instring, sha_hash=False, daynumber=True, timestamp=True)
+        code = pass_enc(instring, sha_hash=False,
+                        daynumber=True, timestamp=True)
         print(code)
         print(pass_dec(code))
-
 
     print('\n\nTesting interleaving a 1000 byte random string with a 1500 byte random string :')
     print()
     print('Overall length of combined string : ', end=' ')
-    a=0
-    b=''
+    a = 0
+    b = ''
     c = ''
     while a < 1000:
         a += 1
@@ -928,7 +978,8 @@ def test():                     # the test suite
     test = binleave(c, b, True)
     print(len(test))
     a1, a2 = binunleave(test)
-    print('Time taken (including print statements ;-) ', str(clock()-d)[:6], ' seconds')
+    print('Time taken (including print statements ;-) ',
+          str(clock()-d)[:6], ' seconds')
     print('Test for equality of extracted data against original :')
     print(a1 == b)
     print(a2 == c)
@@ -937,29 +988,30 @@ def test():                     # the test suite
 # If you give it two test files 'test1.zip' and 'test2.zip' it will interleave the two files,
 # unleave them again and write out the first file as 'test4.zip'
 # It prints how long it takes and you can verify that the returned file is undamaged.
-    
+
     if exists('test1.zip') and exists('test2.zip'):
         print()
         print("Reading 'test1.zip' and 'test2.zip'")
         print("Interleaving them together and writing the combined file out as 'test3.zip'")
-        print("Then unleaving them and writing 'test1.zip' back out as 'test4.zip'", end=' ')
+        print(
+            "Then unleaving them and writing 'test1.zip' back out as 'test4.zip'", end=' ')
         print(" to confirm it is unchanged by the process")
-        a = file('test1.zip','rb')
+        a = file('test1.zip', 'rb')
         b = a.read()
         a.close()
-        a = file('test2.zip','rb')
-        c  = a.read()
+        a = file('test2.zip', 'rb')
+        c = a.read()
         a.close()
         d = clock()
-        test = binleave(c,b, True)
+        test = binleave(c, b, True)
 
         print(len(test))
-        a = file('test3.zip','wb')
+        a = file('test3.zip', 'wb')
         a.write(test)
         a.close()
         a1, a2 = binunleave(test)
         print(str(clock()-d)[:6])
-        a = file('test4.zip','wb')
+        a = file('test4.zip', 'wb')
         a.write(a1)
         a.close()
     else:
@@ -970,141 +1022,134 @@ def test():                     # the test suite
         print("Then we unleave them again, and write 'test1.zip' back out as 'test4.zip'", end=' ')
         print("(So we can confirm that it's unchanged by the process.)")
 
-    
-
-
 
 if __name__ == '__main__':
 
-# the start of making dataenc an application - but I don't think it will be used :-)
-# just runs the test suite instead
+    # the start of making dataenc an application - but I don't think it will be used :-)
+    # just runs the test suite instead
 
-### this is executed if dataenc is run from the commandline
-##
-### first we get the arguments we were called with using optparse
-##
-### minimum arguments :
-### input file
-### output file
-##
-### default :
-### if three file arguments are given the two are interelaved and saved as the third file
-### so long as the third file doesn't already exist.
-##
-### if two filenames are given it reads the first file and datestamps it
-### saves as the second file (assuming it doesn't exist)
-##
-### if one filename is given it assumes it is a n interleaved file to extract
-##
-### options :
-### overwrite output file             - default OFF
-### encode or decode                  - default is encode (specifying three files forces encode)
-### table_enc on or off               - default is OFF
-### specify a TABLE file              - default is to use inbuilt
-### datestamp/interleave on or off    - default is ON (datestamping)
-### endleaving on or off              - default is OFF
-### header file                       - default is to use the header in the file when decoding, and to leave it in the file when encoding
-### (If a header file is specified the 3 byte header from binary interleaving will be saved seperately).
-##
-### **special**
-### config file - *all* values are read from the config file
-##
-##    from optparse import OptionParser
-##
-##    parser = OptionParser()
-##    parser.add_option("-q", "--quiet",
-##                      action="store_false", dest="quiet", default = False,
-##                      help="Set a verbosity level of 0, print no messages.")
-##    
-##    parser.add_option("--test",
-##                      action="store_true", dest="test", default=False,
-##                      help="Run the tests, all other options ignored. Verbosity of tests is 9.")
-##    
-##    parser.add_option("-v", "--verbose", type = 'int', dest="verbose", default=9,
-##                      help="Set the verbosity level. Should be an integer from 0 to 9,"+\
-##                      "9 means the most verbose and 0 means don't ouput any messages. Default is 9.")
-##    
-##    parser.add_option("-d", "--decode",
-##                      action="store_true", dest="decode", default = False,
-##                      help="Set to decode rather than encode. Default is encode.")
-##    
-##    parser.add_option("-t", "--table",
-##                      action="store_true", dest="table", default = False,
-##                      help="Encode or decode files using the TABLE. (ASCII  to binary or binary to ASCII).")
-##    
-##    parser.add_option("-T","--TABLE", dest="table_file", 
-##                  help="Specify a 64 character file to use as the TABLE for encoding/decoding.")
-##    
-##    parser.add_option("-o", "--off",
-##                      action="store_false", dest="datestamp", default = True,
-##                      help="Switches datestamping OFF. Default is ON.")
-##
-##    parser.add_option("-e", "--end",
-##                      action="store_false", dest="end", default = True,
-##                      help="Switches endleaving ON. default is OFF.")
-##    
-##    parser.add_option("-H","--header", dest="header_file", default = False,
-##                  help="Specify a separate file to use as the header file when binary encoding/decoding.")
-##
-##    parser.add_option("-c","--config", dest="config_file", default = False,
-##                  help="Specify a config file to read *all* the other options from.")
-##
-##
-##
-##    options, args = parser.parse_args()
-###    print args
-##
-##
-### next import StandOut which allows us to set variable levels of verbosity
-##    try:
-##        from standout import StandOut
-##        stout = StandOut()
-##    except:
-##        print 'dataenc uses the standout module to handle varying levels of verbosity'
-##        print 'Without it, all messages will be printed.'
-##        class dummy:                # a dummy object that we can twiddle if StandOut isn't available
-##            def __init__(self):
-##                self.priority = 0
-##                self.verbosity = 0
-##            def close(self):
-##                pass
-##        stout = dummy()
-##    
-##    defaults = { 'header_file' : False, 'datestamp' : True
-##    if options.config_file:          # a configfile, the settings here override all the others
-##        try:
-##            from configobj import ConfigObj
-##        except ImportError:
-##            print "Without the ConfigObj module I can't import a config file."
-##            print 'See http://www.voidspace.org.uk/atlantibots/pythonutils.html'
-##            raise
-##        config = ConfigObj(options.config_file, fileerror=True)
-##        
-##
-##    if options.verbose:
-##        stout.verbosity = 10 - options.verbose          # a higher verbosity level here, actually means quiter
-##    else:
-##        stout.verbosity = 0                             # except for 0, which means silent
-##    if options.quiet:                                   # if the quiet option is explicitly set
-##        stout.verbosity = 0
-##    stout.priority = 2
-##    print 'Welcome to dataenc - the data encoding and interleaving program by Fuzzyman'
-##    print 'See http://www.voidspace.org.uk/atlantibots/pythonutils.html'
-##    print 'Written in Python.'
-##    stout.priority = 3
-##    if not psycoin:
-##        print 'Having the Psyco module installed (Python Specialising compiler) would vastly speed up dataenc.'
-##    if not DATEIN:
-##        print 'Some of the datestamping features are only available when the dateutils module is available.'
-##    stout.priority = 5
-##
-##        
-##    if options.test:
+    # this is executed if dataenc is run from the commandline
+    ##
+    # first we get the arguments we were called with using optparse
+    ##
+    # minimum arguments :
+    # input file
+    # output file
+    ##
+    # default :
+    # if three file arguments are given the two are interelaved and saved as the third file
+    # so long as the third file doesn't already exist.
+    ##
+    # if two filenames are given it reads the first file and datestamps it
+    # saves as the second file (assuming it doesn't exist)
+    ##
+    # if one filename is given it assumes it is a n interleaved file to extract
+    ##
+    # options :
+    # overwrite output file             - default OFF
+    # encode or decode                  - default is encode (specifying three files forces encode)
+    # table_enc on or off               - default is OFF
+    # specify a TABLE file              - default is to use inbuilt
+    # datestamp/interleave on or off    - default is ON (datestamping)
+    # endleaving on or off              - default is OFF
+    # header file                       - default is to use the header in the file when decoding, and to leave it in the file when encoding
+    # (If a header file is specified the 3 byte header from binary interleaving will be saved seperately).
+    ##
+    # **special**
+    # config file - *all* values are read from the config file
+    ##
+    ##    from optparse import OptionParser
+    ##
+    ##    parser = OptionParser()
+    # parser.add_option("-q", "--quiet",
+    # action="store_false", dest="quiet", default = False,
+    # help="Set a verbosity level of 0, print no messages.")
+    ##
+    # parser.add_option("--test",
+    # action="store_true", dest="test", default=False,
+    # help="Run the tests, all other options ignored. Verbosity of tests is 9.")
+    ##
+    # parser.add_option("-v", "--verbose", type = 'int', dest="verbose", default=9,
+    # help="Set the verbosity level. Should be an integer from 0 to 9,"+\
+    # "9 means the most verbose and 0 means don't ouput any messages. Default is 9.")
+    ##
+    # parser.add_option("-d", "--decode",
+    # action="store_true", dest="decode", default = False,
+    # help="Set to decode rather than encode. Default is encode.")
+    ##
+    # parser.add_option("-t", "--table",
+    # action="store_true", dest="table", default = False,
+    # help="Encode or decode files using the TABLE. (ASCII  to binary or binary to ASCII).")
+    ##
+    # parser.add_option("-T","--TABLE", dest="table_file",
+    # help="Specify a 64 character file to use as the TABLE for encoding/decoding.")
+    ##
+    # parser.add_option("-o", "--off",
+    # action="store_false", dest="datestamp", default = True,
+    # help="Switches datestamping OFF. Default is ON.")
+    ##
+    # parser.add_option("-e", "--end",
+    # action="store_false", dest="end", default = True,
+    # help="Switches endleaving ON. default is OFF.")
+    ##
+    # parser.add_option("-H","--header", dest="header_file", default = False,
+    # help="Specify a separate file to use as the header file when binary encoding/decoding.")
+    ##
+    # parser.add_option("-c","--config", dest="config_file", default = False,
+    # help="Specify a config file to read *all* the other options from.")
+    ##
+    ##
+    ##
+    ##    options, args = parser.parse_args()
+    # print args
+    ##
+    ##
+    # next import StandOut which allows us to set variable levels of verbosity
+    # try:
+    ##        from standout import StandOut
+    ##        stout = StandOut()
+    # except:
+    # print 'dataenc uses the standout module to handle varying levels of verbosity'
+    # print 'Without it, all messages will be printed.'
+    # class dummy:                # a dummy object that we can twiddle if StandOut isn't available
+    # def __init__(self):
+    ##                self.priority = 0
+    ##                self.verbosity = 0
+    # def close(self):
+    # pass
+    ##        stout = dummy()
+    ##
+    # defaults = { 'header_file' : False, 'datestamp' : True
+    # if options.config_file:          # a configfile, the settings here override all the others
+    # try:
+    ##            from configobj import ConfigObj
+    # except ImportError:
+    # print "Without the ConfigObj module I can't import a config file."
+    # print 'See http://www.voidspace.org.uk/atlantibots/pythonutils.html'
+    # raise
+    ##        config = ConfigObj(options.config_file, fileerror=True)
+    ##
+    ##
+    # if options.verbose:
+    # stout.verbosity = 10 - options.verbose          # a higher verbosity level here, actually means quiter
+    # else:
+    # stout.verbosity = 0                             # except for 0, which means silent
+    # if options.quiet:                                   # if the quiet option is explicitly set
+    ##        stout.verbosity = 0
+    ##    stout.priority = 2
+    # print 'Welcome to dataenc - the data encoding and interleaving program by Fuzzyman'
+    # print 'See http://www.voidspace.org.uk/atlantibots/pythonutils.html'
+    # print 'Written in Python.'
+    ##    stout.priority = 3
+    # if not psycoin:
+    # print 'Having the Psyco module installed (Python Specialising compiler) would vastly speed up dataenc.'
+    # if not DATEIN:
+    # print 'Some of the datestamping features are only available when the dateutils module is available.'
+    ##    stout.priority = 5
+    ##
+    ##
+    # if options.test:
     test()
-
-
-    
-
 
 
 """

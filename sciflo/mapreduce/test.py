@@ -1,4 +1,8 @@
-import uuid, time, types, json, hashlib
+import uuid
+import time
+import types
+import json
+import hashlib
 from datetime import timedelta
 from pprint import pprint
 from urllib.request import urlopen
@@ -42,7 +46,7 @@ def create_map_job(startdate, enddate, segmentBy, arg1, arg2, wuid=None, job_num
     start = getDatetimeFromString(startdate)
 
     return {
-        "job_type": "job:parpython_map_job", 
+        "job_type": "job:parpython_map_job",
         "job_queue": "factotum-job_worker-small",
         "payload": {
             # sciflo tracking info
@@ -65,9 +69,9 @@ def create_reduce_job(results, wuid=None, job_num=None):
     if wuid is None or job_num is None:
         raise RuntimeError("Need to specify workunit id and job num.")
 
-    args = [ result['payload_id'] for result in results ]
+    args = [result['payload_id'] for result in results]
     return {
-        "job_type": "job:parpython_reduce_job", 
+        "job_type": "job:parpython_reduce_job",
         "job_queue": "factotum-job_worker-large",
         "payload": {
             # sciflo tracking info
@@ -92,10 +96,12 @@ def join_map_jobs(task_ids):
     """Test reduce function that manually joins all mapped jobs."""
 
     print(("task_ids: {}".format(json.dumps(task_ids, indent=2))))
-    res = GroupResult(id=uuid.uuid4(), results=[AsyncResult(id[0]) for id in task_ids])
+    res = GroupResult(id=uuid.uuid4(), results=[
+                      AsyncResult(id[0]) for id in task_ids])
     while True:
         ready = res.ready()
-        if ready: break
+        if ready:
+            break
         time.sleep(5)
     results = []
     for r in res.join(timeout=10.):
@@ -103,12 +109,13 @@ def join_map_jobs(task_ids):
         if isinstance(r, (list, tuple)):
             # build resolvable result
             task_id = r[0]
-            results.append({ 'uuid': task_id,
-                             'job_id': task_id,
-                             'payload_id': task_id,
-                             'status': 'job-deduped' })
-        else: results.append(r)
-    args = [ result['payload_id'] for result in results ]
+            results.append({'uuid': task_id,
+                            'job_id': task_id,
+                            'payload_id': task_id,
+                            'status': 'job-deduped'})
+        else:
+            results.append(r)
+    args = [result['payload_id'] for result in results]
     return args
 
 

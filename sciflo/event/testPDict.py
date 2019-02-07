@@ -1,7 +1,9 @@
 
-import sys, os
+import sys
+import os
 from bsddb import dbshelve
 from .pdict import PersistentDict
+
 
 def test(filename, mode='direct'):
     from random import randint
@@ -15,7 +17,7 @@ def test(filename, mode='direct'):
         db = PersistentDict(filename)
     else:
         db = dbshelve.open(filename, flags='c')
-        
+
     for i in range(10000):
         key = abc+'%4.4d' % i
 #        print key
@@ -36,9 +38,9 @@ def test(filename, mode='direct'):
         j = randint(0, 10000)
         key = abc+'%4.4d' % j
         try:
-	    tmp = db[key]
+            tmp = db[key]
 #            print key
-	    del db[key]
+            del db[key]
 #            db.sync()
         except:
             pass
@@ -57,7 +59,6 @@ def main():
         filename = '/tmp/testDbshelve.db'
     test(filename, mode)
 
+
 if __name__ == '__main__':
     main()
-
-

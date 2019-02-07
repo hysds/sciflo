@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        submit_sciflo.cgi
 # Purpose:     Submit sciflo for execution.
 #
@@ -8,7 +8,7 @@
 # Created:     Thu Jul 27 11:10:57 2006
 # Copyright:   (c) 2006, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 import cgi
 from string import Template
 import sciflo
@@ -26,13 +26,13 @@ import cjson
 from sciflo.utils import sanitizeHtml
 from sciflo.utils.interfaceUtils import getTabConfig, parseView
 
-#turn on script debugging in browser
+# turn on script debugging in browser
 #import cgitb; cgitb.enable()
 
-#config file
+# config file
 configFile = None
 
-#templates
+# templates
 spacesStr = '&nbsp;' * 3
 
 formDataTpl = Template('''
@@ -210,13 +210,18 @@ Ext.onReady(function() {
 </td></tr>
 ''')
 
-#view attribute matches
-TEXTAREA_RE = re.compile(r'textarea\(\s*rows\s*=\s*(\d*)\s*,\s*cols\s*=\s*(\d*)\s*\)$')
+# view attribute matches
+TEXTAREA_RE = re.compile(
+    r'textarea\(\s*rows\s*=\s*(\d*)\s*,\s*cols\s*=\s*(\d*)\s*\)$')
 TEXT_RE = re.compile(r'textbox\(\s*size\s*=\s*(\d*)\s*\)$')
-COMBOBOX_RE = re.compile(r'combobox\(\s*size\s*=\s*(\d*)\s*,\s*dataUrl\s*=\s*(.*?)\s*\)$')
-COMBOBOX_INLINE_RE = re.compile(r'combobox\(\s*size\s*=\s*(\d*)\s*,\s*choices\s*=\s*(.*?)\s*\)$')
-VARWIDGET_RE = re.compile(r'varWidget\(\s*size\s*=\s*(\d*)\s*,\s*dataUrl\s*=\s*(.*?)\s*\)$')
-DATETIME_RE = re.compile(r'datetime\(\s*(?:(start|end)\s*=\s*(.*?))?(?:,.*?)?\)')
+COMBOBOX_RE = re.compile(
+    r'combobox\(\s*size\s*=\s*(\d*)\s*,\s*dataUrl\s*=\s*(.*?)\s*\)$')
+COMBOBOX_INLINE_RE = re.compile(
+    r'combobox\(\s*size\s*=\s*(\d*)\s*,\s*choices\s*=\s*(.*?)\s*\)$')
+VARWIDGET_RE = re.compile(
+    r'varWidget\(\s*size\s*=\s*(\d*)\s*,\s*dataUrl\s*=\s*(.*?)\s*\)$')
+DATETIME_RE = re.compile(
+    r'datetime\(\s*(?:(start|end)\s*=\s*(.*?))?(?:,.*?)?\)')
 BBOX_RE = re.compile(r'bbox\(\s*(.*?)\s*\)$')
 
 inputFileTpl = Template('''
@@ -1034,83 +1039,93 @@ bboxTpl = Template('''
 </td></tr>
 ''')
 
+
 def printForm():
     """Just print the form."""
 
-    #print header
+    # print header
     print "Content-Type: text/html\n\n"
 
-    #print html
+    # print html
     print pageTemplate.pageTemplateHead.substitute(title='Upload SciFlo',
                                                    additionalHead='',
                                                    bodyOnload='')
 
-    print uploadScifloTpl.substitute({'spaces':spacesStr})
+    print uploadScifloTpl.substitute({'spaces': spacesStr})
 
-    #print end
+    # print end
     print pageTemplate.pageTemplateFoot.substitute()
+
 
 def printInputForm(scifloStr, form):
     """Input form."""
 
-    #get reset
-    reset = form.getfirst('reset',False)
-    if isinstance(reset, types.StringTypes): reset = sanitizeHtml(reset)
+    # get reset
+    reset = form.getfirst('reset', False)
+    if isinstance(reset, types.StringTypes):
+        reset = sanitizeHtml(reset)
 
-    #get template
-    basicTemplate = form.getfirst('basicTemplate',None)
-    if basicTemplate is None or (isinstance(basicTemplate, types.StringTypes) and \
-    re.search(r'false', basicTemplate, re.IGNORECASE)): basicTemplate = 'FALSE'
-    else: basicTemplate = 'TRUE'
+    # get template
+    basicTemplate = form.getfirst('basicTemplate', None)
+    if basicTemplate is None or (isinstance(basicTemplate, types.StringTypes) and
+                                 re.search(r'false', basicTemplate, re.IGNORECASE)):
+        basicTemplate = 'FALSE'
+    else:
+        basicTemplate = 'TRUE'
 
-    #check if valid sciflo doc
+    # check if valid sciflo doc
     sfl = sciflo.grid.doc.Sciflo(urllib2.urlopen(scifloStr).read())
     sfl.resolve()
-    
-    #bbox set
+
+    # bbox set
     bboxElts = []
-    
-    #get interface config
+
+    # get interface config
     interfaceCfg = cjson.decode(getTabConfig(scifloStr))
     sectionCfgs = [interfaceCfg['setupTab']]
     sectionCfgs.extend(interfaceCfg['tabs'])
 
-    #generate input dictionary from forms
+    # generate input dictionary from forms
     inputRows = []
     for sectionCfg in sectionCfgs:
-        inputRows.append('<tr><td><font size="3" color="blue">%s</font></td><td></td></tr>' % sectionCfg['title'])
+        inputRows.append(
+            '<tr><td><font size="3" color="blue">%s</font></td><td></td></tr>' % sectionCfg['title'])
         inputRows.append('<tr><td><hr/></td><td><hr/></td></tr>')
         for item in sectionCfg['items']:
-            if item.has_key('sflGlobalInput'): inputTags = [item['sflGlobalInput']]
+            if item.has_key('sflGlobalInput'):
+                inputTags = [item['sflGlobalInput']]
             else:
-                inputRows.append('<tr><td><font size="2" color="blue">%s</font></td><td></td></tr>' % item['title'])
-                inputTags = [subitem['sflGlobalInput'] for subitem in item['items']]
-            
+                inputRows.append(
+                    '<tr><td><font size="2" color="blue">%s</font></td><td></td></tr>' % item['title'])
+                inputTags = [subitem['sflGlobalInput']
+                             for subitem in item['items']]
+
             for inputTag in inputTags:
                 for inputElt in sfl._flowInputs:
-                    if inputTag != inputElt.tag: continue
-                    
-                    #file upload?
+                    if inputTag != inputElt.tag:
+                        continue
+
+                    # file upload?
                     inputType = inputElt.get('type')
                     if inputType is not None and inputType == 'sf:fileUpload':
                         inputRows.append(inputFileTpl.substitute({'inputTag': inputTag,
                                                                   'size': '100'}))
                         break
-            
-                    #view
+
+                    # view
                     view = inputElt.get('view')
                     if view is not None:
                         typ, viewDict = parseView(view)
-                        
-                        #text widget
+
+                        # text widget
                         textMatch = TEXT_RE.search(view)
                         if textMatch:
                             inputRows.append(inputRowTextTpl.substitute({'inputTag': inputTag,
                                                                          'inputVal': inputElt.text,
                                                                          'size': str(viewDict['size'])}))
                             break
-                        
-                        #textarea widget
+
+                        # textarea widget
                         textareaMatch = TEXTAREA_RE.search(view)
                         if textareaMatch:
                             inputRows.append(inputRowTextareaTpl.substitute({'inputTag': inputTag,
@@ -1118,8 +1133,8 @@ def printInputForm(scifloStr, form):
                                                                              'rows': str(viewDict['rows']),
                                                                              'cols': str(viewDict['cols'])}))
                             break
-                        
-                        #combobox widget
+
+                        # combobox widget
                         comboBoxMatch = COMBOBOX_RE.search(view)
                         if comboBoxMatch:
                             inputRows.append(comboBoxTpl.substitute({'inputTag': inputTag,
@@ -1127,8 +1142,8 @@ def printInputForm(scifloStr, form):
                                                                      'size': str(viewDict['size']),
                                                                      'dataUrl': str(viewDict['dataUrl'])}))
                             break
-                        
-                        #inline combobox widget
+
+                        # inline combobox widget
                         comboBoxMatch = COMBOBOX_INLINE_RE.search(view)
                         if comboBoxMatch:
                             inputRows.append(comboBoxInlTpl.substitute({'inputTag': inputTag,
@@ -1136,58 +1151,59 @@ def printInputForm(scifloStr, form):
                                                                         'size': str(viewDict['size']),
                                                                         'choices': str(viewDict['choices'])}))
                             break
-                        
-                        #varWidget widget
+
+                        # varWidget widget
                         varWidgetMatch = VARWIDGET_RE.search(view)
                         if varWidgetMatch:
                             inputRows.append(varWidgetTpl.substitute({'inputTag': inputTag,
-                                                                     'inputVal': inputElt.text.replace("'", "\\'"),
-                                                                     'inputValCb': inputElt.text.split('/')[0],
-                                                                     'size': str(viewDict['size']),
-                                                                     'dataUrl': str(viewDict['dataUrl'])}))
+                                                                      'inputVal': inputElt.text.replace("'", "\\'"),
+                                                                      'inputValCb': inputElt.text.split('/')[0],
+                                                                      'size': str(viewDict['size']),
+                                                                      'dataUrl': str(viewDict['dataUrl'])}))
                             break
-                        
-                        #datetime widget
+
+                        # datetime widget
                         datetimeMatch = DATETIME_RE.search(view)
                         if datetimeMatch:
-                            timeElms = sciflo.utils.getTimeElementsFromString(inputElt.text)
+                            timeElms = sciflo.utils.getTimeElementsFromString(
+                                inputElt.text)
                             matchingDtType, matchingDtTag = datetimeMatch.groups()
                             if matchingDtType is None:
                                 inputRows.append(datetimePickerTpl.substitute({'inputTag': inputTag,
                                                                                'inputVal': inputElt.text,
-                                                                               'inputValDt': '%04d-%02d-%02d' % \
-                                                                                   (timeElms[0], timeElms[1],
-                                                                                    timeElms[2]),
-                                                                               'inputValTm': '%02d:%02d:%02d' % \
-                                                                                   (timeElms[3], timeElms[4],
-                                                                                    timeElms[5])
+                                                                               'inputValDt': '%04d-%02d-%02d' %
+                                                                               (timeElms[0], timeElms[1],
+                                                                                timeElms[2]),
+                                                                               'inputValTm': '%02d:%02d:%02d' %
+                                                                               (timeElms[3], timeElms[4],
+                                                                                timeElms[5])
                                                                                }))
                             else:
                                 if matchingDtType == 'start':
                                     inputRows.append(datetimePickerEndTpl.substitute({'inputTag': inputTag,
-                                                                                   'inputVal': inputElt.text,
-                                                                                   'inputValDt': '%04d-%02d-%02d' % \
-                                                                                       (timeElms[0], timeElms[1],
-                                                                                        timeElms[2]),
-                                                                                   'inputValTm': '%02d:%02d:%02d' % \
-                                                                                       (timeElms[3], timeElms[4],
-                                                                                        timeElms[5]),
-                                                                                   'matchingTag': matchingDtTag
-                                                                                   }))
+                                                                                      'inputVal': inputElt.text,
+                                                                                      'inputValDt': '%04d-%02d-%02d' %
+                                                                                      (timeElms[0], timeElms[1],
+                                                                                       timeElms[2]),
+                                                                                      'inputValTm': '%02d:%02d:%02d' %
+                                                                                      (timeElms[3], timeElms[4],
+                                                                                       timeElms[5]),
+                                                                                      'matchingTag': matchingDtTag
+                                                                                      }))
                                 else:
                                     inputRows.append(datetimePickerStartTpl.substitute({'inputTag': inputTag,
-                                                                               'inputVal': inputElt.text,
-                                                                               'inputValDt': '%04d-%02d-%02d' % \
-                                                                                   (timeElms[0], timeElms[1],
-                                                                                    timeElms[2]),
-                                                                               'inputValTm': '%02d:%02d:%02d' % \
-                                                                                   (timeElms[3], timeElms[4],
-                                                                                    timeElms[5]),
-                                                                               'matchingTag': matchingDtTag
-                                                                               }))
+                                                                                        'inputVal': inputElt.text,
+                                                                                        'inputValDt': '%04d-%02d-%02d' %
+                                                                                        (timeElms[0], timeElms[1],
+                                                                                         timeElms[2]),
+                                                                                        'inputValTm': '%02d:%02d:%02d' %
+                                                                                        (timeElms[3], timeElms[4],
+                                                                                            timeElms[5]),
+                                                                                        'matchingTag': matchingDtTag
+                                                                                        }))
                             break
-                        
-                        #bbox widget
+
+                        # bbox widget
                         bboxMatch = BBOX_RE.search(view)
                         if bboxMatch:
                             bboxElts.append(inputElt)
@@ -1204,15 +1220,18 @@ def printInputForm(scifloStr, form):
                                     bView = bElt.get('view')
                                     bViewType, bViewDict = parseView(bView)
                                     bMatch = BBOX_RE.search(bView)
-                                    if not bboxMatch: raise RuntimeError("Couldn't find view for bbox in %s." % bView)
-                                    
+                                    if not bboxMatch:
+                                        raise RuntimeError(
+                                            "Couldn't find view for bbox in %s." % bView)
+
                                     bDict[convDict[bViewDict['cmp']]] = bTag
-                                    bDict[convDict[bViewDict['cmp']] + '_value'] = bElt.text
+                                    bDict[convDict[bViewDict['cmp']] +
+                                          '_value'] = bElt.text
                                 bDict['size'] = '15'
                                 bDict['gmapKey'] = GMAP_KEY
                                 inputRows.append(bboxTpl.substitute(bDict))
                             break
-                        
+
                     if inputElt.text is None:
                         inputText = ""
                         inputLen = 5
@@ -1221,132 +1240,161 @@ def printInputForm(scifloStr, form):
                         inputLen = len(inputText)
                     if '\n' in inputText:
                         inputRows.append(inputRowTextareaTpl.substitute({'inputTag': inputTag,
-                                                                             'inputVal': inputText.replace("'", '"'),
-                                                                             'rows': str(5),
-                                                                             'cols': str(80)}))
+                                                                         'inputVal': inputText.replace("'", '"'),
+                                                                         'rows': str(5),
+                                                                         'cols': str(80)}))
                     else:
                         inputRows.append(inputRowTextTpl.substitute({'inputTag': inputTag,
                                                                      'inputVal': inputText.replace("'", '"'),
                                                                      'size': str(inputLen+1)}))
         inputRows.append('<tr><td></td><td></td></tr>')
-        
-    #print header
+
+    # print header
     print "Content-Type: text/html\n\n"
 
-    #print html
+    # print html
     print pageTemplate.pageTemplateHead.substitute(title='Submit SciFlo',
                                                    additionalHead='',
                                                    bodyOnload='')
 
-    print inputFormTpl.substitute({'scifloStr':scifloStr,
+    print inputFormTpl.substitute({'scifloStr': scifloStr,
                                    'basicTemplate': basicTemplate,
-                                   'inputRows':'\n'.join(inputRows),
+                                   'inputRows': '\n'.join(inputRows),
                                    'scifloName': sfl._flowName,
                                    'scifloDesc': sfl._description})
 
-    #print end
+    # print end
     print pageTemplate.pageTemplateFoot.substitute()
 
-def printTest(form,extra=[]):
 
-    #print header
+def printTest(form, extra=[]):
+
+    # print header
     print "Content-Type: text/html\n\n"
 
-    #print html
+    # print html
     print pageTemplate.pageTemplateHead.substitute(title='Submit SciFlo',
                                                    additionalHead='',
                                                    bodyOnload='')
-    for i in extra: print "%s<br/>" % str(i)
+    for i in extra:
+        print "%s<br/>" % str(i)
     cgi.print_form(form)
     cgi.print_environ()
 
-    #print end
+    # print end
     print pageTemplate.pageTemplateFoot.substitute()
+
 
 def handleRequest(sfl, form, redirectToStatusPage=False, reset=False, basicTemplate=False):
     """Handle request."""
 
-    #check if valid sciflo doc
-    if sciflo.utils.isXml(sfl): sflStr = sfl
-    else: sflStr = urllib2.urlopen(sfl).read()
+    # check if valid sciflo doc
+    if sciflo.utils.isXml(sfl):
+        sflStr = sfl
+    else:
+        sflStr = urllib2.urlopen(sfl).read()
     sfl = sciflo.grid.doc.Sciflo(sflStr)
     sfl.resolve()
 
-    #generate input dictionary from forms
+    # generate input dictionary from forms
     wuArgs = []
     inputDict = {}
     for inputElt in sfl._flowInputs:
         inputTag = inputElt.tag
-        if inputTag is None: continue
+        if inputTag is None:
+            continue
         formVal = form.getfirst(inputTag, None)
         if formVal is not None:
-            #file upload?  Then write to a file
+            # file upload?  Then write to a file
             inputType = inputElt.get('type')
             if inputType is not None and inputType == 'sf:fileUpload':
-                tempDir = mkdtemp(); os.chmod(tempDir, 0755)
+                tempDir = mkdtemp()
+                os.chmod(tempDir, 0755)
                 localFile = os.path.join(tempDir, form[inputTag].filename)
-                f = open(localFile, 'wb'); f.write(formVal); f.close()
+                f = open(localFile, 'wb')
+                f.write(formVal)
+                f.close()
                 formVal = localFile
-            
-            inputDict[inputTag] = formVal
-    if len(inputDict) > 0: wuArgs = [inputDict]
 
-    if reset: noLookCache = True
-    else: noLookCache = False
-    
-    #submit
+            inputDict[inputTag] = formVal
+    if len(inputDict) > 0:
+        wuArgs = [inputDict]
+
+    if reset:
+        noLookCache = True
+    else:
+        noLookCache = False
+
+    # submit
     gsc = sciflo.grid.GridServiceConfig()
     gridBaseUrl = gsc.getGridProxyUrl()
-    if not gridBaseUrl: gridBaseUrl = gsc.getGridBaseUrl()
+    if not gridBaseUrl:
+        gridBaseUrl = gsc.getGridBaseUrl()
     wsdl = '%s/wsdl?http://sciflo.jpl.nasa.gov/2006v1/sf/GridService' % gridBaseUrl
-    #lookup cache?
-    if reset: submitFuncName = 'submitSciflo_nocache'
-    else: submitFuncName = 'submitSciflo'
+    # lookup cache?
+    if reset:
+        submitFuncName = 'submitSciflo_nocache'
+    else:
+        submitFuncName = 'submitSciflo'
     try:
         scifloid, jsonFile = \
-            sciflo.grid.soapFuncs.submitSciflo_client(wsdl, submitFuncName, sflStr, wuArgs)
+            sciflo.grid.soapFuncs.submitSciflo_client(
+                wsdl, submitFuncName, sflStr, wuArgs)
     except Exception, e:
         print "Content-Type: text/html\n\n"
         print '<font color="red">SciFlo Execution server is down.  Unable to execute sciflo.</font>'
         return
 
-    #if redirect to status page, do so else print xml
+    # if redirect to status page, do so else print xml
     if redirectToStatusPage:
-        if basicTemplate: print "Location: monitor_sciflo.cgi?json=%s&basicTemplate=TRUE\n\n" % jsonFile
-        else: print "Location: monitor_sciflo.cgi?json=%s\n\n" % jsonFile
+        if basicTemplate:
+            print "Location: monitor_sciflo.cgi?json=%s&basicTemplate=TRUE\n\n" % jsonFile
+        else:
+            print "Location: monitor_sciflo.cgi?json=%s\n\n" % jsonFile
     else:
         print "Content-Type: text/xml\n\n"
         print '<scifloid>%s</scifloid>' % scifloid
 
+
 if __name__ == '__main__':
 
-    #get form
+    # get form
     form = cgi.FieldStorage()
-    reset = form.getfirst('reset',False)
-    if isinstance(reset, types.StringTypes): reset = sanitizeHtml(reset)
-    basicTemplate = form.getfirst('basicTemplate',None)
-    if basicTemplate is None or (isinstance(basicTemplate, types.StringTypes) and \
-    re.search(r'false', basicTemplate, re.IGNORECASE)):
+    reset = form.getfirst('reset', False)
+    if isinstance(reset, types.StringTypes):
+        reset = sanitizeHtml(reset)
+    basicTemplate = form.getfirst('basicTemplate', None)
+    if basicTemplate is None or (isinstance(basicTemplate, types.StringTypes) and
+                                 re.search(r'false', basicTemplate, re.IGNORECASE)):
         basicTemplate = False
         import pageTemplate
-    else: 
+    else:
         basicTemplate = True
         import basicPageTemplate as pageTemplate
-    scifloStr = form.getfirst('scifloStr',None)
-    submit = form.getfirst('submit',None)
-    if submit == 'submit w/ no cache': reset = 'hard'
-    meth = os.environ.get('REQUEST_METHOD',None)
-    if os.environ.get('SSL_PROTOCOL',None) is not None: proto = 'https'
-    else: proto = 'http'
+    scifloStr = form.getfirst('scifloStr', None)
+    submit = form.getfirst('submit', None)
+    if submit == 'submit w/ no cache':
+        reset = 'hard'
+    meth = os.environ.get('REQUEST_METHOD', None)
+    if os.environ.get('SSL_PROTOCOL', None) is not None:
+        proto = 'https'
+    else:
+        proto = 'http'
     serverName = os.environ['SERVER_NAME']
 
-    #handle post
-    if scifloStr is None: printForm()
+    # handle post
+    if scifloStr is None:
+        printForm()
     else:
-        if scifloStr.startswith('/'): scifloStr = '%s://%s/' % (proto,serverName) + scifloStr
-        elif sciflo.utils.isUrl(scifloStr) or sciflo.utils.isXml: pass
-        else: raise RuntimeError, "Unknown scifloStr: %s" % scifloStr
+        if scifloStr.startswith('/'):
+            scifloStr = '%s://%s/' % (proto, serverName) + scifloStr
+        elif sciflo.utils.isUrl(scifloStr) or sciflo.utils.isXml:
+            pass
+        else:
+            raise RuntimeError, "Unknown scifloStr: %s" % scifloStr
         if submit == 'submitSciflo' or submit == 'submit w/ no cache' or sciflo.utils.isXml(scifloStr):
             handleRequest(scifloStr, form, True, reset, basicTemplate)
-        elif submit is None: printInputForm(scifloStr, form)
-        else: raise RuntimeError, "Unknown submit: %s" % submit
+        elif submit is None:
+            printInputForm(scifloStr, form)
+        else:
+            raise RuntimeError, "Unknown submit: %s" % submit

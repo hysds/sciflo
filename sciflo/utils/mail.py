@@ -21,7 +21,7 @@ def send_email(sender, cc_recipients, bcc_recipients, subject, body, attachments
     The charset of the email will be the first one out of US-ASCII, ISO-8859-1
     and UTF-8 that can represent all the characters occurring in the email.
     """
-    
+
     # combined recipients
     recipients = cc_recipients + bcc_recipients
 
@@ -71,18 +71,19 @@ def send_email(sender, cc_recipients, bcc_recipients, subject, body, attachments
                                   for recipient_name, recipient_addr in unicode_parsed_bcc_recipients])
     msg['Subject'] = Header(str(subject), header_charset)
     msg.attach(MIMEText(body.encode(body_charset), 'plain', body_charset))
-    
+
     # Add attachments
     for attachment in attachments:
         part = MIMEBase('application', "octet-stream")
         part.set_payload(attachment.file.read())
         Encoders.encode_base64(part)
-        part.add_header('Content-Disposition', 'attachment; filename="%s"' % attachment.filename)
+        part.add_header('Content-Disposition',
+                        'attachment; filename="%s"' % attachment.filename)
         msg.attach(part)
 
-    #print "#" * 80
-    #print msg.as_string()
-    
+    # print "#" * 80
+    # print msg.as_string()
+
     # Send the message via SMTP to localhost:25
     smtp = SMTP("localhost")
     smtp.sendmail(sender, recipients, msg.as_string())

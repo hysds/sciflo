@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        gridServerCtl.py
 # Purpose:     Control script for SciFlo grid server.
 #
@@ -8,7 +8,7 @@
 # Created:     Thu Feb 16 10:05:54 2006
 # Copyright:   (c) 2006, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 import os
 import sys
 import getopt
@@ -20,8 +20,9 @@ import signal
 
 import sciflo
 
-#lock directory
+# lock directory
 lockDir = '/tmp'
+
 
 def usage():
     """Print usage info."""
@@ -30,65 +31,77 @@ def usage():
 [-C|--cert <server cert file>] [--clean] [--kill] [-d|--debug] [-l|--log] \
 [-t|--type <threading|forking|twisted>] [-h|--help]""" % sys.argv[0]))
 
+
 def getRunningServerPid(port):
     """Get pid of any server currently running.  If none, return 0.
     """
 
-    #lock file
-    lockFile = os.path.join(lockDir,'sciflo-%s.lock' % port)
+    # lock file
+    lockFile = os.path.join(lockDir, 'sciflo-%s.lock' % port)
 
-    #do checks for existence of process [only valid for linux]
+    # do checks for existence of process [only valid for linux]
     if os.path.exists(lockFile):
-        lockingPid = open(lockFile,'r').read()
-        if os.path.isdir(os.path.join('/proc',lockingPid)): return int(lockingPid)
+        lockingPid = open(lockFile, 'r').read()
+        if os.path.isdir(os.path.join('/proc', lockingPid)):
+            return int(lockingPid)
         else:
             print(("Zombie process?  Remove lock at %s to fix." % lockFile))
             sys.exit(2)
-    else: return 0
+    else:
+        return 0
+
 
 def instantiateHandlersAndGetRootWorkDir(configFile, cleanFlag):
     """Instantiate schedule and work unit handlers and perform any
     cleanup.  Return root work dir.
     """
 
-    #set schedule store config
-    workUnitScheduleConfig = sciflo.grid.config.getScheduleConfigFromConfiguration(configFile)
+    # set schedule store config
+    workUnitScheduleConfig = sciflo.grid.config.getScheduleConfigFromConfiguration(
+        configFile)
 
-    #get schedule dir
+    # get schedule dir
     (dbHome, dbName) = workUnitScheduleConfig.getStoreArgs()
-    #print dbHome,dbName
+    # print dbHome,dbName
 
-    #clean schedule
-    if cleanFlag and os.path.isdir(dbHome): shutil.rmtree(dbHome)
+    # clean schedule
+    if cleanFlag and os.path.isdir(dbHome):
+        shutil.rmtree(dbHome)
 
-    #set schedule handler
-    scheduleHandler = sciflo.grid.storeHandler.ScheduleStoreHandler(workUnitScheduleConfig)
+    # set schedule handler
+    scheduleHandler = sciflo.grid.storeHandler.ScheduleStoreHandler(
+        workUnitScheduleConfig)
 
-    #get StoreConfig
-    storeConfig = sciflo.grid.config.getStoreConfigFromConfiguration(configFile)
+    # get StoreConfig
+    storeConfig = sciflo.grid.config.getStoreConfigFromConfiguration(
+        configFile)
 
-    #get bsddb home dir and db file name
+    # get bsddb home dir and db file name
     (wuDbHome, wuDbName) = storeConfig.getStoreArgs()
-    #print "In unittest, wuDbHome and wuDbName:",wuDbHome,wuDbName
+    # print "In unittest, wuDbHome and wuDbName:",wuDbHome,wuDbName
 
-    #clean work unit store
-    if cleanFlag and os.path.isdir(wuDbHome): shutil.rmtree(wuDbHome)
+    # clean work unit store
+    if cleanFlag and os.path.isdir(wuDbHome):
+        shutil.rmtree(wuDbHome)
 
-    #store handler instance
+    # store handler instance
     storeHandler = sciflo.grid.storeHandler.WorkUnitStoreHandler(storeConfig)
 
-    #root work unit work dir
-    rootWorkDir = sciflo.grid.config.getRootWorkDirFromConfiguration(configFile)
+    # root work unit work dir
+    rootWorkDir = sciflo.grid.config.getRootWorkDirFromConfiguration(
+        configFile)
 
-    #clean work unit work dir
-    if cleanFlag and os.path.isdir(rootWorkDir): shutil.rmtree(rootWorkDir)
+    # clean work unit work dir
+    if cleanFlag and os.path.isdir(rootWorkDir):
+        shutil.rmtree(rootWorkDir)
 
     return rootWorkDir
+
 
 def start(configFile, serverCertFile=None, serverKeyFile=None, cleanFlag=False,
           debugFlag=False, logFlag=False, threading=True):
 
-    #get grid service configuration
+    # get grid service configuration
     gscObj = sciflo.grid.config.GridServiceConfig(configFile)
     gridSoapPort = gscObj.getPort()
     gridProtocol = gscObj.getProtocol()
@@ -96,59 +109,61 @@ def start(configFile, serverCertFile=None, serverKeyFile=None, cleanFlag=False,
     gridNamespace = gscObj.getNamespace()
     gridCallbackMethod = gscObj.getCallbackMethod()
     gridProxyUrl = gscObj.getGridProxyUrl()
-    #print gridSoapPort,gridProtocol,gridWsdl,gridNamespace,gridCallbackMethod
+    # print gridSoapPort,gridProtocol,gridWsdl,gridNamespace,gridCallbackMethod
 
-    #set debug
+    # set debug
     debug = 0
-    if debugFlag: debug = 1
+    if debugFlag:
+        debug = 1
 
-    #set log
+    # set log
     log = 0
-    if logFlag: log = 1
+    if logFlag:
+        log = 1
 
-    #check for lockfile for server running on this port
+    # check for lockfile for server running on this port
     alreadyRunningPid = getRunningServerPid(gridSoapPort)
 
-    #check if already running
+    # check if already running
     if alreadyRunningPid:
         print(("Server already running with pid %s." % alreadyRunningPid))
         sys.exit(0)
 
-    #instantiate handlers
-    rootWorkDir = instantiateHandlersAndGetRootWorkDir(configFile,cleanFlag)
+    # instantiate handlers
+    rootWorkDir = instantiateHandlersAndGetRootWorkDir(configFile, cleanFlag)
 
-    #set lockFile
-    lockFile = os.path.join(lockDir,'sciflo-%s.lock' % gridSoapPort)
+    # set lockFile
+    lockFile = os.path.join(lockDir, 'sciflo-%s.lock' % gridSoapPort)
 
-    #fork
+    # fork
     pid = os.fork()
     if not pid:
 
-        #set pgid
-        os.setpgid(0,0)
+        # set pgid
+        os.setpgid(0, 0)
 
-        #create lock file
+        # create lock file
         currentPid = str(os.getpid())
-        f = open(lockFile,'w')
+        f = open(lockFile, 'w')
         f.write(currentPid)
         f.close()
 
         while [1]:
             try:
 
-                #secure
+                # secure
                 if gridProtocol == 'gsi':
                     server = sciflo.webservices.soap.SoapServer(('0.0.0.0', gridSoapPort), useGSI=1,
-                        returnFaultInfo=1, rootDir=rootWorkDir, debug=debug, log=log,
-                        proxyUrl=gridProxyUrl, threading=threading)
+                                                                returnFaultInfo=1, rootDir=rootWorkDir, debug=debug, log=log,
+                                                                proxyUrl=gridProxyUrl, threading=threading)
                 elif gridProtocol == 'ssl':
                     server = sciflo.webservices.soap.SoapServer(('0.0.0.0', gridSoapPort), serverCertFile,
-                        serverKeyFile, returnFaultInfo=1, rootDir=rootWorkDir, debug=debug,
-                        log=log, proxyUrl=gridProxyUrl, threading=threading)
+                                                                serverKeyFile, returnFaultInfo=1, rootDir=rootWorkDir, debug=debug,
+                                                                log=log, proxyUrl=gridProxyUrl, threading=threading)
                 else:
                     server = sciflo.webservices.soap.SoapServer(('0.0.0.0', gridSoapPort),
-                        returnFaultInfo=1, rootDir=rootWorkDir, debug=debug, log=log,
-                        proxyUrl=gridProxyUrl, threading=threading)
+                                                                returnFaultInfo=1, rootDir=rootWorkDir, debug=debug, log=log,
+                                                                proxyUrl=gridProxyUrl, threading=threading)
                 break
             except Exception as e:
                 print(e)
@@ -156,62 +171,68 @@ def start(configFile, serverCertFile=None, serverKeyFile=None, cleanFlag=False,
                 time.sleep(1)
 
         retval = server.registerEndpoint(sciflo.utils.xmlUtils.transformXml(configFile,
-            sciflo.utils.xmlUtils.GRID_ENDPOINT_CONFIG_XSL))
+                                                                            sciflo.utils.xmlUtils.GRID_ENDPOINT_CONFIG_XSL))
         server.serveForever()
         os._exit(0)
-    print(("Server process %s started on port %s." % (pid,gridSoapPort)))
+    print(("Server process %s started on port %s." % (pid, gridSoapPort)))
+
 
 def stop(configFile):
 
-    #get grid service configuration
+    # get grid service configuration
     gscObj = sciflo.grid.config.GridServiceConfig(configFile)
     gridSoapPort = gscObj.getPort()
 
-    #check for lockfile for server running on this port
+    # check for lockfile for server running on this port
     alreadyRunningPid = getRunningServerPid(gridSoapPort)
 
-    #check if already running
-    if alreadyRunningPid: pass
+    # check if already running
+    if alreadyRunningPid:
+        pass
     else:
         print("No server running.")
         sys.exit(0)
 
-    #get pid
-    lockFile = os.path.join(lockDir,'sciflo-%s.lock' % gridSoapPort)
+    # get pid
+    lockFile = os.path.join(lockDir, 'sciflo-%s.lock' % gridSoapPort)
     f = open(lockFile)
     pidStr = f.read()
     f.close()
     pid = int(pidStr)
 
-    #make sure it's running
-    if os.path.isdir(os.path.join('/proc',pidStr)): pass
+    # make sure it's running
+    if os.path.isdir(os.path.join('/proc', pidStr)):
+        pass
     else:
         print(("Zombie process?  Remove orphaned lock at %s to fix." % lockFile))
         sys.exit(2)
 
-    #kill
-    try: os.kill(pid,signal.SIGTERM)
-    except: print("Got exception trying to kill pid or unlink lock.")
+    # kill
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except:
+        print("Got exception trying to kill pid or unlink lock.")
 
-    #remove lock
+    # remove lock
     try:
         os.unlink(lockFile)
-        print(("Server process %s at port %s stopped." % (pidStr,gridSoapPort)))
-    except: print("Got exception trying to unlink lock file.")
+        print(("Server process %s at port %s stopped." % (pidStr, gridSoapPort)))
+    except:
+        print("Got exception trying to unlink lock file.")
 
 
 def main():
 
-    #get opts
+    # get opts
     try:
-        opts,args = getopt.getopt(sys.argv[1:],"c:k:C:dlt:h",
-                                  ["configFile=","key=","cert=","clean",
-                                   "kill","debug","log","type=","help"])
+        opts, args = getopt.getopt(sys.argv[1:], "c:k:C:dlt:h",
+                                   ["configFile=", "key=", "cert=", "clean",
+                                    "kill", "debug", "log", "type=", "help"])
     except getopt.GetoptError:
         usage()
         sys.exit(2)
 
-    #set defaults
+    # set defaults
     configFile = sciflo.utils.getUserScifloConfig()
     scp = sciflo.utils.ScifloConfigParser(configFile)
     serverKeyFile = scp.getParameter('hostKey')
@@ -222,22 +243,22 @@ def main():
     logFlag = False
     threading = True
 
-    #flags to prevent multiple specifications of options
+    # flags to prevent multiple specifications of options
     typeSet = False
     configFileSet = False
     serverKeyFileSet = False
     serverCertFileSet = False
 
-    #process opts
-    for o,a in opts:
+    # process opts
+    for o, a in opts:
 
-        #check if help
-        if o in ("-h","--help"):
+        # check if help
+        if o in ("-h", "--help"):
             usage()
             sys.exit()
 
-        #set config file
-        if o in ("-c","--configFile"):
+        # set config file
+        if o in ("-c", "--configFile"):
             if configFileSet:
                 print("""Multiple -c|--configFile specifications found.\
   Only specify one config file.""")
@@ -247,8 +268,8 @@ def main():
                 configFile = os.path.abspath(a)
                 configFileSet = True
 
-        #set server key file
-        if o in ("-k","--key"):
+        # set server key file
+        if o in ("-k", "--key"):
             if serverKeyFileSet:
                 print("""Multiple -k|--key specifications found.\
   Only specify one server key file.""")
@@ -258,8 +279,8 @@ def main():
                 serverKeyFile = a
                 serverKeyFileSet = True
 
-        #set server cert file
-        if o in ("-C","--cert"):
+        # set server cert file
+        if o in ("-C", "--cert"):
             if serverCertFileSet:
                 print("""Multiple -C|--cert specifications found.\
   Only specify one server cert file.""")
@@ -268,9 +289,9 @@ def main():
             else:
                 serverCertFile = a
                 serverCertFileSet = True
-        
-        #check type
-        if o in ("-t","--type"):
+
+        # check type
+        if o in ("-t", "--type"):
             if typeSet:
                 print("Multiple -t|--type specifications found.  Only specify one type.")
                 usage()
@@ -280,29 +301,39 @@ def main():
                     print(("Invalid server type: %s." % a))
                     usage()
                     sys.exit(2)
-                if a == 'threading': threading = True
-                elif a == 'forking': threading = False
-                else: threading = None
+                if a == 'threading':
+                    threading = True
+                elif a == 'forking':
+                    threading = False
+                else:
+                    threading = None
                 typeSet = 1
 
-        #check if clean
-        if o in ("--clean"): cleanFlag = True
+        # check if clean
+        if o in ("--clean"):
+            cleanFlag = True
 
-        #check if kill
-        if o in ("--kill"): killFlag = True
+        # check if kill
+        if o in ("--kill"):
+            killFlag = True
 
-        #check if debug
-        if o in ("-d","--debug"): debugFlag = True
+        # check if debug
+        if o in ("-d", "--debug"):
+            debugFlag = True
 
-        #check if log
-        if o in ("-l","--log"): logFlag = True
+        # check if log
+        if o in ("-l", "--log"):
+            logFlag = True
+
+    # pass to appropriate function
+    if killFlag:
+        stop(configFile)
+    else:
+        start(configFile, serverCertFile, serverKeyFile, cleanFlag,
+              debugFlag, logFlag, threading)
+
+    # print configFile, serverKeyFile, serverCertFile
 
 
-    #pass to appropriate function
-    if killFlag: stop(configFile)
-    else: start(configFile, serverCertFile, serverKeyFile, cleanFlag,
-                debugFlag, logFlag, threading)
-
-    #print configFile, serverKeyFile, serverCertFile
-
-if __name__ == '__main__': main()
+if __name__ == '__main__':
+    main()
