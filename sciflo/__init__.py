@@ -10,4 +10,4 @@ def imported(): return None
 
 __version__ = "1.2.0"
 __description__ = "SciFlo workflow framework and engine"
-__url__         = "https://github.jpl.nasa.gov/hysds-org/sciflo"
+__url__         = "https://github.com/hysds/sciflo"
