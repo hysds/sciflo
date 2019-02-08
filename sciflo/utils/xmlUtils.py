@@ -194,7 +194,7 @@ def postCall(url, data, headers, verbose=False):
         if isXml(data):
             headers['Content-type'] = 'text/xml'
             if not data.startswith('<?xml'):
-                data = '<?xml version="1.0" encoding="UTF-8"?>' + data
+                data = '<?xml version="1.0"?>' + data
         else:
             headers['Content-type'] = 'application/x-www-form-urlencoded'
         headers['Content-length'] = str(len(data))
@@ -1047,7 +1047,7 @@ def escapeCharsForCDATA(obj):
 
 
 # sciflo config xml to grid endpoint xml xsl
-GRID_ENDPOINT_CONFIG_XSL = '''<?xml version="1.0" encoding="UTF-8"?>
+GRID_ENDPOINT_CONFIG_XSL = '''<?xml version="1.0"?>
 <xsl:transform version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:sf="http://sciflo.jpl.nasa.gov/2006v1/sf"

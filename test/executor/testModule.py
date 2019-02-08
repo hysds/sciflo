@@ -50,7 +50,7 @@ def sleepAndAdd2(var1, var2, sleeptime):
 
 
 def getTestXml():
-    return '''<?xml version='1.0' encoding='UTF-8'?>
+    return '''<?xml version='1.0'?>
 <resultSet xmlns:xs='http://www.w3.org/2001/XMLSchema' xmlns='http://sciflo.jpl.nasa.gov/2006v1/sf' id='AIRS'>
   <result>
     <objectid>AIRS.2003.01.02.240</objectid>

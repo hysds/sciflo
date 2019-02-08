@@ -16,6 +16,7 @@ import copy
 import urllib.request
 import urllib.parse
 import urllib.error
+from urllib.parse import urlparse
 import sys
 import lxml.etree
 from pkg_resources import resource_string
@@ -319,7 +320,12 @@ class Sciflo(object):
         elif typ == 'sciflo':
             wuType = typ
             endpoint = val
-            call = urllib.request.urlopen(val).read()
+            protocol, netloc, path, params, query, frag = urlparse(val)
+            if protocol == '':
+                with open(val) as f:
+                    call = f.read()
+            else:
+                call = urllib.request.urlopen(val).read()
         # rest
         elif typ in ('rest', 'template', 'cmdline'):
             wuType = typ

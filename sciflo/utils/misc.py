@@ -32,7 +32,7 @@ from string import Template
 from tempfile import gettempdir, mktemp
 import pickle as pickle
 from subprocess import *
-from random import Random
+from random import Random, randrange
 
 import sciflo
 from .namespaces import SCIFLO_NAMESPACE, XSD_NAMESPACE, PY_NAMESPACE
@@ -48,7 +48,7 @@ def getThreadSafeRandomObject(jumpahead=19594):
     """Return a thread safe random object."""
 
     rndm = Random()
-    rndm.jumpahead(jumpahead)
+    rndm.seed(randrange(jumpahead))
     return rndm
 
 
@@ -173,14 +173,7 @@ def extractZipfile(file, dir=".", verbose=False):
             fnDir = os.path.dirname(fn)
             if fnDir not in ['', '.'] and not os.path.isdir(fnDir):
                 os.makedirs(fnDir)
-            out = open(fn, 'wb')
-            buffer = StringIO(z.read(fn))
-            buflen = 2 ** 20
-            datum = buffer.read(buflen)
-            while datum:
-                out.write(datum)
-                datum = buffer.read(buflen)
-            out.close()
+            z.extract(fn)
         finally:
             if verbose:
                 print(fn)
@@ -1237,6 +1230,9 @@ def runDot(dot, outputFile=None, outputType=None):
             os.unlink(dotFile)
     except:
         pass
+    contents = open(outputFile).read().replace(' encoding="UTF-8"', '')
+    with open(outputFile, 'w') as f:
+        f.write(contents)
     if returnContentsFlag:
         contents = open(outputFile).read()
         os.unlink(outputFile)

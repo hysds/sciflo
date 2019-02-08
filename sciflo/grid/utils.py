@@ -343,7 +343,7 @@ def getHexDigest(args):
     argsString = str(getArgsString(getListFromUnknownObject(args)))
 
     # get md5 hex digest
-    return hashlib.md5(argsString).hexdigest()
+    return hashlib.md5(argsString.encode('utf-8')).hexdigest()
 
 
 def getFunction(funcStr, addToSysPath=None):

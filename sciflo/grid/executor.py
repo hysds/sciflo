@@ -88,7 +88,7 @@ class ScifloExecutor(object):
                  emailNotify=None, outputUrl=None):
         """Constructor."""
 
-        import processing
+        import multiprocessing as processing
 
         self.sflString = sflString
         self.args = normalizeScifloArgs(args)
@@ -516,7 +516,7 @@ for '%s' in sciflo '%s': %s\n%s" % (workDir, linkDir, procId, self.scifloName,
     def spawn(self):
         """Spawn starter work units."""
 
-        import processing
+        import multiprocessing as processing
 
         # update sciflo info
         self.updateScifloInfo(startTime=time.time(), status=workingStatus)

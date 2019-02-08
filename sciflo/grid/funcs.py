@@ -25,7 +25,7 @@ DEBUG_PROCESSING = False
 
 # enable logging; using processing's logging facility or our own
 if DEBUG_PROCESSING:
-    import processing.process
+    import multiprocessing as processing
     LOG_FMT = "%(asctime)s [%(levelname)s/%(processName)s] %(message)s"
     processing.process.enableLogging(None, format=LOG_FMT)
     WORKER_LOGGER = processing.process.getLogger()
@@ -221,7 +221,7 @@ previously cached execution: %s" % info['executionLog'])
     info = wu.getInfo()
 
     # create process and queue for work unit execution
-    import processing
+    import multiprocessing as processing
     q = processing.BufferedPipeQueue()
     p = processing.Process(target=forkChildAndRun, args=[q, runWorkUnit, wu])
 
