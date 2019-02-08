@@ -53,6 +53,9 @@ setup(name='sciflo',
       maintainer_email='Geraldjohn.M.Manipon@jpl.nasa.gov',
       url="https://github.com/hysds/sciflo",
       zip_safe=False,
+      install_requires=[
+        'twisted>=18.9.0',
+      ],
       packages=packages,
       package_data={
            '': ['*.xsl']
