@@ -54,7 +54,7 @@ setup(name='sciflo',
       url="https://github.com/hysds/sciflo",
       zip_safe=False,
       install_requires=[
-        'twisted>=18.9.0',
+        'twisted>=18.9.0', 'libxml2-python3>=2.9.5',
       ],
       packages=packages,
       package_data={

@@ -10,7 +10,6 @@
 # Licence:
 # -----------------------------------------------------------------------------
 from io import StringIO
-from xml.dom.ext import PrettyPrint
 from xml.dom.minidom import getDOMImplementation, parseString
 import types
 import sys
@@ -342,7 +341,6 @@ def simpleList2Xml(LL, rootElement="Rows", rowElement="row", rootAttribsDict=Non
             pass
 
     # get string and return
-    # return getPrettyPrintXmlFromDom(xmlDoc)
     return lxml.etree.tostring(rootElem, pretty_print=True)
 
 
@@ -430,7 +428,6 @@ def list2Xml(LL, headingsTuple=(), rootElement="Rows", rowElement="row",
                     addChildTextNodeToParentNode(xElem, heading[1], listItem)
             else:
                 addChildTextNodeToParentNode(recElem, heading, rec[x])
-    # return getPrettyPrintXmlFromDom(xmlDoc)
     return lxml.etree.tostring(rootElem, pretty_print=True)
 
 
@@ -755,8 +752,9 @@ def getPrettyPrintXmlFromDom(xmlDoc):
     '''
 
     f = StringIO()
-    PrettyPrint(xmlDoc, f)
-    return f.getvalue()
+    with open(xmlDoc) as f:
+        domObj = parseString(f.read())
+    return domObj.toprettyxml()
 
 
 class ScifloConfigParserError(Exception):
