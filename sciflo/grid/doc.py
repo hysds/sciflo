@@ -52,7 +52,7 @@ def ns(xpath): return translatePrefixes(xpath, namespaces=NS)
 
 
 # sciflo schema xml
-SCIFLO_SCHEMA_XML = resource_string(__name__, 'sciflo.xsl')
+SCIFLO_SCHEMA_XML = resource_string(__name__, 'sciflo.xsl').decode()
 
 
 class WorkUnitConfig(object):

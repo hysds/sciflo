@@ -158,6 +158,7 @@ class SoapEndpoint(object):
 
             except SoapMethodError as e:
                 print("SoapMethodError: %s" % e, file=sys.stderr)
+                print(traceback.format_exc(), file=sys.stderr)
                 continue
             except Exception as e:
                 raise SoapEndpointError(
@@ -343,14 +344,18 @@ def resolveSoapFunction(exposedName, funcOrSflStr, rootDir=None, urlBase=None):
     xmlDoc = None
     try:
         if funcOrSflStr.startswith('<'):
+            #print("got xml")
             xmlDoc = funcOrSflStr
         elif os.path.exists(funcOrSflStr):
+            #print("got file")
             xmlDoc = open(funcOrSflStr, 'r').read()
         else:
+            #print("got unknown")
             xmlDoc = urllib.request.urlopen(funcOrSflStr).read()
-        sfl = Sciflo(xmlDoc)
     except Exception as e:
         pass
+    if xmlDoc:
+        sfl = Sciflo(xmlDoc)
     if sfl:
         func = ScifloFunction(str(xmlDoc))
         if funcOrSflStr == xmlDoc:
@@ -363,6 +368,7 @@ def resolveSoapFunction(exposedName, funcOrSflStr, rootDir=None, urlBase=None):
         async_flag = False
 
         # check if pythonFunction is already a function
+        #print("funcOrSflStr: {} {}".format(funcOrSflStr, type(funcOrSflStr)))
         if isinstance(funcOrSflStr, types.FunctionType):
             func = funcOrSflStr
             funcOrSflStr = str(func)
