@@ -10,7 +10,7 @@
 # Licence:
 # -----------------------------------------------------------------------------
 from io import StringIO
-from xml.dom.minidom import getDOMImplementation, parseString
+from xml.dom.minidom import getDOMImplementation, parseString, Document
 import types
 import sys
 from tempfile import mkstemp, mkdtemp
@@ -745,10 +745,9 @@ def getPrettyPrintXmlFromDom(xmlDoc):
     '''Return pretty-printed xml from minidom xml document.
     '''
 
-    f = StringIO()
-    with open(xmlDoc) as f:
-        domObj = parseString(f.read())
-    return domObj.toprettyxml()
+    if not isinstance(xmlDoc, Document):
+        xmlDoc = parseString(xmlDoc)
+    return xmlDoc.toprettyxml()
 
 
 class ScifloConfigParserError(Exception):

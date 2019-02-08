@@ -149,7 +149,7 @@ class xmlUtilsTestCase(unittest.TestCase):
 
         # get minidom doc
         doc = getMinidomXmlDocument(rootTag)
-        assert doc.toxml() == result1
+        assert doc.toprettyxml() == result1
 
         # get minidom doc with xsl processing instruction
         doc2 = getMinidomXmlDocument(

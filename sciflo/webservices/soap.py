@@ -9,7 +9,7 @@
 #              U.S. Government Sponsorship acknowledged.
 # -----------------------------------------------------------------------------
 from xml.etree.ElementTree import parse, Element, tostring, SubElement, XMLID
-from xml.dom.minidom import parseString
+from xml.dom.minidom import parseString, Document
 import re
 import types
 import sys
@@ -42,7 +42,7 @@ from sciflo.grid.executor import runSciflo
 from sciflo.grid.funcs import forkChildAndRun
 
 # schema xml for endpoint xml documents
-ENDPOINT_SCHEMA_XML = """<?xml version="1.0" encoding="UTF-8"?>
+ENDPOINT_SCHEMA_XML = """<?xml version="1.0"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
 elementFormDefault="qualified"
 targetNamespace="http://sciflo.jpl.nasa.gov/2006v1/sf"
