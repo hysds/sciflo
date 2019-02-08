@@ -20,7 +20,6 @@ import base64
 import datetime
 import lxml.etree
 from urllib.request import urlopen, Request
-from urllib.request import urlopen as urllibopen
 from urllib.parse import urlparse
 import http.client
 import traceback
@@ -75,13 +74,10 @@ def getXmlEtree(xml):
     if xml.startswith('<?xml') or xml.startswith('<'):
         return (lxml.etree.parse(StringIO(xml), parser).getroot(), getNamespacePrefixDict(xml))
     else:
-        try:
-            xmlStr = urlopen(xml).read()
-        except Exception as e:
-            if re.search(r'unknown url type', str(e), re.IGNORECASE):
-                xmlStr = urllibopen(xml).read()
-            else:
-                raise e
+        protocol, netloc, path, params, query, frag = urlparse(xml)
+        if protocol == '': xml = "file://{}".format(xml)
+        xmlStr = urlopen(xml).read().decode('utf-8')
+        print("xmlStr: {}".format(xmlStr))
         return (lxml.etree.parse(StringIO(xmlStr), parser).getroot(), getNamespacePrefixDict(xmlStr))
 
 

@@ -340,22 +340,22 @@ class Sciflo(object):
             wuType = 'map python function'
             endpoint = None
             job_queue = bindingElt.get('job_queue', None)
-            async = bindingElt.get('async', 'false').lower()
+            async_flag = bindingElt.get('async', 'false').lower()
             if job_queue is None:
                 raise ScifloError(
                     "You must specify 'job_queue' attribute for binding type 'map'.")
-            call = '%s|%s|%s' % (val, job_queue, async)
+            call = '%s|%s|%s' % (val, job_queue, async_flag)
             return (wuType, endpoint, call)
         # parallel python
         elif typ == 'parallel':
             wuType = 'parallel python function'
             endpoint = None
             job_queue = bindingElt.get('job_queue', None)
-            async = bindingElt.get('async', 'false').lower()
+            async_flag = bindingElt.get('async', 'false').lower()
             if job_queue is None:
                 raise ScifloError(
                     "You must specify 'job_queue' attribute for binding type 'parallel'.")
-            call = '%s|%s|%s' % (val, job_queue, async)
+            call = '%s|%s|%s' % (val, job_queue, async_flag)
             return (wuType, endpoint, call)
         # handle python function, soap, binary, script, xquery, and bindings
         else:

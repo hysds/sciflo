@@ -39,7 +39,7 @@ from sciflo.utils import (magic, getListFromUnknownObject, ScifloConfigParser,
 import sciflo.grid
 
 # fqdn digest
-FQDN_DIGEST = hashlib.md5(str(getfqdn())).hexdigest()
+FQDN_DIGEST = hashlib.md5(getfqdn().encode('utf-8')).hexdigest()
 
 
 def publicizeResultFiles(result, ubt, dir=None):
