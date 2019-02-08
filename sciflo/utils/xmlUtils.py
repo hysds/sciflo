@@ -18,8 +18,6 @@ import os
 import re
 import base64
 import datetime
-import libxml2
-import libxslt
 import lxml.etree
 from urllib.request import urlopen, Request
 from urllib.request import urlopen as urllibopen
@@ -1002,36 +1000,19 @@ def transformXml(xmlFileOrString, xslFileOrString):
     """Transfrom xml using XSLT.  Return transformed xml string."""
 
     # get xml doc
-    if os.path.isfile(xmlFileOrString):
-        doc = libxml2.parseFile(xmlFileOrString)
-    else:
-        doc = libxml2.parseDoc(xmlFileOrString)
+    doc = getXmlEtree(xmlFileOrString)
 
     # get xsl doc
-    if os.path.isfile(xslFileOrString):
-        styledoc = libxml2.parseFile(xslFileOrString)
-    else:
-        styledoc = libxml2.parseDoc(xslFileOrString)
+    styledoc = getXmlEtree(xslFileOrString)
 
     # get style
-    style = libxslt.parseStylesheetDoc(styledoc)
+    transform = lxml.etree.XSLT(styledoc)
 
-    # apply
-    result = style.applyStylesheet(doc, None)
+    # get result
+    res_tree = transform(doc)
 
-    # get result string
-    resultString = str(result)
-
-    # sub newlines
-    resultString = re.sub(r'>\n', '>', resultString)
-
-    # free
-    style.freeStylesheet()
-    doc.freeDoc()
-    result.freeDoc()
-
-    # return
-    return resultString
+    # return xml
+    return lxml.etree.tostring(res_tree, pretty_print=True)
 
 
 def getHtmlBaseHref():

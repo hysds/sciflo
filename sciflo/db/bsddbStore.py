@@ -12,11 +12,7 @@ import os
 import types
 import re
 import time
-try:
-    import pickle
-    pickle = cPickle
-except ImportError:
-    import pickle
+import pickle
 from bsddb3 import db
 
 from .store import *

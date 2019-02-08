@@ -1,10 +1,10 @@
 from smtplib import SMTP
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
-from email.MIMEBase import MIMEBase
-from email.Header import Header
-from email.Utils import parseaddr, formataddr, COMMASPACE, formatdate
-from email import Encoders
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email.header import Header
+from email.utils import parseaddr, formataddr, COMMASPACE, formatdate
+from email.encoders import encode_base64
 
 
 def send_email(sender, cc_recipients, bcc_recipients, subject, body, attachments=[]):
@@ -76,7 +76,7 @@ def send_email(sender, cc_recipients, bcc_recipients, subject, body, attachments
     for attachment in attachments:
         part = MIMEBase('application', "octet-stream")
         part.set_payload(attachment.file.read())
-        Encoders.encode_base64(part)
+        encode_base64(part)
         part.add_header('Content-Disposition',
                         'attachment; filename="%s"' % attachment.filename)
         msg.attach(part)

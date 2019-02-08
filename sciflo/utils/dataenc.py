@@ -286,7 +286,7 @@ michael AT foord DOT me DOT uk
 
 """
 
-import sha
+from hashlib import sha1
 from random import random
 
 DATEIN = 1
@@ -374,7 +374,7 @@ def pass_enc(instring, indict=None, **keywargs):
     if indict['lower']:     # keyword lower :-)
         instring = instring.lower()
     if indict['sha_hash']:
-        instring = sha.new(instring).digest()
+        instring = sha1(instring.encode('utf-8')).digest()
 
     if indict['daynumber'] == True:
         if not DATEIN:

@@ -11,7 +11,6 @@
 from sqlobject import *
 from sqlobject.sqlbuilder import *
 import re
-from string import upper
 
 from sciflo.utils import (getXmlEtree, getDatetimeFromString, xmlList2PyLoD,
                           xmlList2PyLoX, getListFromUnknownObject)
@@ -216,7 +215,7 @@ class ScifloDbTable(object):
                 alternateID = True
                 nullable = None
                 self.keyCol = id
-                self.keyColSelectMethodStr = 'by' + upper(id[0]) + id[1:]
+                self.keyColSelectMethodStr = 'by' + id[0].upper() + id[1:]
             elif re.search(r'uni', key, re.IGNORECASE):
                 unique = True
             elif re.search(r'yes', key, re.IGNORECASE):

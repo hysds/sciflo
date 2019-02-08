@@ -9,7 +9,6 @@
 #              U.S. Government Sponsorship acknowledged.
 # -----------------------------------------------------------------------------
 from xml.etree.ElementTree import parse, Element, tostring, SubElement, XMLID
-from xml.dom.ext import PrettyPrint
 from xml.dom.minidom import parseString
 import re
 import types
@@ -360,18 +359,18 @@ def resolveSoapFunction(exposedName, funcOrSflStr, rootDir=None, urlBase=None):
 
     # handle functions to expose
     else:
-        # async
-        async = False
+        # async flag
+        async_flag = False
 
         # check if pythonFunction is already a function
         if isinstance(funcOrSflStr, types.FunctionType):
             func = funcOrSflStr
             funcOrSflStr = str(func)
         else:
-            # check if async
+            # check if async flag set
             matchAsync = re.search(r'^async:(.*)$', funcOrSflStr)
             if matchAsync:
-                async = True
+                async_flag = True
                 funcOrSflStr = matchAsync.group(1)
 
             # check if internal name is None or empty
@@ -411,8 +410,8 @@ def resolveSoapFunction(exposedName, funcOrSflStr, rootDir=None, urlBase=None):
             raise RuntimeError("Failed to inspect function %s for args (%s): %s"
                                % (funcOrSflStr, exposedName, e))
 
-        # wrap if async
-        if async and rootDir and urlBase:
+        # wrap if async flag set
+        if async_flag and rootDir and urlBase:
             print("Wrapping %s as an AsyncFunction()." % exposedName)
             func = AsyncFunction(func, rootDir, urlBase)
     return (func, funcOrSflStr, funcOrSflStrArgNames)
