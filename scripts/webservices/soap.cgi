@@ -267,7 +267,7 @@ def getWSDLString(endpointName, endpointNamespace, methodInfoList, serverName,
     root.append(service)
 
     # get string
-    wsdlString = tostring(root)
+    wsdlString = tostring(root, encoding='unicode')
 
     # return
     return wsdlString

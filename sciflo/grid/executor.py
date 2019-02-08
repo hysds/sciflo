@@ -465,7 +465,7 @@ sciflo '%s': %s\n%s" % (resolvingId, self.scifloName, str(e), getTb()),
                     del elt.attrib['format']
             argIdx += 1
         docList = [replaceCDATAPlaceholders(
-            lxml.etree.tostring(i, pretty_print=True)) for i in inputsElt]
+            lxml.etree.tostring(i, pretty_print=True, encoding='unicode')) for i in inputsElt]
         doc = '\n'.join(docList)
         if wuType in ('soap', 'post'):
             return [docArgList[0], doc]

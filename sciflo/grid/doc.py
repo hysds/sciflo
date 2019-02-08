@@ -826,7 +826,7 @@ This module may be a staged file or bundle: %s''' % str(e)))
             # if document inputs type
             if inputsType == 'document':
                 wuArgs = DocumentArgsList(lxml.etree.tostring(
-                    inputsElt, pretty_print=True), wuArgs)
+                    inputsElt, pretty_print=True, encoding='unicode'), wuArgs)
 
             # print "##########all:",processCount,id,wuType,wuCall, wuArgs,stageFiles
             # print "##########previousProcId:",previousProcId
@@ -1198,7 +1198,7 @@ This module may be a staged file or bundle: %s''' % str(e)))
         sflInputsElt = lxml.etree.SubElement(flowElt, 'inputs')
         for inputElt in self._flowInputs:
             sflInputsElt.append(inputElt)
-        return lxml.etree.tostring(svgElt, pretty_print=True)
+        return lxml.etree.tostring(svgElt, pretty_print=True, encoding='unicode')
 
     def getSvg(self):
         """Return annotated SVG graph."""

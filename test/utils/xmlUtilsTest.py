@@ -65,9 +65,9 @@ unequalLengthHeadingTuple = (
 
 # result xml strings to assert against
 result1 = '''<?xml version="1.0" ?>
-<testRootTag/>'''
-result2 = '''<?xml version="1.0" ?>
-<?xml-stylesheet type="text/xsl" href="/genesis/xsl/sciflo.xsl"?><testRootTag xmlns="http://sciflo.jpl.nasa.gov/2006v1/sf"/>'''
+<testRootTag/>
+'''
+result2 = '''<?xml version="1.0" ?><?xml-stylesheet type="text/xsl" href="/genesis/xsl/sciflo.xsl"?><testRootTag xmlns="http://sciflo.jpl.nasa.gov/2006v1/sf"/>'''
 result3 = '''<Rows xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://sciflo.jpl.nasa.gov/2006v1/sf">
   <row>
     <heading1 type="xs:int">1</heading1>
@@ -131,14 +131,111 @@ result4 = '''<Rows xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http:/
     </heading5>
   </row>
 </Rows>\n'''
-result5 = '''<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:sf="http://sciflo.jpl.nasa.gov/2006v1/sf" xmlns:xf="http://www.w3.org/2002/xforms" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><head><title>nrayRun</title><script type="text/javascript" src="http://sciflo.jpl.nasa.gov/genesis/test/js/formfaces.js"/><xf:model id="scifloXForm"><xf:instance><sf:inputs><sf:gpsOccId xsi:type="xs:string">20030410_2241chm_g39</sf:gpsOccId><sf:flag xsi:type="xs:float">1.5</sf:flag><sf:nstep xsi:type="xs:int">3</sf:nstep><sf:dstep xsi:type="xs:float">0.1</sf:dstep><sf:extrap xsi:type="xs:int">0</sf:extrap><sf:resultsTarFile xsi:type="xs:string">result.tar.gz</sf:resultsTarFile></sf:inputs></xf:instance><xf:submission id="s1" method="post" action="http://sciflo.jpl.nasa.gov/genesis/cgi-bin/test.cgi"/></xf:model></head><body><div class="form"><font color="blue"><p><b>nrayRun</b></p><p>Run nray.</p></font><p><b>Inputs:</b><br/><xf:input ref="/sf:inputs/sf:gpsOccId" model="scifloXForm"><xf:label>gpsOccId (string): </xf:label><xf:hint>                        Please enter a string.
-                    </xf:hint></xf:input><br/><xf:input ref="/sf:inputs/sf:flag" model="scifloXForm"><xf:label>flag (string): </xf:label><xf:hint>                        Please enter a string.
-                    </xf:hint></xf:input><br/><xf:input ref="/sf:inputs/sf:nstep" model="scifloXForm"><xf:label>nstep (string): </xf:label><xf:hint>                        Please enter a string.
-                    </xf:hint></xf:input><br/><xf:input ref="/sf:inputs/sf:dstep" model="scifloXForm"><xf:label>dstep (string): </xf:label><xf:hint>                        Please enter a string.
-                    </xf:hint></xf:input><br/><xf:input ref="/sf:inputs/sf:extrap" model="scifloXForm"><xf:label>extrap (string): </xf:label><xf:hint>                        Please enter a string.
-                    </xf:hint></xf:input><br/></p><p><b>Outputs:</b><br/><xf:input ref="/sf:inputs/sf:resultsTarFile" model="scifloXForm"><xf:label>resultsTarFile (string): </xf:label><xf:hint>                        Please enter a string.
-                    </xf:hint></xf:input><br/></p><xf:submit submission="s1"><xf:label>Submit</xf:label></xf:submit></div></body></html>'''
-result6 = '''<?xml version="1.0"?><soapEndpoint xmlns="http://sciflo.jpl.nasa.gov/2006v1/sf" xmlns:sf="http://sciflo.jpl.nasa.gov/2006v1/sf" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><endpointName>http://sciflo.jpl.nasa.gov/2006v1/sf/GridService</endpointName><soapMethodSet><soapMethod><exposedName>addAndExecuteWorkUnit</exposedName><pythonFunction>testGridModule.addAndExecuteWorkUnitTest2</pythonFunction></soapMethod><soapMethod><exposedName>queryWorkUnit</exposedName><pythonFunction>testGridModule.queryWorkUnitTest2</pythonFunction></soapMethod><soapMethod><exposedName>cancelWorkUnit</exposedName><pythonFunction>testGridModule.cancelWorkUnitTest2</pythonFunction></soapMethod><soapMethod><exposedName>workUnitCallback</exposedName><pythonFunction>scifloManagerTest.workUnitCallback</pythonFunction></soapMethod></soapMethodSet></soapEndpoint>'''
+result5 = '''<html xmlns="http://www.w3.org/1999/xhtml" xmlns:sf="http://sciflo.jpl.nasa.gov/2006v1/sf" xmlns:xf="http://www.w3.org/2002/xforms" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <head>
+    <title>nrayRun</title>
+    <script type="text/javascript" src="http://sciflo.jpl.nasa.gov/genesis/test/js/formfaces.js"/>
+    <xf:model id="scifloXForm">
+      <xf:instance>
+        <sf:inputs>
+          <sf:gpsOccId xsi:type="xs:string">20030410_2241chm_g39</sf:gpsOccId>
+          <sf:flag xsi:type="xs:float">1.5</sf:flag>
+          <sf:nstep xsi:type="xs:int">3</sf:nstep>
+          <sf:dstep xsi:type="xs:float">0.1</sf:dstep>
+          <sf:extrap xsi:type="xs:int">0</sf:extrap>
+          <sf:resultsTarFile xsi:type="xs:string">result.tar.gz</sf:resultsTarFile>
+        </sf:inputs>
+      </xf:instance>
+      <xf:submission id="s1" method="post" action="http://sciflo.jpl.nasa.gov/genesis/cgi-bin/test.cgi"/>
+    </xf:model>
+  </head>
+  <body>
+    <div class="form">
+      <font color="blue">
+        <p>
+          <b>nrayRun</b>
+        </p>
+        <p>Run nray.</p>
+      </font>
+      <p>
+        <b>Inputs:</b>
+        <br/>
+        <xf:input ref="/sf:inputs/sf:gpsOccId" model="scifloXForm">
+          <xf:label>gpsOccId (string): </xf:label>
+          <xf:hint>
+                        Please enter a string.
+                    </xf:hint>
+        </xf:input>
+        <br/>
+        <xf:input ref="/sf:inputs/sf:flag" model="scifloXForm">
+          <xf:label>flag (string): </xf:label>
+          <xf:hint>
+                        Please enter a string.
+                    </xf:hint>
+        </xf:input>
+        <br/>
+        <xf:input ref="/sf:inputs/sf:nstep" model="scifloXForm">
+          <xf:label>nstep (string): </xf:label>
+          <xf:hint>
+                        Please enter a string.
+                    </xf:hint>
+        </xf:input>
+        <br/>
+        <xf:input ref="/sf:inputs/sf:dstep" model="scifloXForm">
+          <xf:label>dstep (string): </xf:label>
+          <xf:hint>
+                        Please enter a string.
+                    </xf:hint>
+        </xf:input>
+        <br/>
+        <xf:input ref="/sf:inputs/sf:extrap" model="scifloXForm">
+          <xf:label>extrap (string): </xf:label>
+          <xf:hint>
+                        Please enter a string.
+                    </xf:hint>
+        </xf:input>
+        <br/>
+      </p>
+      <p>
+        <b>Outputs:</b>
+        <br/>
+        <xf:input ref="/sf:inputs/sf:resultsTarFile" model="scifloXForm">
+          <xf:label>resultsTarFile (string): </xf:label>
+          <xf:hint>
+                        Please enter a string.
+                    </xf:hint>
+        </xf:input>
+        <br/>
+      </p>
+      <xf:submit submission="s1">
+        <xf:label>Submit</xf:label>
+      </xf:submit>
+    </div>
+  </body>
+</html>
+'''
+result6 = '''<soapEndpoint xmlns="http://sciflo.jpl.nasa.gov/2006v1/sf" xmlns:sf="http://sciflo.jpl.nasa.gov/2006v1/sf" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <endpointName>http://sciflo.jpl.nasa.gov/2006v1/sf/GridService</endpointName>
+  <soapMethodSet>
+    <soapMethod>
+      <exposedName>addAndExecuteWorkUnit</exposedName>
+      <pythonFunction>testGridModule.addAndExecuteWorkUnitTest2</pythonFunction>
+    </soapMethod>
+    <soapMethod>
+      <exposedName>queryWorkUnit</exposedName>
+      <pythonFunction>testGridModule.queryWorkUnitTest2</pythonFunction>
+    </soapMethod>
+    <soapMethod>
+      <exposedName>cancelWorkUnit</exposedName>
+      <pythonFunction>testGridModule.cancelWorkUnitTest2</pythonFunction>
+    </soapMethod>
+    <soapMethod>
+      <exposedName>workUnitCallback</exposedName>
+      <pythonFunction>scifloManagerTest.workUnitCallback</pythonFunction>
+    </soapMethod>
+  </soapMethodSet>
+</soapEndpoint>
+'''
 
 
 class xmlUtilsTestCase(unittest.TestCase):
@@ -242,9 +339,9 @@ class xmlUtilsTestCase(unittest.TestCase):
 
         # test indent of element to string
         elt = lxml.etree.parse(StringIO(unindentedXml)).getroot()
-        self.assertEqual(indented, indent(lxml.etree.tostring(elt)))
+        self.assertEqual(indented, indent(lxml.etree.tostring(elt, encoding='unicode')))
         elt2 = lxml.etree.XML(unindentedXml)
-        self.assertEqual(indented, indent(lxml.etree.tostring(elt2)))
+        self.assertEqual(indented, indent(lxml.etree.tostring(elt2, encoding='unicode')))
 
 # create testsuite function
 

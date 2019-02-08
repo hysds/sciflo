@@ -88,7 +88,7 @@ def getInputStream(xml=None):
     stream = xml
     if xml is None:
         stream = sys.stdin
-    elif isinstance(xml, bytes):
+    elif isinstance(xml, str):
         if re.match('\s*<', xml):
             xml = xml.replace('\n', '')
             if not re.match('(?is)\s*<\?xml', xml):

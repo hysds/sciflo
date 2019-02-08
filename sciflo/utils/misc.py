@@ -997,7 +997,7 @@ def getUserScifloConfig(userConfigFile=None, globalConfigFile=None):
         gcfElt.xpath('.//_default:cgiBaseHref',
                      namespaces=gcfNs)[0].text = cgiBaseHref
         gcfElt.xpath('.//_default:gmapKey', namespaces=gcfNs)[0].text = gmapKey
-        configStr = indent(lxml.etree.tostring(gcfElt))
+        configStr = indent(lxml.etree.tostring(gcfElt, encoding='unicode'))
 
     # write config file if it doesn't exist, otherwise check if it needs to be updated
     if not os.path.exists(userScifloConfigFile) or open(userScifloConfigFile, 'r').read() != configStr:

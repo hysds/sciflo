@@ -285,7 +285,7 @@ class SoapEndpoint(object):
         root.append(service)
 
         # get pretty string
-        wsdlString = getPrettyPrintXmlFromDom(parseString(tostring(root)))
+        wsdlString = getPrettyPrintXmlFromDom(parseString(tostring(root, encoding='unicode')))
         return wsdlString
 
     def writeWsdlFile(self, file):

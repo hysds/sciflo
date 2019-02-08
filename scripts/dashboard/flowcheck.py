@@ -83,7 +83,7 @@ def checkflow(path=None, outfile=None):
     if not os.path.isdir(outdir):
         os.makedirs(outdir)
     outputf = open(outfile, 'w')
-    outputf.write(tostring(root, pretty_print=True))
+    outputf.write(tostring(root, pretty_print=True, encoding='unicode'))
 
     return
 

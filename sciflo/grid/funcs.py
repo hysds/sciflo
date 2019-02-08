@@ -94,7 +94,7 @@ def forkChildAndRun(q, func, *args, **kargs):
                 res = (CelerySoftTimeLimitExceeded(str(res[0])), res[1])
 
             if isinstance(res[0], _Element):
-                tres = tostring(res[0])
+                tres = tostring(res[0], encoding='unicode')
             elif isinstance(res[0], _ElementStringResult):
                 tres = str(res[0])
             else:

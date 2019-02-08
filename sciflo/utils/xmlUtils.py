@@ -77,7 +77,6 @@ def getXmlEtree(xml):
         protocol, netloc, path, params, query, frag = urlparse(xml)
         if protocol == '': xml = "file://{}".format(xml)
         xmlStr = urlopen(xml).read().decode('utf-8')
-        print("xmlStr: {}".format(xmlStr))
         return (lxml.etree.parse(StringIO(xmlStr), parser).getroot(), getNamespacePrefixDict(xmlStr))
 
 
@@ -160,11 +159,11 @@ def runXpath(xml, xpathStr, nsDict={}):
     if isinstance(res, (list, tuple)):
         for i in range(len(res)):
             if isinstance(res[i], lxml.etree._Element):
-                res[i] = lxml.etree.tostring(res[i], pretty_print=True)
+                res[i] = lxml.etree.tostring(res[i], pretty_print=True, encoding='unicode')
             if isinstance(res[i], lxml.etree._ElementStringResult):
                 res[i] = str(res[i])
     elif isinstance(res, lxml.etree._Element):
-        res = lxml.etree.tostring(res, pretty_print=True)
+        res = lxml.etree.tostring(res, pretty_print=True, encoding='unicode')
     elif isinstance(res, lxml.etree._ElementStringResult):
         res = str(res)
     else:
@@ -335,7 +334,7 @@ def simpleList2Xml(LL, rootElement="Rows", rowElement="row", rootAttribsDict=Non
             pass
 
     # get string and return
-    return lxml.etree.tostring(rootElem, pretty_print=True)
+    return lxml.etree.tostring(rootElem, pretty_print=True, encoding='unicode')
 
 
 def xml2SimpleList(xmlString):
@@ -422,7 +421,7 @@ def list2Xml(LL, headingsTuple=(), rootElement="Rows", rowElement="row",
                     addChildTextNodeToParentNode(xElem, heading[1], listItem)
             else:
                 addChildTextNodeToParentNode(recElem, heading, rec[x])
-    return lxml.etree.tostring(rootElem, pretty_print=True)
+    return lxml.etree.tostring(rootElem, pretty_print=True, encoding='unicode')
 
 
 def addChildTextNodeToParentNode(parentNode, childTag, childValue):
@@ -689,7 +688,7 @@ def xmlList2PyLoX(xml, recordTag):
     retList = []
     for recElt in recElts:
         retList.append(lxml.etree.tostring(recElt,
-                                           pretty_print=True))
+                                           pretty_print=True, encoding='unicode'))
     return retList
 
 
@@ -850,10 +849,10 @@ def parseElement(elt, returnChildren=False):
         if len(eltKids) > 0:
             kids = eltKids
             if len(kids) == 1:
-                value = lxml.etree.tostring(kids[0], pretty_print=True).strip()
+                value = lxml.etree.tostring(kids[0], pretty_print=True, encoding='unicode').strip()
             else:
                 value = '\n'.join([lxml.etree.tostring(
-                    i, pretty_print=True).strip() for i in kids])
+                    i, pretty_print=True, encoding='unicode').strip() for i in kids])
                 value = value.strip()
         else:
             value = elt.text
@@ -995,10 +994,10 @@ def transformXml(xmlFileOrString, xslFileOrString):
     """Transfrom xml using XSLT.  Return transformed xml string."""
 
     # get xml doc
-    doc = getXmlEtree(xmlFileOrString)
+    doc, nsdict = getXmlEtree(xmlFileOrString)
 
     # get xsl doc
-    styledoc = getXmlEtree(xslFileOrString)
+    styledoc, styledict = getXmlEtree(xslFileOrString)
 
     # get style
     transform = lxml.etree.XSLT(styledoc)
@@ -1007,7 +1006,7 @@ def transformXml(xmlFileOrString, xslFileOrString):
     res_tree = transform(doc)
 
     # return xml
-    return lxml.etree.tostring(res_tree, pretty_print=True)
+    return lxml.etree.tostring(res_tree, pretty_print=True, encoding='unicode')
 
 
 def getHtmlBaseHref():

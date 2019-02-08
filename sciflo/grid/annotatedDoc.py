@@ -102,7 +102,7 @@ class AnnotatedDoc(object):
         f = open(self.file, 'w')
         if resolveCDATA:
             retVal = f.write('%s\n' %
-                             tostring(self.rootElt, pretty_print=True).replace(
+                             tostring(self.rootElt, pretty_print=True, encoding='unicode').replace(
                                  'SCIFLO_CDATA_BEGIN', '<![CDATA[').replace(
                                  'SCIFLO_CDATA_END', ']]>').replace(
                                  '&lt;', '<').replace(
@@ -111,7 +111,7 @@ class AnnotatedDoc(object):
                              )
         else:
             retVal = f.write('%s\n' %
-                             tostring(self.rootElt, pretty_print=True))
+                             tostring(self.rootElt, pretty_print=True, encoding='unicode'))
         f.close()
         return retVal
 

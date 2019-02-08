@@ -15,7 +15,7 @@ import cgi
 #import cgitb; cgitb.enable()
 import re
 import traceback
-from lxml.etree import Element, SubElement, tostring
+from lxml.etree import Element, SubElement
 import sciflo
 import pageTemplate
 from urlparse import urlparse, urljoin
