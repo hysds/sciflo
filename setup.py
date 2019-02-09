@@ -5,20 +5,12 @@ sys.path.append('test')
 
 packages = find_packages()
 
-scripts = [os.path.join('scripts', 'gridServerCtl.py'),
-           os.path.join('scripts', 'sflExec.py'),
+scripts = [os.path.join('scripts', 'sflExec.py'),
            os.path.join('scripts', 'ldapSearch.py'),
            os.path.join('scripts', 'ldapAuth.py'),
-           os.path.join('scripts', 'webservices', 'exposer.py'),
-           os.path.join('scripts', 'webservices', 'soap.cgi'),
            os.path.join('scripts', 'insertDataFromXml.py'),
-           os.path.join('scripts', 'stopGridServer.sh'),
-           os.path.join('scripts', 'startGridServer.sh'),
-           os.path.join('scripts', 'cleanAndStartGridServer.sh'),
            os.path.join('scripts', 'startMysql.sh'),
            os.path.join('scripts', 'stopMysql.sh'),
-           os.path.join('scripts', 'startExposer.sh'),
-           os.path.join('scripts', 'stopExposer.sh'),
            os.path.join('scripts', 'stopCacheServer.sh'),
            os.path.join('scripts', 'startCacheServer.sh'),
            os.path.join('scripts', 'cleanAndStartCacheServer.sh'),
@@ -38,8 +30,6 @@ scripts = [os.path.join('scripts', 'gridServerCtl.py'),
            os.path.join('scripts', 'dashboard', 'flowcheck.py'),
            os.path.join('scripts', 'dashboard', 'flowcheck.sh'),
            os.path.join('scripts', 'dashboard', 'sciflodiagnostic.cgi'),
-           os.path.join('scripts', 'exposerWatcher.sh'),
-           os.path.join('scripts', 'gridServerWatcher.sh'),
            ]
 
 data_files = [('tac', [os.path.join('tac', 'PersistentDictServer.tac')])]
@@ -55,8 +45,8 @@ setup(name='sciflo',
       zip_safe=False,
       install_requires=[
         'twisted>=18.9.0', 'pillow>=5.4.1', 'formencode>=1.3.1',
-        'sqlobject>=3.7.1', #'SOAPpy-py3>=0.52.24', 'm2crypto>=0.31.0',
-        'service_identity>=18.1.0', 'python-magic>=0.4.15'
+        'sqlobject>=3.7.1', 'service_identity>=18.1.0',
+        'python-magic>=0.4.15'
       ],
       packages=packages,
       package_data={

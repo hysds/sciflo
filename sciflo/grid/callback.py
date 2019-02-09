@@ -11,13 +11,11 @@
 import types
 import SOAPpy
 from SOAPpy import WSDL, SOAPProxy
-#import pyGlobus
 import re
 import urllib.request
 import urllib.error
 import urllib.parse
 
-#from sciflo.webservices import getGSISOAPProxy
 from .utils import *
 
 
@@ -36,7 +34,7 @@ def getCallback(config):
     print "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
     '''
     if not isinstance(config, tuple) and not isinstance(config, list) and \
-            not isinstance(config, SOAPpy.Types.arrayType):  # and not isinstance(config,pyGlobus.GSISOAP.arrayType):
+            not isinstance(config, SOAPpy.Types.arrayType):
         raise RuntimeError("Argument must be a tuple, list, or ArrayType.  Got %s %s." % (
             type(config), config))
 
@@ -119,35 +117,6 @@ class SOAPCallback(ScifloCallback):
         self._callable = eval("self._proxy.%s" % self._method)
 
 
-'''
-class GSISOAPCallbackError(Exception):
-    """Exception class for GSISOAPCallback class."""
-    pass
-
-class GSISOAPCallback(ScifloCallback):
-    """GSI SOAP callback class."""
-
-    def __init__(self,args):
-        """Constructor."""
-
-        #call super
-        super(GSISOAPCallback,self).__init__(args)
-
-        #args are addr (http[s]://hostname:port), namespace, and method
-        if len(self._args) == 3:
-            self._addr = self._args[0]
-            self._namespace = self._args[1]
-            self._method = self._args[2]
-
-            #create proxy
-            self._proxy = getGSISOAPProxy(self._addr,self._namespace)
-        else: raise GSISOAPCallbackError, "Cannot resolve args."
-
-        #set callable
-        self._callable = eval("self._proxy.%s" % self._method)
-'''
-
-
 class FunctionCallbackError(Exception):
     """Exception class for FunctionCallback class."""
     pass
@@ -176,6 +145,5 @@ class FunctionCallback(ScifloCallback):
 CallbackMapping = {
     'http': SOAPCallback,
     'ssl': SOAPCallback,
-    # 'gsi': GSISOAPCallback,
     'local': FunctionCallback
 }

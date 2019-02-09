@@ -38,7 +38,6 @@ import magic
 from sciflo.utils import (getListFromUnknownObject, ScifloConfigParser, SCIFLO_NAMESPACE,
                           linkFile, runDot, getXmlEtree, validateDirectory,
                           getThreadSafeRandomObject)
-#from sciflo.webservices import getGSISOAPProxy
 import sciflo.grid
 
 # fqdn digest

@@ -1,6 +1,5 @@
 from . import db
 from . import utils
-from . import webservices
 from . import grid
 from . import event
 from . import mapreduce
