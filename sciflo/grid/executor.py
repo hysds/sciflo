@@ -602,7 +602,7 @@ in runLockedFunction() for sciflo '%s': %s\n%s" %
             if self.executionError is not None:
                 self.logger.debug("Calling terminate() for sciflo '%s'..." %
                                   self.scifloName, extra={'id': self.scifloid})
-                self.pool.terminate()
+                #self.pool.terminate()
                 self.output = ScifloExecutorError("Error result for '%s': \
 %s\n%s" % self.executionError)
                 self.annDoc.addGlobalOutput(
@@ -616,10 +616,10 @@ in runLockedFunction() for sciflo '%s': %s\n%s" %
             else:
                 self.logger.debug("Calling close() for sciflo '%s'..." %
                                   self.scifloName, extra={'id': self.scifloid})
-                self.pool.close()
                 finalStatus = doneStatus
             self.logger.debug("Calling join() for sciflo '%s'..." %
                               self.scifloName, extra={'id': self.scifloid})
+            self.pool.close()
             self.pool.join()
             endTime = time.time()
             self.logger.debug("done.  Shutdown took %s seconds for sciflo \
