@@ -2,9 +2,9 @@ import pickle as pickle
 import sys
 import os
 import re
-import string
 import types
 import shutil
+import string
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -185,7 +185,7 @@ class InlinePythonFunctionWorkUnit(WorkUnit):
     def _run(self):
         """Execute the inline python code and return the result."""
 
-        code = string.strip(self._call)
+        code = self._call.strip()
         funcArgs = self._args
         match = re.search(r'def\s+(\w+)\s*\(', code)  # get function name
         if match:
@@ -368,7 +368,7 @@ class ExecutableWorkUnit(WorkUnit):
 def runTemplateSub(tpl, args):
     """Run template substitution and return string."""
 
-    template = string.strip(tpl)
+    template = tpl.strip()
     keyList = []
     valList = []
     if (len(args) % 2) != 0:

@@ -539,7 +539,7 @@ http://webservices.amazon.com/onca/xml?Service=AWSECommerceService
           <sf:op>
             <sf:binding>python:?<![CDATA[
 def printAndReturn(obj):
-  print "%s: %s" % (type(obj), obj)
+  print("%s: %s" % (type(obj), obj))
   return obj
 ]]>
             </sf:binding>
@@ -559,7 +559,7 @@ def printAndReturn(obj):
           <sf:op>
             <sf:binding>python:?<![CDATA[
 def printAndReturn(obj):
-  print "%s: %s" % (type(obj), obj)
+  print("%s: %s" % (type(obj), obj))
   return obj
 ]]>
             </sf:binding>
@@ -579,7 +579,7 @@ def printAndReturn(obj):
           <sf:op>
             <sf:binding>python:?<![CDATA[
 def printAndReturn(obj):
-  print "%s: %s" % (type(obj), obj)
+  print("%s: %s" % (type(obj), obj))
   return obj
 ]]>
             </sf:binding>
@@ -599,7 +599,7 @@ def printAndReturn(obj):
           <sf:op>
             <sf:binding>python:?<![CDATA[
 def printAndReturn(obj):
-  print "%s: %s" % (type(obj), obj)
+  print("%s: %s" % (type(obj), obj))
   return obj
 ]]>
             </sf:binding>
@@ -619,7 +619,7 @@ def printAndReturn(obj):
           <sf:op>
             <sf:binding>python:?<![CDATA[
 def printAndReturn(obj):
-  print "%s: %s" % (type(obj), obj)
+  print("%s: %s" % (type(obj), obj))
   return obj
 ]]>
             </sf:binding>
@@ -639,7 +639,7 @@ def printAndReturn(obj):
           <sf:op>
             <sf:binding>python:?<![CDATA[
 def printAndReturn(obj):
-  print "%s: %s" % (type(obj), obj)
+  print("%s: %s" % (type(obj), obj))
   return obj
 ]]>
             </sf:binding>
@@ -659,7 +659,7 @@ def printAndReturn(obj):
           <sf:op>
             <sf:binding>python:?<![CDATA[
 def printAndReturn(obj):
-  print "%s: %s" % (type(obj), obj)
+  print("%s: %s" % (type(obj), obj))
   return obj
 ]]>
             </sf:binding>
@@ -685,7 +685,7 @@ def printAndReturn(obj):
           <sf:op>
             <sf:binding>python:?<![CDATA[
 def printAndReturn(obj):
-  print "%s: %s" % (type(obj), obj)
+  print("%s: %s" % (type(obj), obj))
   return obj
 ]]>
             </sf:binding>
@@ -711,7 +711,7 @@ def printAndReturn(obj):
           <sf:op>
             <sf:binding>python:?<![CDATA[
 def printAndReturn(obj):
-  print "%s: %s" % (type(obj), obj)
+  print("%s: %s" % (type(obj), obj))
   return obj
 ]]>
             </sf:binding>
@@ -731,7 +731,7 @@ def printAndReturn(obj):
           <sf:op>
             <sf:binding>python:?<![CDATA[
 def printAndReturn(obj):
-  print "%s: %s" % (type(obj), obj)
+  print("%s: %s" % (type(obj), obj))
   return obj
 ]]>
             </sf:binding>
@@ -754,7 +754,7 @@ def printAndReturn(obj):
           <sf:op>
             <sf:binding>python:?<![CDATA[
 def printAndReturn(obj):
-  print "%s: %s" % (type(obj), obj)
+  print("%s: %s" % (type(obj), obj))
   return obj
 ]]>
             </sf:binding>
@@ -777,7 +777,7 @@ def printAndReturn(obj):
           <sf:op>
             <sf:binding>python:?<![CDATA[
 def printAndReturn(obj):
-  print "%s: %s" % (type(obj), obj)
+  print("%s: %s" % (type(obj), obj))
   return obj
 ]]>
             </sf:binding>
@@ -797,7 +797,7 @@ def printAndReturn(obj):
           <sf:op>
             <sf:binding>python:?<![CDATA[
 def printAndReturn(obj):
-  print "%s: %s" % (type(obj), obj)
+  print("%s: %s" % (type(obj), obj))
   return obj
 ]]>
             </sf:binding>
@@ -817,7 +817,7 @@ def printAndReturn(obj):
           <sf:op>
             <sf:binding>python:?<![CDATA[
 def printAndReturn(obj):
-  #print "%s: %s" % (type(obj), obj)
+  #print("%s: %s" % (type(obj), obj))
   return obj
 ]]>
             </sf:binding>
@@ -840,7 +840,7 @@ def printAndReturn(obj):
           <sf:op>
             <sf:binding>python:?<![CDATA[
 def printAndReturn(obj):
-  #print "%s: %s" % (type(obj), obj)
+  #print("%s: %s" % (type(obj), obj))
   return obj
 ]]>
             </sf:binding>
@@ -892,7 +892,7 @@ def printAndReturn(*args):
   retVal = ""
   for obj in args:
     retVal += "%s: %s\n" % (type(obj), obj)
-  print "retVal is:", retVal
+  print("retVal is:", retVal)
   return retVal
 ]]>
             </sf:binding>
@@ -944,7 +944,7 @@ def printAndReturn(*args):
   retVal = ""
   for obj in args:
     retVal += "%s: %s\n" % (type(obj), obj)
-  print "retVal is:", retVal
+  print("retVal is:", retVal)
   return retVal
 ]]>
             </sf:binding>

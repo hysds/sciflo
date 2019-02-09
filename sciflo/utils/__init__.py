@@ -1,7 +1,6 @@
 from .xmlUtils import *
 from .timeUtils import *
 from .misc import *
-from . import magic
 from . import filelist
 from . import xmldb
 from .namespaces import *

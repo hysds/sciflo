@@ -56,7 +56,7 @@ setup(name='sciflo',
       install_requires=[
         'twisted>=18.9.0', 'pillow>=5.4.1', 'formencode>=1.3.1',
         'sqlobject>=3.7.1', #'SOAPpy-py3>=0.52.24', 'm2crypto>=0.31.0',
-        'service_identity>=18.1.0' 
+        'service_identity>=18.1.0', 'python-magic>=0.4.15'
       ],
       packages=packages,
       package_data={

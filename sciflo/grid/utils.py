@@ -31,9 +31,12 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import contextlib
+from pprint import pprint
+import base64
+import magic
 
-from sciflo.utils import (magic, getListFromUnknownObject, ScifloConfigParser,
-                          SCIFLO_NAMESPACE, linkFile, runDot, getXmlEtree, validateDirectory,
+from sciflo.utils import (getListFromUnknownObject, ScifloConfigParser, SCIFLO_NAMESPACE,
+                          linkFile, runDot, getXmlEtree, validateDirectory,
                           getThreadSafeRandomObject)
 #from sciflo.webservices import getGSISOAPProxy
 import sciflo.grid
@@ -157,9 +160,9 @@ def updateJson(jsonFile, obj, stringifyKeys=[], ubt=None, publicizeKeys=[],
                 obj[k] = pickleThis(obj[k])
 
     validateDirectory(os.path.dirname(jsonFile))
-    f = open(jsonFile, 'w')
-    json.dump(obj, f)
-    f.close()
+    with open(jsonFile, 'w') as f:
+        #pprint(obj)
+        json.dump(obj, f)
 
 
 def updatePdict(pdict, k, v):
@@ -303,10 +306,10 @@ def verifyExecutable(path):
     declaration, i.e. #!/bin/sh.  Otherwise, return None."""
 
     # get type
-    type = magic.file(path)
+    type = magic.from_file(path)
 
     # if binary executable, return 1
-    if type == 'application/x-executable-file':
+    if type.startswith('ELF'):
         return 1
     # get first line and see if it contains an interpreter declaration
     else:
@@ -329,12 +332,12 @@ def unpickleArgsList(pickledString):
 
 def pickleThis(this):
     """Return pickled string."""
-    return pickle.dumps(this)
+    return base64.b64encode(pickle.dumps(this)).decode('utf-8')
 
 
 def unpickleThis(this):
     """Return unpickled object from string."""
-    return pickle.loads(this)
+    return pickle.loads(base64.b64decode(this.encode('utf-8')))
 
 
 def getHexDigest(args):
@@ -359,7 +362,8 @@ def getFunction(funcStr, addToSysPath=None):
         if addToSysPath:
             exec("import sys; sys.path.insert(1,'%s')" % addToSysPath)
         exec("import %s" % importLib)
-        exec("reload(%s)" % importLib)
+        exec("import importlib")
+        exec("importlib.reload(%s)" % importLib)
 
     # check there are args
     argsMatch = re.search(r'\((\w+)\..+\)$', funcStr)
@@ -368,6 +372,7 @@ def getFunction(funcStr, addToSysPath=None):
         if addToSysPath:
             exec("import sys; sys.path.insert(1,'%s')" % addToSysPath)
         exec("import %s" % importLib2)
+        exec("import importlib")
         exec("reload(%s)" % importLib2)
 
     # return function

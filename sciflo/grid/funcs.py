@@ -130,7 +130,7 @@ def forkChildAndRun(q, func, *args, **kargs):
         pass
     try:
         if os.path.isfile(pickleFile):
-            with open(pickleFile) as p:
+            with open(pickleFile, 'rb') as p:
                 res = pickle.load(p)
             if os.path.exists(pickleFile):
                 os.unlink(pickleFile)
