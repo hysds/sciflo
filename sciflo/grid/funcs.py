@@ -100,7 +100,7 @@ def forkChildAndRun(q, func, *args, **kargs):
             else:
                 tres = res[0]
             res = (tres, res[1])
-            with open(pickleFile, 'w') as p:
+            with open(pickleFile, 'wb') as p:
                 try:
                     pickle.dump(res, p)
                 except:
@@ -108,7 +108,7 @@ def forkChildAndRun(q, func, *args, **kargs):
         except Exception as e:
             WORKER_LOGGER.debug("Error in forkChildAndRun: %s" % getTb(),
                                 extra={'id': 'child'})
-            with open(pickleFile, 'w') as p:
+            with open(pickleFile, 'wb') as p:
                 pickle.dump(e, p)
         os._exit(0)
 
@@ -222,7 +222,7 @@ previously cached execution: %s" % info['executionLog'])
 
     # create process and queue for work unit execution
     import multiprocessing as processing
-    q = processing.BufferedPipeQueue()
+    q = processing.Queue()
     p = processing.Process(target=forkChildAndRun, args=[q, runWorkUnit, wu])
 
     # install handler for SIGTERM
@@ -237,7 +237,6 @@ previously cached execution: %s" % info['executionLog'])
             pass
     signal.signal(signal.SIGTERM, handler)
 
-    p.setStoppable(True)
     WORKER_LOGGER.debug("Starting process for '%s'." % procId,
                         extra={'id': wuid})
     info = workUnitInfo(info, workerStatus=workingStatus,

@@ -198,10 +198,11 @@ def runLockedFunction(mutex, f, *args, **kargs):
     gotError = False
     try:
         res = f(*args, **kargs)
-    except Exception as res:
+    except Exception as e:
         gotError = True
+        res = e
         print(("Got error in runLockedFunction() for function '%s': %s\n%s" %
-               (str(f), str(res), getTb())))
+               (str(f), str(e), getTb())))
     finally:
         runFuncWithRetriesAndSleep(3, 1, mutex.release)
     if gotError:

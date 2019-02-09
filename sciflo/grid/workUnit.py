@@ -121,7 +121,7 @@ class WorkUnit(object):
 
         # save stdout & stderr and replace with tee
         self.origStdout, self.origStderr = sys.stdout, sys.stderr
-        sys.stdout = Tee(sys.stdout, self._logFile, 'a+', 0)
+        sys.stdout = Tee(sys.stdout, self._logFile, 'a+')
         sys.stderr = sys.stdout
 
         try:

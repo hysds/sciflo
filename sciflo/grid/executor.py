@@ -10,6 +10,8 @@ import urllib.request
 import urllib.parse
 import urllib.error
 import copy
+import multiprocessing
+import multiprocessing.pool
 import pickle as pickle
 from socket import getfqdn
 from getpass import getuser
@@ -73,6 +75,27 @@ class NoResult(object):
 def waiter(event): event.wait()
 
 
+class NoDaemonProcess(multiprocessing.Process):
+    @property
+    def daemon(self):
+        return False
+
+    @daemon.setter
+    def daemon(self, value):
+        pass
+
+
+class NoDaemonContext(type(multiprocessing.get_context())):
+    Process = NoDaemonProcess
+
+# We sub-class multiprocessing.pool.Pool instead of multiprocessing.Pool
+# because the latter is only a wrapper function, not a proper class.
+class ScifloPool(multiprocessing.pool.Pool):
+    def __init__(self, *args, **kwargs):
+        kwargs['context'] = NoDaemonContext()
+        super(ScifloPool, self).__init__(*args, **kwargs)
+
+
 class ScifloExecutorError(Exception):
     pass
 
@@ -116,7 +139,7 @@ class ScifloExecutor(object):
         if workers > 50:
             raise ScifloExecutorError("Cannot specify workers > 50.")
         self.workers = workers
-        self.pool = processing.Pool(self.workers)
+        self.pool = ScifloPool(self.workers)
         self.configDict = configDict
         #self.lock = self.manager.RLock()
         self.lock = threading.RLock()
