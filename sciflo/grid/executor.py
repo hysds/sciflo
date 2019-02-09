@@ -111,7 +111,7 @@ class ScifloExecutor(object):
                  emailNotify=None, outputUrl=None):
         """Constructor."""
 
-        import multiprocessing as processing
+        import multiprocessing as mp
 
         self.sflString = sflString
         self.args = normalizeScifloArgs(args)
@@ -129,7 +129,7 @@ class ScifloExecutor(object):
             self.scifloid = generateScifloId()
         else:
             self.scifloid = scifloid
-        self.manager = processing.Manager()
+        self.manager = mp.Manager()
         self.procIds = []
         self.applyResultsDict = {}
         self.resultsDict = {}
@@ -144,11 +144,11 @@ class ScifloExecutor(object):
         #self.lock = self.manager.RLock()
         self.lock = threading.RLock()
         self.event = self.manager.Event()
-        self.waiterProcess = processing.Process(target=waiter, name="waiter",
+        self.waiterProcess = mp.Process(target=waiter, name="waiter",
                                                 args=[self.event])
         self.logLevel = logLevel
         if DEBUG_PROCESSING:
-            self.logger = processing.process.getLogger()
+            self.logger = mp.process.getLogger()
         else:
             self.logger = logging.getLogger(self.scifloName)
         self.logger.setLevel(self.logLevel)
@@ -539,7 +539,7 @@ for '%s' in sciflo '%s': %s\n%s" % (workDir, linkDir, procId, self.scifloName,
     def spawn(self):
         """Spawn starter work units."""
 
-        import multiprocessing as processing
+        import multiprocessing as mp
 
         # update sciflo info
         self.updateScifloInfo(startTime=time.time(), status=workingStatus)
@@ -548,7 +548,7 @@ for '%s' in sciflo '%s': %s\n%s" % (workDir, linkDir, procId, self.scifloName,
         for procId in self.procIds:
             # skip if not yet resolved
             if isinstance(self.applyResultsDict[procId],
-                          (WorkUnitConfig, processing.pool.ApplyResult)):
+                          (WorkUnitConfig, mp.pool.ApplyResult)):
                               pass
             # execute work unit using pool
             elif isinstance(self.applyResultsDict[procId], WuReady):

@@ -25,10 +25,10 @@ DEBUG_PROCESSING = False
 
 # enable logging; using processing's logging facility or our own
 if DEBUG_PROCESSING:
-    import multiprocessing as processing
+    import multiprocessing as mp
     LOG_FMT = "%(asctime)s [%(levelname)s/%(processName)s] %(message)s"
-    processing.process.enableLogging(None, format=LOG_FMT)
-    WORKER_LOGGER = processing.process.getLogger()
+    mp.process.enableLogging(None, format=LOG_FMT)
+    WORKER_LOGGER = mp.process.getLogger()
 else:
     logging._acquireLock()
     try:
@@ -221,9 +221,9 @@ previously cached execution: %s" % info['executionLog'])
     info = wu.getInfo()
 
     # create process and queue for work unit execution
-    import multiprocessing as processing
-    q = processing.Queue()
-    p = processing.Process(target=forkChildAndRun, args=[q, runWorkUnit, wu])
+    import multiprocessing as mp
+    q = mp.Queue()
+    p = mp.Process(target=forkChildAndRun, args=[q, runWorkUnit, wu])
 
     # install handler for SIGTERM
     import signal
