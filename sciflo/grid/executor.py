@@ -825,8 +825,8 @@ for handleResult() for procId '%s' in sciflo '%s': %s.  No cache will be used."
                           (procId, postExecutionStatus), info)
         postExecList = self.postExecResultsDict[procId]
         for i, (resIdx, funcStr) in enumerate(postExecList):
-            postExecHex = hashlib.md5('%s_%s_%s' % (info['hex'], resIdx,
-                                                    funcStr)).hexdigest()
+            postExecHex = hashlib.md5('{}_{}_{}'.format(info['hex'], resIdx,
+                                                    funcStr).encode('utf-8')).hexdigest()
             postExecResult = None
 
             # get from cache
