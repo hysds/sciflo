@@ -230,7 +230,7 @@ previously cached execution: %s" % info['executionLog'])
 
     def handler(signum, frame):
         try:
-            if p.isAlive():
+            if p.is_alive():
                 p.terminate()
             p.join(timeout=0)
         except:
@@ -260,7 +260,7 @@ unit %s: %s" % (procId, e)), None)
     if gotError:
         WORKER_LOGGER.debug("Calling terminate() for '%s'." % procId,
                             extra={'id': wuid})
-        if p.isAlive():
+        if p.is_alive():
             p.terminate()
     WORKER_LOGGER.debug("Calling join() for '%s'." %
                         procId, extra={'id': wuid})
