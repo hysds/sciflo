@@ -239,6 +239,8 @@ if __name__ == '__main__':
             restoreScreen()
         except:
             pass
+        if isinstance(sys.exc_info()[1], SystemExit) and sys.exc_info()[1].code in (0, None):
+            sys.exit(0)
         if sys.exc_info()[0] is not None and sys.exc_info()[0] != _curses.error:
             traceback.print_exc(file=tracebackStrIO)
             print((tracebackStrIO.getvalue()))

@@ -71,7 +71,7 @@ def add(v1, v2):
 def add(v1, v2):
     import time
     time.sleep(5)
-    import binning
+    import binning64
     return v1 + v2
             ]]></sf:binding>
           </sf:op>
