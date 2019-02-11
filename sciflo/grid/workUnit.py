@@ -356,8 +356,8 @@ class ExecutableWorkUnit(WorkUnit):
                 pass
             status = pop.returncode
             # print "returncode is:",status
-            result = pop.stdout.read()
-            stdErr = pop.stderr.read()
+            result = pop.stdout.read().decode()
+            stdErr = pop.stderr.read().decode()
         if status:
             raise ExecutableWorkUnitError(
                 "Executable failed to give a 0 exit status: %s" % stdErr)

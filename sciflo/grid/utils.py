@@ -31,7 +31,7 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import contextlib
-from pprint import pprint
+from pprint import pprint, pformat
 import base64
 import magic
 
@@ -160,8 +160,11 @@ def updateJson(jsonFile, obj, stringifyKeys=[], ubt=None, publicizeKeys=[],
 
     validateDirectory(os.path.dirname(jsonFile))
     with open(jsonFile, 'w') as f:
-        #pprint(obj)
-        json.dump(obj, f)
+        try: 
+            json.dump(obj, f)
+        except:
+            print("Got exception dumping json:\n{}".format(pformat(obj, indent=2)))
+            raise
 
 
 def updatePdict(pdict, k, v):
