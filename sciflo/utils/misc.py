@@ -183,16 +183,16 @@ def extractZipfile(file, dir=".", verbose=False):
 
 def extractTarfile(file, dir=".", verbose=False):
     """Function to extract tarfile to directory."""
-    t = tarfile.open(file)
-    if not os.path.isdir(dir):
-        os.mkdir(dir)
-    namelist = t.getnames()
-    for n in namelist:
-        try:
-            t.extract(n, dir)
-        finally:
-            if verbose:
-                print(n)
+    with tarfile.open(file) as t:
+        if not os.path.isdir(dir):
+            os.mkdir(dir)
+        namelist = t.getnames()
+        for n in namelist:
+            try:
+                t.extract(n, dir)
+            finally:
+                if verbose:
+                    print(n)
     return namelist
 
 
@@ -259,18 +259,18 @@ in your sciflo configuration." % loc)
                     os.makedirs(md5dir)
 
                 # get md5sum and check if it is already here
-                bundleMd5 = hashlib.md5(open(bundleFile).read()).hexdigest()
+                with open(bundleFile) as f:
+                    bundleMd5 = hashlib.md5(f.read()).hexdigest()
                 md5file = os.path.join(md5dir, bundleMd5)
                 if not os.path.exists(md5file):
                     # create install script
                     os.chdir(packageDir)
                     installScriptFile = './sflInstall.sh'
-                    installScript = open(installScriptFile, 'w')
-                    installCmdList = ["python setup.py install", "--install-purelib=%s" % userPubPackageDir,
-                                      "--install-platlib=%s" % userPubPackageDir]
-                    installScript.write('''#!/bin/sh\n%s\nif [ "$?" -eq "0" ]; then echo $? > SFL_INSTALL_SUCCESS; fi'''
-                                        % ' '.join(installCmdList))
-                    installScript.close()
+                    with open(installScriptFile, 'w') as installScript:
+                        installCmdList = ["python setup.py install", "--install-purelib=%s" % userPubPackageDir,
+                                          "--install-platlib=%s" % userPubPackageDir]
+                        installScript.write('''#!/bin/sh\n%s\nif [ "$?" -eq "0" ]; then echo $? > SFL_INSTALL_SUCCESS; fi'''
+                                            % ' '.join(installCmdList))
                     os.chmod(installScriptFile, 0o755)
 
                     # run install script
@@ -286,7 +286,8 @@ in your sciflo configuration." % loc)
                             "Failed to install %s." % packageDir)
 
                     # write to package db
-                    open(md5file, 'w').write("%s\n" % packageDir)
+                    with open(md5file, 'w') as f:
+                        f.write("%s\n" % packageDir)
 
                     # cleanup
                     os.chdir('..')
@@ -531,16 +532,16 @@ def convertImage(inputFile, outputFile, format=None, convert=None,
         if match:
             rotate = -90
     try:
-        im = Image.open(inputFile)
-        if rotate:
-            im = im.rotate(rotate)
-        if convert and im.mode != convert:
-            im.draft(convert, im.size)
-            im = im.convert(convert)
-        if format:
-            im.save(*(outputFile, format), **options)
-        else:
-            im.save(*(outputFile,), **options)
+        with Image.open(inputFile) as im:
+            if rotate:
+                im = im.rotate(rotate)
+            if convert and im.mode != convert:
+                im.draft(convert, im.size)
+                im = im.convert(convert)
+            if format:
+                im.save(*(outputFile, format), **options)
+            else:
+                im.save(*(outputFile,), **options)
     except IOError:
         #print >>sys.stderr, "Error using PIL to convert image: %s" % traceback.format_exc()
         #print >>sys.stderr, "Trying convert."
@@ -741,24 +742,23 @@ def getUserInfo():
     <conversionOperators>${defConvElts}
     </conversionOperators>
 </myConfig>''')
-        f = open(userConfigFile, 'w')
-        f.write(t.substitute(sflNs=SCIFLO_NAMESPACE, xsdNs=XSD_NAMESPACE, pyNs=PY_NAMESPACE,
-                             sflWorkDir=os.path.join(
-                                 gettempdir(), 'scifloWork-%s' % userName),
-                             sflExecDir=os.path.join(userScifloDir, 'exec'), cachePort='8001',
-                             hostCert=os.path.join(
-                                 sys.prefix, 'ssl', 'hostcert.pem'),
-                             hostKey=os.path.join(
-                                 sys.prefix, 'ssl', 'hostkey.pem'),
-                             sflProtocol='http', sflPort='9999', sflProxyUrl='',
-                             exposerProtocol='http', exposerPort='8888', exposerProxyUrl='',
-                             dbPort='8989', dbUser='myUsername', dbPassword='myPassword',
-                             allowCodeFetchFrom='127.0.0.1 ' + getHostIp(),
-                             allowCodeInstallFrom='127.0.0.1 ' + getHostIp(),
-                             defConvElts=DEFAULT_CONVERSION_FUNCTIONS,
-                             baseUrl='', htmlBaseHref='', cgiBaseHref='',
-                             gmapKey='', timeout='86400'))
-        f.close()
+        with open(userConfigFile, 'w') as f:
+            f.write(t.substitute(sflNs=SCIFLO_NAMESPACE, xsdNs=XSD_NAMESPACE, pyNs=PY_NAMESPACE,
+                                 sflWorkDir=os.path.join(
+                                     gettempdir(), 'scifloWork-%s' % userName),
+                                 sflExecDir=os.path.join(userScifloDir, 'exec'), cachePort='8001',
+                                 hostCert=os.path.join(
+                                     sys.prefix, 'ssl', 'hostcert.pem'),
+                                 hostKey=os.path.join(
+                                     sys.prefix, 'ssl', 'hostkey.pem'),
+                                 sflProtocol='http', sflPort='9999', sflProxyUrl='',
+                                 exposerProtocol='http', exposerPort='8888', exposerProxyUrl='',
+                                 dbPort='8989', dbUser='myUsername', dbPassword='myPassword',
+                                 allowCodeFetchFrom='127.0.0.1 ' + getHostIp(),
+                                 allowCodeInstallFrom='127.0.0.1 ' + getHostIp(),
+                                 defConvElts=DEFAULT_CONVERSION_FUNCTIONS,
+                                 baseUrl='', htmlBaseHref='', cgiBaseHref='',
+                                 gmapKey='', timeout='86400'))
     return (userName, homeDir, userScifloDir, userConfigFile)
 
 
@@ -993,10 +993,11 @@ def getUserScifloConfig(userConfigFile=None, globalConfigFile=None):
         configStr = indent(lxml.etree.tostring(gcfElt, encoding='unicode'))
 
     # write config file if it doesn't exist, otherwise check if it needs to be updated
-    if not os.path.exists(userScifloConfigFile) or open(userScifloConfigFile, 'r').read() != configStr:
-        f = open(userScifloConfigFile, 'w')
-        f.write(configStr)
-        f.close()
+    with open(userScifloConfigFile, 'r') as f:
+        configStr_from_file = f.read()
+    if not os.path.exists(userScifloConfigFile) or configStr_from_file != configStr:
+        with open(userScifloConfigFile, 'w') as f:
+            f.write(configStr)
     return userScifloConfigFile
 
 
@@ -1007,9 +1008,8 @@ def writePickleFile(obj, outputFile=None):
     if outputFile is None:
         outputFile = os.path.abspath(
             os.path.basename(getTempfileName(suffix='.pkl')))
-    f = open(outputFile, 'wb')
-    pickle.dump(obj, f)
-    f.close()
+    with open(outputFile, 'wb') as f:
+        pickle.dump(obj, f)
     return outputFile
 
 
@@ -1020,9 +1020,8 @@ def writeTextFile(obj, outputFile=None):
     if outputFile is None:
         outputFile = os.path.abspath(
             os.path.basename(getTempfileName(suffix='.txt')))
-    f = open(outputFile, 'w')
-    f.write(str(obj))
-    f.close()
+    with open(outputFile, 'w') as f:
+        f.write(str(obj))
     return outputFile
 
 
@@ -1213,7 +1212,8 @@ def runDot(dot, outputFile=None, outputType=None):
         if re.search('}\s*$', dot):
             tmpFlag = True
             dotFile = getTempfileName(suffix='.dot')
-            open(dotFile, 'w').write("%s\n" % dot)
+            with open(dotFile, 'w') as f:
+                f.write("%s\n" % dot)
         else:
             raise
     if outputType is None:
@@ -1230,11 +1230,13 @@ def runDot(dot, outputFile=None, outputType=None):
             os.unlink(dotFile)
     except:
         pass
-    contents = open(outputFile).read().replace(' encoding="UTF-8"', '')
+    with open(outputFile) as f:
+        contents = f.read().replace(' encoding="UTF-8"', '')
     with open(outputFile, 'w') as f:
         f.write(contents)
     if returnContentsFlag:
-        contents = open(outputFile).read()
+        with open(outputFile) as f:
+            contents = f.read()
         os.unlink(outputFile)
         return contents
     return outputFile

@@ -1231,7 +1231,8 @@ This module may be a staged file or bundle: %s''' % str(e)))
         the extension."""
 
         if outputFile.endswith('.svg') or outputFile is None:
-            open(outputFile, 'w').write(self.getSvg())
+            with open(outputFile, 'w') as f:
+                f.write(self.getSvg())
         else:
             runDot(self.getDot(), outputFile)
 
@@ -1240,6 +1241,7 @@ This module may be a staged file or bundle: %s''' % str(e)))
         the extension."""
 
         if outputFile.endswith('.svg') or outputFile is None:
-            open(outputFile, 'w').write(self.getFullSvg())
+            with open(outputFile, 'w') as f:
+                f.write(self.getFullSvg())
         else:
             runDot(self.getFullDot(), outputFile)

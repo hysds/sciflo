@@ -724,8 +724,11 @@ def workUnitExecute(managerFunc, owner, type, call, args, stageFiles=None, postE
 
 def overwriteGridFuncArgs(*args, **kargs):
     if args[8] is not None and 'configFile' in kargs:
-        if args[8] == kargs.get('configFile', '') or \
-                open(args[8]).read() == open(kargs['configFile']).read():
+        with open(args[8]) as f:
+            tmp_args = f.read()
+        with open(kargs['configFile']) as f:
+            tmp_kargs = f.read()
+        if args[8] == kargs.get('configFile', '') or tmp_args == tmp_kargs:
             args = list(args)
             args[8] = kargs['configFile']
             del kargs['configFile']

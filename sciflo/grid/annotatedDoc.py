@@ -99,20 +99,19 @@ class AnnotatedDoc(object):
     def write(self, resolveCDATA=True):
         """Write current annotated sciflo xml to file."""
 
-        f = open(self.file, 'w')
-        if resolveCDATA:
-            retVal = f.write('%s\n' %
-                             tostring(self.rootElt, pretty_print=True, encoding='unicode').replace(
-                                 'SCIFLO_CDATA_BEGIN', '<![CDATA[').replace(
-                                 'SCIFLO_CDATA_END', ']]>').replace(
-                                 '&lt;', '<').replace(
-                                 '&gt;', '>').replace(
-                                 '&amp;', '&')
-                             )
-        else:
-            retVal = f.write('%s\n' %
-                             tostring(self.rootElt, pretty_print=True, encoding='unicode'))
-        f.close()
+        with open(self.file, 'w') as f:
+            if resolveCDATA:
+                retVal = f.write('%s\n' %
+                                 tostring(self.rootElt, pretty_print=True, encoding='unicode').replace(
+                                     'SCIFLO_CDATA_BEGIN', '<![CDATA[').replace(
+                                     'SCIFLO_CDATA_END', ']]>').replace(
+                                     '&lt;', '<').replace(
+                                     '&gt;', '>').replace(
+                                     '&amp;', '&')
+                                 )
+            else:
+                retVal = f.write('%s\n' %
+                                 tostring(self.rootElt, pretty_print=True, encoding='unicode'))
         return retVal
 
     def addScifloStarted(self, executable):
@@ -140,9 +139,8 @@ class AnnotatedDoc(object):
         """Add info for a processing step that finished."""
 
         try:
-            f = open(pidFile, 'r')
-            pid = f.read()
-            f.close()
+            with open(pidFile, 'r') as f:
+                pid = f.read()
         except:
             pid = 'unknown'
         xpath = 'sf:flow/sf:results/sf:processes/sf:process[@procId="%s"]' % procId

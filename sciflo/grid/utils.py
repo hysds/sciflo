@@ -316,7 +316,8 @@ def verifyExecutable(path):
         return 1
     # get first line and see if it contains an interpreter declaration
     else:
-        lines = open(path).readlines()
+        with open(path) as f:
+            lines = f.readlines()
         if re.match(r'^#!.+$', lines[0]):
             return 1
         else:
@@ -397,6 +398,12 @@ class Tee(object):
     def __init__(self, stream, *args, **kargs):
         self.stream = stream
         self.file = open(*args, **kargs)
+
+    def __enter__(self):
+        return self.file
+
+    def __exit__(self, typ, value, traceback):
+        self.file.close()
 
     def write(self, strToWrite):
         strToWrite = str(strToWrite)

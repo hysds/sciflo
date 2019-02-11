@@ -104,9 +104,8 @@ class WorkUnit(object):
         """Fork and execute the work unit."""
 
         # save pid
-        pidFh = open(self._pidFile, 'w')
-        pidFh.write("%d\n" % os.getpid())
-        pidFh.close()
+        with open(self._pidFile, 'w') as pidFh:
+            pidFh.write("%d\n" % os.getpid())
 
         userPubPackagesDir = getUserPubPackagesDir()
         userPvtPackagesDir = getUserPvtPackagesDir()
@@ -121,25 +120,26 @@ class WorkUnit(object):
 
         # save stdout & stderr and replace with tee
         self.origStdout, self.origStderr = sys.stdout, sys.stderr
-        sys.stdout = Tee(sys.stdout, self._logFile, 'a+')
-        sys.stderr = sys.stdout
+        with Tee(sys.stdout, self._logFile, 'a+') as tee:
+            sys.stdout = tee
+            sys.stderr = sys.stdout
 
-        try:
-            os.chdir(self._workDir)
-            # write configDict to pickle
-            writePickleFile(self._configDict, os.path.join(
-                self._workDir, 'WORK_UNIT_CONFIG.pkl'))
-            result = self._run()
-        except Exception as e:
-            result = e
-            etype = sys.exc_info()[0]  # get traceback info
-            evalue = sys.exc_info()[1]
-            etb = traceback.format_exc()
-            emessage = "Exception Type: %s\n" % str(
-                etype)  # create error message
-            emessage += "Exception Value: %s\n" % str(evalue)
-            emessage += etb
-            tracebackMessage = emessage
+            try:
+                os.chdir(self._workDir)
+                # write configDict to pickle
+                writePickleFile(self._configDict, os.path.join(
+                    self._workDir, 'WORK_UNIT_CONFIG.pkl'))
+                result = self._run()
+            except Exception as e:
+                result = e
+                etype = sys.exc_info()[0]  # get traceback info
+                evalue = sys.exc_info()[1]
+                etb = traceback.format_exc()
+                emessage = "Exception Type: %s\n" % str(
+                    etype)  # create error message
+                emessage += "Exception Value: %s\n" % str(evalue)
+                emessage += etb
+                tracebackMessage = emessage
 
         # restore stdout & stderr
         sys.stdout, sys.stderr = self.origStdout, self.origStderr  # restore stdout & stderr
@@ -348,16 +348,16 @@ class ExecutableWorkUnit(WorkUnit):
                     status = 9999
         # otherwise use Popen
         else:
-            pop = Popen(commandLineList, stdin=PIPE,
-                        stdout=PIPE, stderr=PIPE, env=os.environ)
-            try:
-                sts = pop.wait()  # wait for child to terminate and get status
-            except Exception as e:
-                pass
-            status = pop.returncode
-            # print "returncode is:",status
-            result = pop.stdout.read().decode()
-            stdErr = pop.stderr.read().decode()
+            with Popen(commandLineList, stdin=PIPE,
+                       stdout=PIPE, stderr=PIPE, env=os.environ) as pop:
+                try:
+                    sts = pop.wait()  # wait for child to terminate and get status
+                except Exception as e:
+                    pass
+                status = pop.returncode
+                # print "returncode is:",status
+                result = pop.stdout.read().decode()
+                stdErr = pop.stderr.read().decode()
         if status:
             raise ExecutableWorkUnitError(
                 "Executable failed to give a 0 exit status: %s" % stdErr)
@@ -563,9 +563,8 @@ class ParMapWorkUnit(PythonFunctionWorkUnit):
         self._ctx = {}
         if os.path.exists(ctx_file):
             print("Loading HySDS context JSON from %s." % ctx_file)
-            f = open(ctx_file)
-            self._ctx = json.load(f)
-            f.close()
+            with open(ctx_file) as f:
+                self._ctx = json.load(f)
         else:
             print("No HySDS context JSON found at %s. Proceeding without it." % ctx_file)
 

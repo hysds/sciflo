@@ -60,9 +60,8 @@ def writeXmlFile(xmlString, outputFile=None):
     if outputFile is None:
         outputFile = os.path.abspath(
             os.path.basename(getTempfileName(suffix='.xml')))
-    f = open(outputFile, 'w')
-    f.write(str(xmlString))
-    f.close()
+    with open(outputFile, 'w') as f:
+        f.write(str(xmlString))
     return outputFile
 
 
@@ -705,6 +704,7 @@ def validateXml(inputXml, schemaXml):
     (True, None) is returned.  Otherwise, returns (False, exception instance).
     """
 
+    f = s = None
     try:
         if os.path.isfile(inputXml):
             f = open(inputXml)
@@ -721,6 +721,10 @@ def validateXml(inputXml, schemaXml):
             if str(e) == '':
                 e = lxml.etree.XMLSyntaxError("Error in schema xml: %s" %
                                               str(e.error_log.filter_levels(lxml.etree.ErrorLevels.FATAL)))
+            if hasattr(f, 'close'):
+                f.close()
+            if hasattr(s, 'close'):
+                s.close()
             return (False, e)
         xmlSchema = lxml.etree.XMLSchema(schemaDoc)
         lxml.etree.clear_error_log()
@@ -730,15 +734,31 @@ def validateXml(inputXml, schemaXml):
             if str(e) == '':
                 e = lxml.etree.XMLSyntaxError("Error in input xml: %s" %
                                               str(e.error_log.filter_levels(lxml.etree.ErrorLevels.FATAL)))
+            if hasattr(f, 'close'):
+                f.close()
+            if hasattr(s, 'close'):
+                s.close()
             return (False, e)
         ret = xmlSchema.validate(doc)
     except Exception as e:
+        if hasattr(f, 'close'):
+            f.close()
+        if hasattr(s, 'close'):
+            s.close()
         return (False, e)
 
     if ret == 0:
+        if hasattr(f, 'close'):
+            f.close()
+        if hasattr(s, 'close'):
+            s.close()
         return (False, XmlValidationError("Failed to validate xml: %s" %
                                           xmlSchema.error_log.filter_from_errors()))
     else:
+        if hasattr(f, 'close'):
+            f.close()
+        if hasattr(s, 'close'):
+            s.close()
         return (True, None)
 
 

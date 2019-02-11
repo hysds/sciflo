@@ -639,16 +639,14 @@ in runLockedFunction() for sciflo '%s': %s\n%s" %
                 numOutputs = len(self.output)
             if numOutputs == 1:
                 resFile = os.path.join(self.outputDir, 'workunit_result-0.txt')
-                f = open(resFile, 'w')
-                f.write("%s\n" % self.output)
-                f.close()
+                with open(resFile, 'w') as f:
+                    f.write("%s\n" % self.output)
             else:
                 for i in range(numOutputs):
                     resFile = os.path.join(self.outputDir,
                                            'workunit_result-%d.txt' % i)
-                    f = open(resFile, 'w')
-                    f.write("%s\n" % self.output[i])
-                    f.close()
+                    with open(resFile, 'w') as f:
+                        f.write("%s\n" % self.output[i])
 
         except Exception as e:
             self.logger.debug("Got error in shutdown() for sciflo '%s':%s\n%s" %
