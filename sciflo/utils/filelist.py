@@ -764,7 +764,7 @@ class HttpDirectoryWalker(DirectoryWalker):
                 pluginResults = plugin.parse(dirName, dir)
                 if len(pluginResults[0]) != 0 or len(pluginResults[1]) != 0 or \
                         len(pluginResults[2]) != 0:
-                        return pluginResults
+                    return pluginResults
 
         return (dirs, files, infos)
 

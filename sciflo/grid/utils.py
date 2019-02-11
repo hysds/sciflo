@@ -160,10 +160,11 @@ def updateJson(jsonFile, obj, stringifyKeys=[], ubt=None, publicizeKeys=[],
 
     validateDirectory(os.path.dirname(jsonFile))
     with open(jsonFile, 'w') as f:
-        try: 
+        try:
             json.dump(obj, f)
         except:
-            print("Got exception dumping json:\n{}".format(pformat(obj, indent=2)))
+            print("Got exception dumping json:\n{}".format(
+                pformat(obj, indent=2)))
             raise
 
 
@@ -229,7 +230,7 @@ def normalizeScifloArgs(args):
 
     if isinstance(args, dict) or \
             (isinstance(args, (list, tuple)) and (len(args) != 1)):
-            return args
+        return args
     elif isinstance(args, (list, tuple)):
         if isinstance(args[0], (list, tuple, dict)):
             return args[0]

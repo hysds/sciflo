@@ -75,7 +75,8 @@ def getXmlEtree(xml):
         return (lxml.etree.parse(StringIO(xml), parser).getroot(), getNamespacePrefixDict(xml))
     else:
         protocol, netloc, path, params, query, frag = urlparse(xml)
-        if protocol == '': xml = "file://{}".format(xml)
+        if protocol == '':
+            xml = "file://{}".format(xml)
         xmlStr = urlopen(xml).read().decode('utf-8')
         return (lxml.etree.parse(StringIO(xmlStr), parser).getroot(), getNamespacePrefixDict(xmlStr))
 
@@ -104,7 +105,7 @@ def addDefaultPrefixToXpath(xpathStr):
             if xpathTokens[i] == '' or \
                xpathTokens[i].startswith('.') or \
                re.search(r'^\w+(\s*:|\()', xpathTokens[i]):
-                   pass
+                pass
             else:
                 xpathTokens[i] = '_default:' + xpathTokens[i]
         xpathStr = sep.join(xpathTokens)
@@ -159,7 +160,8 @@ def runXpath(xml, xpathStr, nsDict={}):
     if isinstance(res, (list, tuple)):
         for i in range(len(res)):
             if isinstance(res[i], lxml.etree._Element):
-                res[i] = lxml.etree.tostring(res[i], pretty_print=True, encoding='unicode')
+                res[i] = lxml.etree.tostring(
+                    res[i], pretty_print=True, encoding='unicode')
             if isinstance(res[i], lxml.etree._ElementStringResult):
                 res[i] = str(res[i])
     elif isinstance(res, lxml.etree._Element):
@@ -849,7 +851,8 @@ def parseElement(elt, returnChildren=False):
         if len(eltKids) > 0:
             kids = eltKids
             if len(kids) == 1:
-                value = lxml.etree.tostring(kids[0], pretty_print=True, encoding='unicode').strip()
+                value = lxml.etree.tostring(
+                    kids[0], pretty_print=True, encoding='unicode').strip()
             else:
                 value = '\n'.join([lxml.etree.tostring(
                     i, pretty_print=True, encoding='unicode').strip() for i in kids])

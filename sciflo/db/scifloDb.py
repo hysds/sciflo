@@ -308,7 +308,7 @@ class ScifloDbTable(object):
                 typ = self.fieldInfoDict[fieldName]['type']
                 if typ in ('float', 'double') or \
                         typ.startswith('double'):
-                        kwargs[fieldName] = float(thisElt.text)
+                    kwargs[fieldName] = float(thisElt.text)
                 elif typ == 'datetime':
                     kwargs[fieldName] = getDatetimeFromString(thisElt.text)
                 else:

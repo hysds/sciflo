@@ -44,13 +44,13 @@ setup(name='sciflo',
       url="https://github.com/hysds/sciflo",
       zip_safe=False,
       install_requires=[
-        'twisted>=18.9.0', 'pillow>=5.4.1', 'formencode>=1.3.1',
-        'sqlobject>=3.7.1', 'service_identity>=18.1.0',
-        'python-magic>=0.4.15'
+          'twisted>=18.9.0', 'pillow>=5.4.1', 'formencode>=1.3.1',
+          'sqlobject>=3.7.1', 'service_identity>=18.1.0',
+          'python-magic>=0.4.15'
       ],
       packages=packages,
       package_data={
-           '': ['*.xsl']
+          '': ['*.xsl']
       },
       scripts=scripts,
       data_files=data_files,

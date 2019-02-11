@@ -339,9 +339,11 @@ class xmlUtilsTestCase(unittest.TestCase):
 
         # test indent of element to string
         elt = lxml.etree.parse(StringIO(unindentedXml)).getroot()
-        self.assertEqual(indented, indent(lxml.etree.tostring(elt, encoding='unicode')))
+        self.assertEqual(indented, indent(
+            lxml.etree.tostring(elt, encoding='unicode')))
         elt2 = lxml.etree.XML(unindentedXml)
-        self.assertEqual(indented, indent(lxml.etree.tostring(elt2, encoding='unicode')))
+        self.assertEqual(indented, indent(
+            lxml.etree.tostring(elt2, encoding='unicode')))
 
 # create testsuite function
 

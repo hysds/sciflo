@@ -61,7 +61,7 @@ class AnnotatedDoc(object):
                                                            namespaces=self.nsDict)[0]:
                     if isinstance(thisProcOutputElt, _Comment) or \
                             thisProcOutputElt.tag is None:
-                            continue
+                        continue
                     resProcOutputElt = SubElement(thisResProcOutputElt,
                                                   thisProcOutputElt.tag)
 

@@ -48,7 +48,7 @@ def getConversionFunctionString(fromType, toType, namespacePrefixDict={}):
     # force xpath type coersion
     if isinstance(fromType, str) and \
             re.search(r'^(sf:)?(xpath:)', fromType, re.IGNORECASE):
-            fromType = '*:*'
+        fromType = '*:*'
 
     # get conv func xml elt and ns prefix dict
     convFuncElt, convNsDict = getXmlEtree(CONVERSION_FUNCTIONS_CONFIG)

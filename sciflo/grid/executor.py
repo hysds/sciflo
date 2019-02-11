@@ -90,6 +90,8 @@ class NoDaemonContext(type(multiprocessing.get_context())):
 
 # We sub-class multiprocessing.pool.Pool instead of multiprocessing.Pool
 # because the latter is only a wrapper function, not a proper class.
+
+
 class ScifloPool(multiprocessing.pool.Pool):
     def __init__(self, *args, **kwargs):
         kwargs['context'] = NoDaemonContext()
@@ -145,7 +147,7 @@ class ScifloExecutor(object):
         self.lock = threading.RLock()
         self.event = self.manager.Event()
         self.waiterProcess = mp.Process(target=waiter, name="waiter",
-                                                args=[self.event])
+                                        args=[self.event])
         self.logLevel = logLevel
         if DEBUG_PROCESSING:
             self.logger = mp.process.getLogger()
@@ -549,7 +551,7 @@ for '%s' in sciflo '%s': %s\n%s" % (workDir, linkDir, procId, self.scifloName,
             # skip if not yet resolved
             if isinstance(self.applyResultsDict[procId],
                           (WorkUnitConfig, mp.pool.ApplyResult)):
-                              pass
+                pass
             # execute work unit using pool
             elif isinstance(self.applyResultsDict[procId], WuReady):
                 wu = self.applyResultsDict[procId].val
@@ -826,7 +828,7 @@ for handleResult() for procId '%s' in sciflo '%s': %s.  No cache will be used."
         postExecList = self.postExecResultsDict[procId]
         for i, (resIdx, funcStr) in enumerate(postExecList):
             postExecHex = hashlib.md5('{}_{}_{}'.format(info['hex'], resIdx,
-                                                    funcStr).encode('utf-8')).hexdigest()
+                                                        funcStr).encode('utf-8')).hexdigest()
             postExecResult = None
 
             # get from cache

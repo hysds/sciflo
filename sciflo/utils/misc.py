@@ -373,7 +373,7 @@ def resolvePath(file, pathEnviron):
     # determine if pathEnviron is a list of paths or a path env i.e. .:/bin:/usr/bin
     if isinstance(pathEnviron, list) or \
             isinstance(pathEnviron, tuple):
-          pathDirs = pathEnviron
+        pathDirs = pathEnviron
     else:
         pathDirs = pathEnviron.split(':')
 
