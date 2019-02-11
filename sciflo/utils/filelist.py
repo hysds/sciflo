@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        filelist.py
 # Purpose:     File listing class/functions.
 #
@@ -8,8 +8,25 @@
 # Created:     Mon Apr 10 11:01:06 2006
 # Copyright:   (c) 2006, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 #
+import stat
+import socket
+import shutil
+import time
+import getpass
+import types
+import getopt
+import string
+import urllib.error
+import re
+import urllib.parse
+import os
+import urllib.request
+import sys
+from . import dataenc
+from ftplib import FTP
+from fnmatch import fnmatchcase
 USAGE = """
 filelist.py [--help] [--bottomUp] [--directory] [--delete]
             [--fetchDir <outputDir>] [--fetchWitSubDirs]
@@ -33,11 +50,6 @@ REWRITTEN to point to the local copies.
 """
 # See the bottom of the file for exact switches and example of use.
 
-import sys, os, re, string, getopt, types, getpass
-import urllib, urllib2, urlparse, time, shutil, socket, stat
-from fnmatch import fnmatchcase
-from ftplib import FTP
-import dataenc
 
 def matchAnyThenConstrain(root, name, haveRegs, regs, haveWilds, wildCards,
                           constraintFunction):
@@ -95,14 +107,18 @@ def filelist(urlPaths, regSpecs=[], wildCards=[], needCredentials=False, userCre
     try:
         matchedFiles = []       # source files that match criteria
         fetchedFiles = []       # files that were actually fetched this run
-        destinationFiles = []   # destination (local) file names (rewritten URL)
+        # destination (local) file names (rewritten URL)
+        destinationFiles = []
 
         topPaths = []
         for url in urlPaths:
-            if url == '' or url == None: continue
+            if url == '' or url == None:
+                continue
             remote, protocol, netloc, path = remoteUrl(url)
-            if not remote: url = os.path.abspath(url)
-            if url[-1] == '/': url = url[:-1]
+            if not remote:
+                url = os.path.abspath(url)
+            if url[-1] == '/':
+                url = url[:-1]
             topPaths.append(url)
 
         if needCredentials and userCredentials is None:
@@ -111,22 +127,28 @@ def filelist(urlPaths, regSpecs=[], wildCards=[], needCredentials=False, userCre
         if fetchDir:
             workDir = os.path.join(fetchDir, '.tmp')
             # fetch into tmp directory & then rename so fetching is atomic
-            try: os.mkdir(workDir)
-            except: pass
+            try:
+                os.mkdir(workDir)
+            except:
+                pass
             if not os.path.exists(workDir):
                 die("filelist: Cannot write to fetch directory %s" % fetchDir)
 
-        if isinstance(topPaths, types.StringType): topPaths = [topPaths]
+        if isinstance(topPaths, bytes):
+            topPaths = [topPaths]
         regSpecs = [s for s in regSpecs if s != '' and s != None]
         wildCards = [s for s in wildCards if s != '' and s != None]
 
-        haveRegs = False; regs = []; haveWilds = False; haveMatchFunction = False
+        haveRegs = False
+        regs = []
+        haveWilds = False
+        haveMatchFunction = False
         if len(regSpecs) > 0:
             haveRegs = True
             regs = []
             for reg in regSpecs:
                 (pattern, subst) = parse_re_with_subst(reg)
-                regs.append( (re.compile(pattern), subst) )
+                regs.append((re.compile(pattern), subst))
         if len(wildCards) > 0:
             haveWilds = True
 
@@ -138,9 +160,12 @@ def filelist(urlPaths, regSpecs=[], wildCards=[], needCredentials=False, userCre
             if '.' in topPaths:
                 die("filelist: Recursively deleting from the dot (.) path is not safe.  Shame.")
 
-        if directoryMode: listMode = False
-        if listMode: getFileInfo = True
-        if quietMode: stream = None
+        if directoryMode:
+            listMode = False
+        if listMode:
+            getFileInfo = True
+        if quietMode:
+            stream = None
         sumSizes = 0
         if xmlMode:
             matchedFiles.append('<files>')
@@ -150,11 +175,14 @@ def filelist(urlPaths, regSpecs=[], wildCards=[], needCredentials=False, userCre
             suffix += '</file>'
 
         for top in topPaths:
-            if verboseMode: warn('filelist: searching', top)
-            topMatchCount = 0; topFetchCount = 0
+            if verboseMode:
+                warn('filelist: searching', top)
+            topMatchCount = 0
+            topFetchCount = 0
 
             for root, dirs, files, infos in walk(top, userCredentials, walkDirectories, topDown):
-                if verboseMode: warn('filelist: found files in', root)
+                if verboseMode:
+                    warn('filelist: found files in', root)
                 remote, protocol, netloc, path = remoteUrl(root)
                 if directoryMode:
                     contents = dirs
@@ -183,19 +211,26 @@ def filelist(urlPaths, regSpecs=[], wildCards=[], needCredentials=False, userCre
                         if getFileInfo or (fetchIfNewer and not remote):
                             if remote:
                                 if info and getFileInfo:
-                                    if listMode: line = info.line
-                                    extra = ' ' + str(info.size) + ' ' + str(info.modTime)
+                                    if listMode:
+                                        line = info.line
+                                    extra = ' ' + \
+                                        str(info.size) + ' ' + \
+                                        str(info.modTime)
                                     sumSizes += info.size
                             else:
                                 st = os.stat(fn)
-                                line = ' '.join( map(str, \
-                                        (st.st_mode, st.st_uid, st.st_gid, st.st_size, st.st_mtime, fn)))
-                                info = FileInfo(line, st.st_size, st.st_mtime, st.st_uid, st.st_gid, st.st_mode)
+                                line = ' '.join(map(str,
+                                                    (st.st_mode, st.st_uid, st.st_gid, st.st_size, st.st_mtime, fn)))
+                                info = FileInfo(
+                                    line, st.st_size, st.st_mtime, st.st_uid, st.st_gid, st.st_mode)
                                 if getFileInfo:
-                                    extra = ' ' + str(info.size) + ' ' + str(info.modTime)
+                                    extra = ' ' + \
+                                        str(info.size) + ' ' + \
+                                        str(info.modTime)
                                     sumSizes += info.size
 
-                        if not remote and urlMode: fn = makeFileUrl(fn)
+                        if not remote and urlMode:
+                            fn = makeFileUrl(fn)
                         matchedFiles.append(prefix + fn + extra + suffix)
 
                         if matchUrl:
@@ -206,7 +241,8 @@ def filelist(urlPaths, regSpecs=[], wildCards=[], needCredentials=False, userCre
                         newfile = os.path.split(newpath)[1]
 
                         if fetchDir:
-                            if fetchDir == '.': fetchDir = os.getcwd()
+                            if fetchDir == '.':
+                                fetchDir = os.getcwd()
                             if fetchWithSubDirs:
                                 destDir = os.path.join(fetchDir, newpath[1:])
                             else:
@@ -224,18 +260,21 @@ def filelist(urlPaths, regSpecs=[], wildCards=[], needCredentials=False, userCre
                                     # kludge, makedirs throws exception if any part of path exists
                                     pass
                                 if remote:
-                                    urllib.urlretrieve(fn, tmpFile)
+                                    urllib.request.urlretrieve(fn, tmpFile)
                                 else:
                                     shutil.copyfile(fn, tmpFile)
-                                os.rename(tmpFile, destFile)   # atomic rename of file into destDir
+                                # atomic rename of file into destDir
+                                os.rename(tmpFile, destFile)
 
                                 topFetchCount += 1
                                 fetchedFiles.append(prefix + fn + suffix)
-                                if getFileInfo: line = line + ' ' + destFile
+                                if getFileInfo:
+                                    line = line + ' ' + destFile
 
                                 # now rewrite URL to point to local copy of file
                                 fn = destFile
-                                if not remote and urlMode: fn = makeFileUrl(fn)
+                                if not remote and urlMode:
+                                    fn = makeFileUrl(fn)
 
                         if not listMode:
                             line = prefix + fn + extra + suffix
@@ -247,10 +286,13 @@ def filelist(urlPaths, regSpecs=[], wildCards=[], needCredentials=False, userCre
                                 os.unlink(fn)
 
             if verboseMode and fetchDir:
-                warn('filelist: Matched %d files from %s' % (topMatchCount, top))
-                warn('filelist: Fetched %d files from %s' % (topFetchCount, top))
+                warn('filelist: Matched %d files from %s' %
+                     (topMatchCount, top))
+                warn('filelist: Fetched %d files from %s' %
+                     (topFetchCount, top))
         if fetchDir:
-            for f in os.listdir(workDir): os.remove(os.path.join(workDir, f))
+            for f in os.listdir(workDir):
+                os.remove(os.path.join(workDir, f))
             os.rmdir(workDir)
 
         if xmlMode:
@@ -268,7 +310,8 @@ def filelist(urlPaths, regSpecs=[], wildCards=[], needCredentials=False, userCre
 
     except KeyboardInterrupt:
         if fetchDir:
-            for f in os.listdir(workDir): os.remove(os.path.join(workDir, f))
+            for f in os.listdir(workDir):
+                os.remove(os.path.join(workDir, f))
             os.rmdir(workDir)
         die('filelist: Keyboard Interrupt')
 
@@ -295,27 +338,38 @@ def shouldFetch(remote, destFile, fetchIfNewer, srcFileInfo):
             doFetch = True
     return doFetch
 
+
 def _output(line, lines, stream=None):
     """Internal function: Add line to output lines and optionally print to stream."""
     lines.append(line)
-    if stream: print >>stream, line
+    if stream:
+        print(line, file=stream)
+
 
 class FileInfo:
     """Holder class for those file info. elements that are consistent among local
     files (output of stat), ftp directories, http, etc.  Minimum useful fields are
     modification time and size.  Line contains usual string output of ls -l.
     """
+
     def __init__(self, line, size, modTime, userId=None, groupId=None, protectMode=None):
-        self.line=line; self.size=size; self.modTime=modTime
-        self.userId=userId; self.groupId=groupId; self.protectMode=protectMode
+        self.line = line
+        self.size = size
+        self.modTime = modTime
+        self.userId = userId
+        self.groupId = groupId
+        self.protectMode = protectMode
+
 
 class UserCredential(object):
     """Container for user credential info. like username, password, certificate, etc.
     """
+
     def __init__(self, username=None, password=None, validInterval=None, certificate=None):
         self.username = username
         self.password = password
-        self.validInterval = validInterval     # tuple of Ints (days, hours, minutes)
+        # tuple of Ints (days, hours, minutes)
+        self.validInterval = validInterval
         if password is not None and validInterval is None:
             die('UserCredential: If password is present, validInterval is also required.')
         self.certificate = certificate
@@ -330,40 +384,51 @@ class UserCredential(object):
                 return None
         else:
             return None
+
     def setPassword(self, pw):
         if pw and pw != '':
-            self._password = dataenc.pass_enc(pw, daynumber=True, timestamp=True)
+            self._password = dataenc.pass_enc(
+                pw, daynumber=True, timestamp=True)
         else:
             self._password = pw
     password = property(getPassword, setPassword)
 
+
 class UserCredentials:
     """Contains dictionary of (url, credential) pairs and optionally an httpProxy.
     """
+
     def __init__(self, httpProxy=None, credentials={}):
         self.httpProxy = httpProxy
         self.credentials = credentials
+
     def add(self, url, credential):
-        self.credentials[url] = credential; return self
+        self.credentials[url] = credential
+        return self
+
     def forUrl(self, url):
         for key in self.credentials:
             if url.startswith(key):
                 return self.credentials[key]
         return None
 
+
 def promptForCredentials(urls, httpProxy=None):
     if httpProxy == None:
-        httpProxy = raw_input('Enter HTTP proxy [none]: ')
-        if httpProxy == '': httpProxy = None
+        httpProxy = input('Enter HTTP proxy [none]: ')
+        if httpProxy == '':
+            httpProxy = None
     credentials = UserCredentials(httpProxy)
     localUserName = getpass.getuser()
     for url in urls:
         remote, protocol, netloc, path = remoteUrl(url)
         if remote:
-            username, password, validInterval = promptForCredential(url, localUserName)
+            username, password, validInterval = promptForCredential(
+                url, localUserName)
             credential = UserCredential(username, password, validInterval)
             credentials.add(url, credential)
     return credentials
+
 
 def promptForCredential(url, localUserName):
     remote, protocol, netloc, path = remoteUrl(url)
@@ -371,23 +436,27 @@ def promptForCredential(url, localUserName):
         defaultUserName = 'anonymous'
     else:
         defaultUserName = localUserName
-    username = raw_input('Need credentials for URL %s\nUsername [%s]: ' \
-                         % (url, defaultUserName))
-    if username == '': username = defaultUserName
+    username = input('Need credentials for URL %s\nUsername [%s]: '
+                     % (url, defaultUserName))
+    if username == '':
+        username = defaultUserName
     password = ''
     while password == '':
         password = getpass.getpass()
     validInterval = [0, 1, 0]
     if password != '':
-        response = raw_input('Enter valid time period for credential [(days, hours, minutes) = 0 1 0]: ')
+        response = input(
+            'Enter valid time period for credential [(days, hours, minutes) = 0 1 0]: ')
         if response != '':
             validInterval = response.split()
     return (username, password, validInterval)
+
 
 class DirectoryWalker:
     """Recursively walk directories using the protocol specified in a URL.
     Sublclasses handle ftp, http, sftp, local file system, etc.
     """
+
     def __init__(self, userCredentials=None, retries=3, sleepTime=5):
         self.userCredentials = userCredentials
         self.retries = retries
@@ -417,12 +486,15 @@ class DirectoryWalker:
     def retrieveDirList(self, url):
         """Retrieve directory listing as a list of text lines.  Returns (status, dirList)."""
         pass
+
     def parseDirList(self, dirList, path=None):
         """Parse directory listing (text) and return three lists (dirs, files, fileInfos)."""
         pass
 
+
 class FtpDirectoryWalker(DirectoryWalker):
     """Recursively walk directories on an ftp site."""
+
     def __init__(self, userCredentials=None, retries=3, sleepTime=5):
         DirectoryWalker.__init__(self, userCredentials, retries, sleepTime)
 
@@ -433,7 +505,8 @@ class FtpDirectoryWalker(DirectoryWalker):
         credential = None
         if self.userCredentials:
             credential = self.userCredentials.forUrl(url)
-        dir = ''; dir_list = []
+        dir = ''
+        dir_list = []
         ftp = FTP()
         for i in range(self.retries):
             try:
@@ -459,39 +532,52 @@ class FtpDirectoryWalker(DirectoryWalker):
         """Parse long directory listing returned by ftp or (ls -l).
         Separate entries into directories and files.
         """
-        dirs = []; files = []; infos = []
+        dirs = []
+        files = []
+        infos = []
         for entry in dir.split('\n'):
             fields = entry.split()
-            if len(fields) < 7: continue
+            if len(fields) < 7:
+                continue
             fn = fields[-1]
-            if fn == '.' or fn == '..': continue
+            if fn == '.' or fn == '..':
+                continue
             if re.match('^d', fields[0])and fields[0][7] == 'r':
                 dirs.append(fn)
             else:
                 files.append(fn)
-                info = FileInfo(entry, int(fields[4]), '-'.join(fields[5:8]), \
+                info = FileInfo(entry, int(fields[4]), '-'.join(fields[5:8]),
                                 fields[2], fields[3], fields[0])
                 infos.append(info)
         return (dirs, files, infos)
 
+
 class DirListingParser(object):
     """Base class for directory listing parsers."""
+
     def __init__(self, regex):
         self.regex = regex
         self.compiledRegex = re.compile(self.regex)
-        
+
     def parse(self, dir, listingHtml):
         """Return (dirs, files, infos)."""
-        dirs = []; files = []; infos = []
-        raise NotImplementedError, "Override this method in sub class."
-    
+        dirs = []
+        files = []
+        infos = []
+        raise NotImplementedError("Override this method in sub class.")
+
+
 class ApacheDirListingParser(DirListingParser):
     """Parser class for apache."""
+
     def parse(self, dir, listingHtml):
-        dirs = []; files = []; infos = []
+        dirs = []
+        files = []
+        infos = []
         items = self.compiledRegex.findall(listingHtml)
         for item, itemName in items:
-            if itemName.strip() == 'Parent Directory': continue
+            if itemName.strip() == 'Parent Directory':
+                continue
             if isinstance(item, str):
                 name = item
             else:
@@ -503,39 +589,7 @@ class ApacheDirListingParser(DirListingParser):
             else:
                 type = '-'
                 files.append(name)
-            #not doing file info
-            '''
-            size = size.lower()
-            if size.endswith('k'):
-                size = int(size[:-1]) * 1024
-            elif size.endswith('m'):
-                size = int(size[:-1]) * 1024 * 1024
-            else:
-                size = -1
-            line = '%s---------  1 ? ? %15d %s %s' % (type, size, dateTime, name)
-            info = FileInfo(line, size, dateTime)
-            '''
-            infos.append(None)
-        return (dirs, files, infos)
-    
-class CDAACDirListingParser(DirListingParser):
-    """Parser class for CDAAC data server."""
-    def parse(self, dir, listingHtml):
-        dirs = []; files = []; infos = []
-        items = self.compiledRegex.findall(listingHtml)
-        for item, itemName in items:
-            if itemName.strip() == 'Parent Directory': continue
-            if isinstance(item, str):
-                name = item
-            else:
-                name, dateTime, size = item[:]
-            if name.endswith('/'):
-                type = 'd'
-                dirs.append(name)
-            else:
-                type = '-'
-                files.append(name)
-            #not doing file info
+            # not doing file info
             '''
             size = size.lower()
             if size.endswith('k'):
@@ -550,32 +604,72 @@ class CDAACDirListingParser(DirListingParser):
             infos.append(None)
         return (dirs, files, infos)
 
+
+class CDAACDirListingParser(DirListingParser):
+    """Parser class for CDAAC data server."""
+
+    def parse(self, dir, listingHtml):
+        dirs = []
+        files = []
+        infos = []
+        items = self.compiledRegex.findall(listingHtml)
+        for item, itemName in items:
+            if itemName.strip() == 'Parent Directory':
+                continue
+            if isinstance(item, str):
+                name = item
+            else:
+                name, dateTime, size = item[:]
+            if name.endswith('/'):
+                type = 'd'
+                dirs.append(name)
+            else:
+                type = '-'
+                files.append(name)
+            # not doing file info
+            '''
+            size = size.lower()
+            if size.endswith('k'):
+                size = int(size[:-1]) * 1024
+            elif size.endswith('m'):
+                size = int(size[:-1]) * 1024 * 1024
+            else:
+                size = -1
+            line = '%s---------  1 ? ? %15d %s %s' % (type, size, dateTime, name)
+            info = FileInfo(line, size, dateTime)
+            '''
+            infos.append(None)
+        return (dirs, files, infos)
+
+
 class HttpDirectoryWalker(DirectoryWalker):
     """Recursively walk directories on an http (web) site to retrieve file lists.
     Handles many styles of HTML directory listings, but still very FRAGILE.
     """
-    
-    #list of directory listing parser plugins
+
+    # list of directory listing parser plugins
     DIR_LIST_REGEX_PLUGINS = [
-        #apache 2.0.55 directory listing
-        ApacheDirListingParser(r'(?i)alt="\[.*?\]">\s*<A HREF="(?P<name>.*?)">(.*?)</A>'),
-        #CDAAC (COSMIC Data)
+        # apache 2.0.55 directory listing
+        ApacheDirListingParser(
+            r'(?i)alt="\[.*?\]">\s*<A HREF="(?P<name>.*?)">(.*?)</A>'),
+        # CDAAC (COSMIC Data)
         CDAACDirListingParser(r'(?i)<LI><A HREF="(?P<name>.*?)">(.*?)</A>'),
-        ]
-    
+    ]
+
     def __init__(self, userCredentials=None, retries=3, sleepTime=5):
         DirectoryWalker.__init__(self, userCredentials, retries, sleepTime)
         if self.userCredentials:
             if self.userCredentials.httpProxy:
                 os.environ['http_proxy'] = self.userCredentials.httpProxy
                 # global kludge, default proxyHandler looks up proxy there
-            passwordMgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
-            for url, cred in self.userCredentials.credentials.iteritems():
-                passwordMgr.add_password(None, url, cred.username, cred.password)
-            authHandler = urllib2.HTTPBasicAuthHandler(passwordMgr)
-            opener = urllib2.build_opener(authHandler)
+            passwordMgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
+            for url, cred in self.userCredentials.credentials.items():
+                passwordMgr.add_password(
+                    None, url, cred.username, cred.password)
+            authHandler = urllib.request.HTTPBasicAuthHandler(passwordMgr)
+            opener = urllib.request.build_opener(authHandler)
         else:
-#            opener = urllib2.build_opener()
+            #            opener = urllib2.build_opener()
             opener = None
 #        opener.add_headers = [('User-agent', 'Mozilla/5.0')]
         self.opener = opener
@@ -590,12 +684,14 @@ class HttpDirectoryWalker(DirectoryWalker):
                 if self.opener:
                     response = self.opener.open(url)
                 else:
-                    response = urllib.urlopen(url)
-            except IOError, e:
+                    response = urllib.request.urlopen(url)
+            except IOError as e:
                 if hasattr(e, 'reason'):
-                    warn('HttpDirectoryWalker: Error, failed to reach server because: %s' % e.reason)
+                    warn(
+                        'HttpDirectoryWalker: Error, failed to reach server because: %s' % e.reason)
                 elif hasattr(e, 'code'):
-                    warn('HttpDirectoryWalker: Server could not fulfill request, error code %s' % e.code)
+                    warn(
+                        'HttpDirectoryWalker: Server could not fulfill request, error code %s' % e.code)
             else:
                 dir_listing = response.read()
                 return (True, dir_listing)
@@ -609,34 +705,40 @@ class HttpDirectoryWalker(DirectoryWalker):
         """Parse fragile HTML directory listings returned by various HTTP servers,
         including Apache and OpenDAP.  Separate entries into directories and files.
         """
-        dirs = []; files = []; infos = []
+        dirs = []
+        files = []
+        infos = []
         if path:
             match = HttpDirectoryWalker.reDirPath.search(dir)
             if not match:
-                die('HttpDirectoryWalker: Cannot find directory name %s in HTML listing:\n%s' % (path, dir))
+                die('HttpDirectoryWalker: Cannot find directory name %s in HTML listing:\n%s' % (
+                    path, dir))
             dirName = match.group(1)
             if dirName not in path:
-                warn('HttpDirectoryWalker: Directory name %s in HTML listing does not agree with path %s:\n%s' % (dirName, path, dir))
+                warn('HttpDirectoryWalker: Directory name %s in HTML listing does not agree with path %s:\n%s' % (
+                    dirName, path, dir))
 
         # Try to find directory lines that contain file info
-        reDirListWithStat = re.compile( \
+        reDirListWithStat = re.compile(
             r'(?i)<A HREF=[\'"]*?(?P<name>[^\?].*?' + dirName + r'.*?)[\'"]*?>.*?</A>\s*(?P<dateTime>\S+ \S+)\s+?(?P<size>\S+)\s*?$')
         items = reDirListWithStat.findall(dir)
         # If not, then try to find simple directory lines
         if len(items) == 0:
-            reDirList = re.compile( \
+            reDirList = re.compile(
                 r'(?i)<A HREF=[\'"]*?(?P<name>[^\?].*?' + dirName + r'.*?)[\'"]*?>.*?</A>')
             items = reDirList.findall(dir)
-            
+
         if len(items) != 0:
-            dateTime = '? ?'; size = ''
+            dateTime = '? ?'
+            size = ''
             for item in items:
                 if isinstance(item, str):
                     name = item
                 else:
                     name, dateTime, size = item[:]
-                if dirName not in name: continue
-    
+                if dirName not in name:
+                    continue
+
                 if name.endswith('/'):
                     type = 'd'
                     dirs.append(name)
@@ -650,18 +752,20 @@ class HttpDirectoryWalker(DirectoryWalker):
                     size = int(size[:-1]) * 1024 * 1024
                 else:
                     size = -1
-                line = '%s---------  1 ? ? %15d %s %s' % (type, size, dateTime, name)
+                line = '%s---------  1 ? ? %15d %s %s' % (
+                    type, size, dateTime, name)
                 info = FileInfo(line, size, dateTime)
                 infos.append(info)
-                print line
-        
-        #try plugins
+                print(line)
+
+        # try plugins
         else:
             for plugin in self.DIR_LIST_REGEX_PLUGINS:
                 pluginResults = plugin.parse(dirName, dir)
                 if len(pluginResults[0]) != 0 or len(pluginResults[1]) != 0 or \
-                    len(pluginResults[2]) != 0: return pluginResults
-                
+                        len(pluginResults[2]) != 0:
+                    return pluginResults
+
         return (dirs, files, infos)
 
 
@@ -678,13 +782,13 @@ def walk(top, userCredentials=None, walkDirectories=True, topDown=True):
             for root, dirs, files, infos in ftpWalker.walk(top, walkDirectories):
                 yield (root, dirs, files, infos)
         elif protocol == 'http':
-#            import pdb; pdb.set_trace()
+            #            import pdb; pdb.set_trace()
             httpWalker = HttpDirectoryWalker(userCredentials)
-            for root, dirs, files,infos in httpWalker.walk(top, walkDirectories):
+            for root, dirs, files, infos in httpWalker.walk(top, walkDirectories):
                 yield (root, dirs, files, infos)
         elif protocol == 'sftp':
             sftpWalker = SftpDirectoryWalker(userCredentials)
-            for root, dirs, files,infos in sftpWalker.walk(top, walkDirectories):
+            for root, dirs, files, infos in sftpWalker.walk(top, walkDirectories):
                 yield (root, dirs, files, infos)
         else:
             die('filelist: Cannot handle protocol ', protocol)
@@ -696,10 +800,12 @@ def walk(top, userCredentials=None, walkDirectories=True, topDown=True):
             files = os.listdir(top)
             yield (top, [], files, [])
 
+
 def remoteUrl(url):
     """Returns True if the URL is remote; also returns protocol,
     net location (host:port), and path."""
-    protocol, netloc, path, params, query, fragment = urlparse.urlparse(url)
+    protocol, netloc, path, params, query, fragment = urllib.parse.urlparse(
+        url)
     if protocol == '':
         return (False, protocol, netloc, path)
     else:
@@ -708,6 +814,8 @@ def remoteUrl(url):
 
 # utils
 RE_WITH_SUBST_PATTERN = re.compile(r'^s/(.+)/(.+)/$')
+
+
 def parse_re_with_subst(str):
     match = RE_WITH_SUBST_PATTERN.match(str)
     if match:
@@ -715,83 +823,127 @@ def parse_re_with_subst(str):
     else:
         return (str, None)
 
+
 def hostName():
     return socket.gethostbyaddr(socket.gethostname())[0]
 
+
 FILE_URL_PREFIX = 'file://' + hostName()
+
+
 def makeFileUrl(file):
     return FILE_URL_PREFIX + file
 
+
 def warn(*str): sys.stderr.write(' '.join(str) + '\n')
+
+
 def die(str, status=1): warn(str); sys.exit(status)
+
 
 def main():
     """Main function for outside scripts to call."""
 
     from sys import argv
 
-    if len(argv) < 2: die(USAGE)
+    if len(argv) < 2:
+        die(USAGE)
     try:
         opts, argv = getopt.getopt(argv[1:], 'hbcdf:ilqr:stuvw:x',
-                         ['help', 'bottomUp', 'credentials', 'delete', 'directory',
-                          'fetchDir=', 'fetchIfNewer', 'fetchWithSubDirs', 'info',
-                          'list', 'quiet', 'regex=', 'size', 'topOnly',
-                          'url', 'verbose', 'wildcard=', 'xml'])
-    except getopt.GetoptError, (msg, bad_opt):
+                                   ['help', 'bottomUp', 'credentials', 'delete', 'directory',
+                                    'fetchDir=', 'fetchIfNewer', 'fetchWithSubDirs', 'info',
+                                    'list', 'quiet', 'regex=', 'size', 'topOnly',
+                                    'url', 'verbose', 'wildcard=', 'xml'])
+    except getopt.GetoptError as xxx_todo_changeme:
+        (msg, bad_opt) = xxx_todo_changeme.args
         die("%s error: Bad option: %s, %s" % (argv[0], bad_opt, msg))
 
-    regSpecs = []; wildCards = []; matchUrl=False; walkDirectories = True
-    needCredentials = False; userCredentials = None
-    urlMode=False; xmlMode=False; quietMode=False; verboseMode=False; getFileInfo=False
-    fetchDir = None; fetchIfNewer=False; fetchWithSubDirs=False
-    directoryMode = False; deleteMode = False; topDown = True; listMode = False
+    regSpecs = []
+    wildCards = []
+    matchUrl = False
+    walkDirectories = True
+    needCredentials = False
+    userCredentials = None
+    urlMode = False
+    xmlMode = False
+    quietMode = False
+    verboseMode = False
+    getFileInfo = False
+    fetchDir = None
+    fetchIfNewer = False
+    fetchWithSubDirs = False
+    directoryMode = False
+    deleteMode = False
+    topDown = True
+    listMode = False
 
     for opt, val in opts:
-        if opt   in ('-h', '--help'):       die(USAGE)
-        elif opt in ('-b', '--bottomUp'):   topDown = False
-        elif opt in ('-c', '--credentials'):   needCredentials = True
-        elif opt in ('-d', '--directory'):  directoryMode=True
-        elif opt in ('--delete'):           deleteMode=True
-        elif opt in ('-f', '--fetchDir'):   fetchDir = val
-                                            # retrieve remote files to this dir
-        elif opt in ('--fetchIfNewer'):     fetchIfNewer=True
-                                            # only fetch if src file is newer than existing dest file
-        elif opt in ('--fetchWithSubDirs'): fetchWithSubDirs=True
-                                            # mirror subdirectories when fetching
-        elif opt in ('-i', '--info'):       getFileInfo=True
-        elif opt in ('-l', '--list'):       listMode=True
-        elif opt in ('-m', '--matchUrl'):   matchUrl=True
-                                            # regexs match entire URL/path, not just file name
-        elif opt in ('-q', '--quiet'):      quietMode=True
-                                            # don't print files during walk
-        elif opt in ('-r', '--regex'):      regSpecs.append(val)
-        elif opt in ('-s', '--size'):       sizeMode=True
-        elif opt in ('-t', '--topOnly'):    walkDirectories=False
-        elif opt in ('-u', '--url'):        urlMode=True
-                                            # return URL's (file:, ftp:, http:, etc.)
-        elif opt in ('-v', '--verbose'):    verboseMode=True
-        elif opt in ('-w', '--wildcard'):   wildCards.append(val)
-        elif opt in ('-x', '--xml'):        xmlMode=True   # return list in XML format
-        else: die(USAGE)
+        if opt in ('-h', '--help'):
+            die(USAGE)
+        elif opt in ('-b', '--bottomUp'):
+            topDown = False
+        elif opt in ('-c', '--credentials'):
+            needCredentials = True
+        elif opt in ('-d', '--directory'):
+            directoryMode = True
+        elif opt in ('--delete'):
+            deleteMode = True
+        elif opt in ('-f', '--fetchDir'):
+            fetchDir = val
+            # retrieve remote files to this dir
+        elif opt in ('--fetchIfNewer'):
+            fetchIfNewer = True
+            # only fetch if src file is newer than existing dest file
+        elif opt in ('--fetchWithSubDirs'):
+            fetchWithSubDirs = True
+            # mirror subdirectories when fetching
+        elif opt in ('-i', '--info'):
+            getFileInfo = True
+        elif opt in ('-l', '--list'):
+            listMode = True
+        elif opt in ('-m', '--matchUrl'):
+            matchUrl = True
+            # regexs match entire URL/path, not just file name
+        elif opt in ('-q', '--quiet'):
+            quietMode = True
+            # don't print files during walk
+        elif opt in ('-r', '--regex'):
+            regSpecs.append(val)
+        elif opt in ('-s', '--size'):
+            sizeMode = True
+        elif opt in ('-t', '--topOnly'):
+            walkDirectories = False
+        elif opt in ('-u', '--url'):
+            urlMode = True
+            # return URL's (file:, ftp:, http:, etc.)
+        elif opt in ('-v', '--verbose'):
+            verboseMode = True
+        elif opt in ('-w', '--wildcard'):
+            wildCards.append(val)
+        elif opt in ('-x', '--xml'):
+            xmlMode = True   # return list in XML format
+        else:
+            die(USAGE)
 
 #    import pdb; pdb.set_trace()
 
     matchedFiles, fetchedFiles, destinationFiles = \
-            filelist(argv, regSpecs, wildCards, needCredentials, userCredentials,
-                     matchAnyThenConstrain, None, matchUrl, walkDirectories,
-                     urlMode, xmlMode, quietMode, verboseMode, getFileInfo,
-                     fetchDir, fetchIfNewer, fetchWithSubDirs,
-                     directoryMode, listMode, deleteMode, topDown)
+        filelist(argv, regSpecs, wildCards, needCredentials, userCredentials,
+                 matchAnyThenConstrain, None, matchUrl, walkDirectories,
+                 urlMode, xmlMode, quietMode, verboseMode, getFileInfo,
+                 fetchDir, fetchIfNewer, fetchWithSubDirs,
+                 directoryMode, listMode, deleteMode, topDown)
 
     if quietMode:
         if listMode == 'match':
-            print matchedFiles
+            print(matchedFiles)
         elif listMode == 'fetch':
-            print fetchedFiles
+            print(fetchedFiles)
         elif listMode == 'destination':
-            print destinationFiles
+            print(destinationFiles)
         else:
             pass
 
 
-if __name__ ==  '__main__': main()
+if __name__ == '__main__':
+    main()

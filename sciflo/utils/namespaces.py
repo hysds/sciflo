@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        namespaces.py
 # Purpose:     Set namespace constants.
 #
@@ -7,23 +7,27 @@
 # Created:     Thu Apr 27 12:08:11 2006
 # Copyright:   (c) 2006, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
-#-----------------------------------------------------------------------------
-#default namespace
+# -----------------------------------------------------------------------------
+# default namespace
 SCIFLO_NAMESPACE = 'http://sciflo.jpl.nasa.gov/2006v1/sf'
 
-#xsd namespace
+# xsd namespace
 XSD_NAMESPACE = 'http://www.w3.org/2001/XMLSchema'
 
-#xsi namespace
+# xsi namespace
 XSI_NAMESPACE = 'http://www.w3.org/2001/XMLSchema-instance'
 
-#sciflo python namespace
+# sciflo python namespace
 PY_NAMESPACE = 'http://sciflo.jpl.nasa.gov/2006v1/py'
 
-#get prefix from namespace dict
-def getPrefixForNs(nsDict,ns):
+# get prefix from namespace dict
+
+
+def getPrefixForNs(nsDict, ns):
     """Return prefix string for namespace."""
-    if nsDict.get('_default',None) == ns: return '_default'
-    for pre in nsDict.keys():
-        if nsDict[pre] == ns: return pre
+    if nsDict.get('_default', None) == ns:
+        return '_default'
+    for pre in list(nsDict.keys()):
+        if nsDict[pre] == ns:
+            return pre
     return None

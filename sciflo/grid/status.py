@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        status.py
 # Purpose:     Define the status states for workUnit.
 #
@@ -7,46 +7,47 @@
 # Created:     Wed Jun 29 07:43:21 2005
 # Copyright:   (c) 2005, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#sciflomanager sent work unit
+# sciflomanager sent work unit
 sentStatus = 'sent'
 
-#manager called callback to sciflomanager
+# manager called callback to sciflomanager
 calledBackStatus = 'called back'
 
-#work unit is waiting for dependencies to be resolved
+# work unit is waiting for dependencies to be resolved
 waitingStatus = 'waiting'
 
-#work unit has dependencies resolved and is ready to run
+# work unit has dependencies resolved and is ready to run
 readyStatus = 'ready'
 
-#work unit is staging files prior to execution
+# work unit is staging files prior to execution
 stagingStatus = 'staging'
 
-#work unit is executing
+# work unit is executing
 workingStatus = 'working'
 
-#work unit finished successfully
+# work unit finished successfully
 doneStatus = 'done'
 
-#work unit finished with an exception
+# work unit finished with an exception
 exceptionStatus = 'exception'
 
-#work unit resolved to a previously run work unit
+# work unit resolved to a previously run work unit
 cachedStatus = 'cached'
 
-#post execution of work unit
+# post execution of work unit
 postExecutionStatus = 'finalizing'
 
-#work unit was cancelled
+# work unit was cancelled
 cancelledStatus = 'cancelled'
 
-#work unit is paused
+# work unit is paused
 pausedStatus = 'paused'
 
-#work unit is retrying
+# work unit is retrying
 retryStatus = 'retry'
 
-#list of statuses that indicate work unit is not working any more
-finishedStatusList = [doneStatus,exceptionStatus,cachedStatus,cancelledStatus]
+# list of statuses that indicate work unit is not working any more
+finishedStatusList = [doneStatus, exceptionStatus,
+                      cachedStatus, cancelledStatus]

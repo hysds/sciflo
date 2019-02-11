@@ -75,7 +75,7 @@ def cpuTest(c):
     t1 = time.time()
     while a < c:
         a = add(a, 1)
-    print "cpuTest took %s seconds." % (time.time() - t1)
+    print("cpuTest took %s seconds." % (time.time() - t1))
     return a
             ]]></sf:binding>
           </sf:op>

@@ -95,7 +95,7 @@ def add(v1, v2, v3):
 def add(v1, v2, v3):
     import time
     time.sleep(5)
-    import binning
+    import binning64
     return v1 + v2 + v3
             ]]></sf:binding>
           </sf:op>

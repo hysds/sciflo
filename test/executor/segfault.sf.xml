@@ -35,7 +35,7 @@
           <sf:op>
             <sf:binding>python:<![CDATA[
 def add(v1, v2, v3):
-    import binning
+    import binning64
     return v1 + v2 + v3
             ]]></sf:binding>
           </sf:op>

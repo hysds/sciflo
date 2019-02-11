@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        pageTemplate.py
 # Purpose:     Custom web page layout templates.
 #
@@ -8,9 +8,10 @@
 # Created:     Thu Jul 27 11:10:00 2006
 # Copyright:   (c) 2006, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 from string import Template
-import os, re
+import os
+import re
 from sciflo.utils import getHtmlBaseHref, getCgiBaseHref, getRelativeUrl, sanitizeHtml
 
 CGI_URL_BASE = getCgiBaseHref()
@@ -80,7 +81,8 @@ investigations involving data from multiple flight instruments, providing specia
 for mining, visualization, fusion, and analysis of large science data sets.  A demonstration
 version of the new GENESIS will be available in 2005." />
 '''
-customHead = re.sub(r'common.css', os.path.join(REL_URL, 'common.css'), customHead)
+customHead = re.sub(r'common.css', os.path.join(
+    REL_URL, 'common.css'), customHead)
 
 customBodyStart = '''
 <table border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td bgcolor="#ffffff" align="center"></td></tr>
@@ -199,7 +201,8 @@ customBodyStart = '''
                <tr><td><br></td></tr>
                <tr><td>
 '''
-customBodyStart = re.sub(r'portal_images', os.path.join(REL_URL, 'portal_images'), customBodyStart)
+customBodyStart = re.sub(r'portal_images', os.path.join(
+    REL_URL, 'portal_images'), customBodyStart)
 
 customBodyEnd = '''
 </td></tr>
@@ -276,7 +279,8 @@ customBodyEnd = '''
 
 </td></tr></table>
 '''
-customBodyEnd = re.sub(r'portal_images', os.path.join(REL_URL, 'portal_images'), customBodyEnd)
+customBodyEnd = re.sub(r'portal_images', os.path.join(
+    REL_URL, 'portal_images'), customBodyEnd)
 
 pageTemplateHead = Template(re.sub(r'portal_images', os.path.join(REL_URL, 'portal_images'), '''
 <html>

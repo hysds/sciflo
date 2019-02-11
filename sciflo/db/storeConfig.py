@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        storeConfig.py
 # Purpose:     Store config class.
 #
@@ -7,13 +7,15 @@
 # Created:     Tue Jul 19 22:39:35 2005
 # Copyright:   (c) 2005, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-from storeTypeMapping import StoreTypeMapping
+from .storeTypeMapping import StoreTypeMapping
+
 
 class StoreConfigError(Exception):
     """Exception class for StoreConfig class."""
     pass
+
 
 class StoreConfig(object):
     """Class representing the configuration for a Store object."""
@@ -21,11 +23,11 @@ class StoreConfig(object):
     def __init__(self, storeType, storeName, storeFieldsList, *args, **kargs):
         """Constructor."""
 
-        #make sure store type exists
+        # make sure store type exists
         if not storeType in StoreTypeMapping:
-            raise StoreConfigError, "Unknown store type %s." % storeType
+            raise StoreConfigError("Unknown store type %s." % storeType)
 
-        #set attributes
+        # set attributes
         self._storeType = storeType
         self._storeName = storeName
         self._storeFieldsList = storeFieldsList

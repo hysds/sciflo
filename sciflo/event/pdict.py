@@ -14,15 +14,18 @@ from twisted.internet.protocol import ServerFactory
 from twisted.protocols.basic import LineReceiver
 from twisted.python import log
 
-import os, sys, socket
+import os
+import sys
+import socket
 from bsddb3 import dbshelve
-import cPickle as pickle
+import pickle as pickle
 try:
     from UserDict import DictMixin
 except ImportError:
-    class DictMixin: pass
+    class DictMixin:
+        pass
 
-#retrieve work unit cache dir and file from user configuration
+# retrieve work unit cache dir and file from user configuration
 from sciflo.utils import ScifloConfigParser, validateDirectory
 scp = ScifloConfigParser()
 WorkUnitCacheDir = scp.getParameter("cacheHome")
@@ -36,14 +39,14 @@ DEBUG = False
 
 # Registry of named (shareable) dictionaries
 NamedDicts = {'WorkUnitCache':
-                {'dbFile': WorkUnitCache, 'port': WorkUnitCachePort,
-                 'logFile': WorkUnitCacheLog},
+              {'dbFile': WorkUnitCache, 'port': WorkUnitCachePort,
+               'logFile': WorkUnitCacheLog},
               'EventStore':
-                {'dbFile': '/tmp/EventStore/eventStore.db', 'port': 8002,
-                 'logFile': 'eventStoreServer.log'},
+              {'dbFile': '/tmp/EventStore/eventStore.db', 'port': 8002,
+               'logFile': 'eventStoreServer.log'},
               'Test':
-                {'dbFile': None, 'port': 8009, 'logFile': '/tmp/Test.log'},
-             }
+              {'dbFile': None, 'port': 8009, 'logFile': '/tmp/Test.log'},
+              }
 
 # String constants for client/server protocol across wire
 NNL = '\r\n'  # network newline
@@ -80,47 +83,54 @@ Notes:
         self.val = None     # value to insert
 
     def connectionMade(self):
-        if DEBUG: print 'PersistentDict: connection made.'
+        if DEBUG:
+            print('PersistentDict: connection made.')
 
     def lineReceived(self, line):
         """Simple finite state machine to process the four possible commands.
         """
         dic = self.factory.dict  # get dictionary opened in factory init()
-        if DEBUG: print '**', line, '**'
+        if DEBUG:
+            print(('**', line, '**'))
         if self.state == 'start':
             if line == 'ping':
-                print 'ping'
+                print('ping')
                 self.sendline(OkMsg)
             elif line == 'length':
-                print 'length'
+                print('length')
                 self.sendline('1')
 #                self.sendline( str(len(dic)) )
             elif line in ('get', 'delete', 'insert'):
-                if DEBUG: print 'Change state to', line
+                if DEBUG:
+                    print(('Change state to', line))
                 self.state = line
         elif self.state == 'get':
-            print 'get', line
+            print(('get', line))
             val = dic.get(line, NoneMsg)
             self.sendline(val + EndMsg)
             self.state = 'start'
         elif self.state == 'delete':
-            print 'delete', line
-            if line in dic: del dic[line]
+            print(('delete', line))
+            if line in dic:
+                del dic[line]
             self.sendline(OkMsg)
             self.state = 'start'
         elif self.state == 'insert':
-            print 'insert', line
+            print(('insert', line))
             self.key = line
             self.val = ''
             self.state = 'getval'
         elif self.state == 'getval':
-            if DEBUG: print 'Adding to val:', line
+            if DEBUG:
+                print(('Adding to val:', line))
             self.val += line
             if line.endswith(EndMsg):
                 val = self.val[:-len(EndMsg)]
                 dic[self.key] = val
-                if DEBUG: print 'Inserted:'
-                if DEBUG: print val
+                if DEBUG:
+                    print('Inserted:')
+                if DEBUG:
+                    print(val)
                 self.sendline(OkMsg)
                 self.state = 'start'
 
@@ -128,7 +138,9 @@ Notes:
         self.transport.write(line + NNL)
 
 
-class PersistentDictFactoryException(RuntimeError): pass
+class PersistentDictFactoryException(RuntimeError):
+    pass
+
 
 class PersistentDictFactory(ServerFactory):
     protocol = PersistentDictProtocol
@@ -138,48 +150,58 @@ class PersistentDictFactory(ServerFactory):
         """
         self.dictName = dictName
         try:
-	    self.dbFile   = dictRegistry[dictName]['dbFile']
-	    self.port     = dictRegistry[dictName]['port']
+            self.dbFile = dictRegistry[dictName]['dbFile']
+            self.port = dictRegistry[dictName]['port']
             if self.dbFile:
                 dbHome = os.path.split(self.dbFile)[0]
-                if not os.path.exists(dbHome): os.makedirs(dbHome, 0777)
+                if not os.path.exists(dbHome):
+                    os.makedirs(dbHome, 0o777)
                 self.dbHome = dbHome
-                logFile  = dictRegistry[dictName]['logFile']
-                if not logFile.startswith('/'): logFile = os.path.join(dbHome, logFile)
+                logFile = dictRegistry[dictName]['logFile']
+                if not logFile.startswith('/'):
+                    logFile = os.path.join(dbHome, logFile)
                 self.logFile = logFile
         except:
-            raise PersistentDictFactoryException('Error, no dict of that name: %s' % dictName)
+            raise PersistentDictFactoryException(
+                'Error, no dict of that name: %s' % dictName)
         validateDirectory(os.path.dirname(self.logFile))
         log.startLogging(open(self.logFile, 'w'))
         if dictName == 'Test':
             self.dict = _TestDict
         else:
             self.dict = dbshelve.open(self.dbFile)
-            os.chmod(self.dbFile, 0666)
+            os.chmod(self.dbFile, 0o666)
 
 
-class PersistentDictClientException(RuntimeError): pass
+class PersistentDictClientException(RuntimeError):
+    pass
+
 
 class PersistentDictClient:
     """A simple client to call a persistent dictionary (e.g. bsddb) across a socket.
 The client only has four useful methods:  ping, get, delete, insert.
     """
+
     def __init__(self, dictName, dictRegistry=NamedDicts, pickleVals=False, timeout=3.0, bufsize=4096):
         self.dictName = dictName
         self.pickleVals = pickleVals
         self.timeout = timeout
         self.bufsize = bufsize
         try:
-	    self.port = dictRegistry[dictName]['port']
+            self.port = dictRegistry[dictName]['port']
         except:
-            raise PersistentDictClientException('Error, no dict of that name: %s' % dictName)
+            raise PersistentDictClientException(
+                'Error, no dict of that name: %s' % dictName)
         self.soc = self._openLocalSocket(self.port)
         if not self.ping():
-            raise PersistentDictClientException('Error, server for %s on port %s does not return ping' % (dictName, self.port))
+            raise PersistentDictClientException(
+                'Error, server for %s on port %s does not return ping' % (dictName, self.port))
 
     def close(self):
         self.soc.close()
-        if DEBUG: print 'PersistentDictClient: Closed socket connection to dictName, port: %s, %d' % (self.dictName, self.port)
+        if DEBUG:
+            print(('PersistentDictClient: Closed socket connection to dictName, port: %s, %d' % (
+                self.dictName, self.port)))
 
     def ping(self):
         """Ping server to ensure it's alive."""
@@ -194,19 +216,23 @@ The client only has four useful methods:  ping, get, delete, insert.
         cmd = 'get' + NNL + key + NNL
         try:
             soc.sendall(cmd)
-        except socket.error, msg:
+        except socket.error as msg:
             soc.close()
-            raise PersistentDictClientException('Error, cannot send to socket: %s' % cmd)
+            raise PersistentDictClientException(
+                'Error, cannot send to socket: %s' % cmd)
         data = ''
         firstTry = True
         while not data.endswith(EndToken):
             try:
                 data += soc.recv(self.bufsize)
-                if DEBUG: print 'Got data:', data
-            except socket.error, msg:
+                if DEBUG:
+                    print(('Got data:', data))
+            except socket.error as msg:
                 soc.close()
-                raise PersistentDictClientException('Error, no data received from socket, sent: %s' % cmd)
-            if data.startswith(NoneMsg) or (firstTry and len(data) == 0): return default
+                raise PersistentDictClientException(
+                    'Error, no data received from socket, sent: %s' % cmd)
+            if data.startswith(NoneMsg) or (firstTry and len(data) == 0):
+                return default
             firstTry = False
         data = data[:-len(EndToken)]
         if self.pickleVals:
@@ -221,10 +247,11 @@ The client only has four useful methods:  ping, get, delete, insert.
             return self._sendCmd(cmd)
         except:
             return False
-        
+
     def insert(self, key, val):
         """Insert or change the value of a key."""
-        if self.pickleVals: val = pickle.dumps(val)
+        if self.pickleVals:
+            val = pickle.dumps(val)
         cmd = 'insert' + NNL + key + NNL + val + EndToken
         try:
             return self._sendCmd(cmd)
@@ -244,44 +271,54 @@ The client only has four useful methods:  ping, get, delete, insert.
             soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             soc.connect(('127.0.0.1', port))
             soc.settimeout(self.timeout)
-        except socket.error, e:
+        except socket.error as e:
             soc.close()
-            print 'PersistentDictClient: Error, cannot connect socket to local port: %s' % port
+            print(
+                ('PersistentDictClient: Error, cannot connect socket to local port: %s' % port))
             raise e
         return soc
 
     def _sendCmd(self, cmd):
         """Send a command and check for returned 'ok' message."""
         soc = self.soc
-        if cmd[-2:] != NNL: cmd += NNL
+        if cmd[-2:] != NNL:
+            cmd += NNL
         try:
             soc.sendall(cmd)
-        except socket.error, msg:
+        except socket.error as msg:
             soc.close()
-            raise RuntimeError('PersistentDictClient: Error, cannot send to socket: %s' % cmd)
+            raise RuntimeError(
+                'PersistentDictClient: Error, cannot send to socket: %s' % cmd)
         try:
             data = soc.recv(self.bufsize)
-        except socket.error, e:
+        except socket.error as e:
             soc.close()
-            print 'PersistentDictClient: Error, no data received from socket, sent: %s' % cmd
+            print(
+                ('PersistentDictClient: Error, no data received from socket, sent: %s' % cmd))
             raise e
         data = data[-len(NNL):]
-        if data == OkMsg: data = True
+        if data == OkMsg:
+            data = True
         return data
-        
 
-class PersistentDictException(RuntimeError): pass
+
+class PersistentDictException(RuntimeError):
+    pass
+
 
 class PersistentDict(DictMixin):
     """Presents the usual dict interface, accessing a *named*, shared, persistent dictionary,
 and hides the (socket) client and (twisted) server classes from view.
     """
+
     def __init__(self, dictName, pickleVals=False):
-        self.dictName = dictName; self.db = None
+        self.dictName = dictName
+        self.db = None
         self.db = PersistentDictClient(dictName, pickleVals=pickleVals)
 
     def __del__(self):
-        if self.db: self.db.close()
+        if self.db:
+            self.db.close()
 
     def __getattr__(self, name):
         """Many methods we can just pass through to the DB object."""
@@ -301,21 +338,24 @@ and hides the (socket) client and (twisted) server classes from view.
         self.db.delete(key)
 
     def keys(self, txn=None):
-        raise PersistentDictException('Error, class does not implement keys() method.')
+        raise PersistentDictException(
+            'Error, class does not implement keys() method.')
 
     def items(self, txn=None):
-        raise PersistentDictException('Error, class does not implement items() method.')
+        raise PersistentDictException(
+            'Error, class does not implement items() method.')
 
     def values(self, txn=None):
-        raise PersistentDictException('Error, class does not implement values() method.')
+        raise PersistentDictException(
+            'Error, class does not implement values() method.')
 
 
 def startPersistentDictServer():
     """This code belongs in a twisted tac file (at toplevel)."""
-    from pdict import NamedDicts, PersistentDictFactory
+    from .pdict import NamedDicts, PersistentDictFactory
     from twisted.application import internet, service
 
-    namedDict = "EventStore"    
+    namedDict = "EventStore"
     port = NamedDicts[namedDict]['port']
     application = service.Application("pdict")
     factory = PersistentDictFactory(namedDict)
@@ -325,28 +365,30 @@ def startPersistentDictServer():
 
 def testClientSimple():
     dic = PersistentDict("Test")
-    print dic['foo']
+    print((dic['foo']))
     del dic['foo']
     dic['you'] = 'tube'
-    print dic['you']
+    print((dic['you']))
     del dic
+
 
 def testClient():
     dic = PersistentDict("EventStore")
-    print len(dic)
-    print dic['foo']
+    print((len(dic)))
+    print((dic['foo']))
     dic['foo'] = 'bar'
     dic['bush'] = 'sucks'
     dic['fool'] = 'no money'
-    print dic['foo']
+    print((dic['foo']))
     del dic['foo']
     dic['you'] = 'tube'
-    print dic['you']
-    print len(dic)
+    print((dic['you']))
+    print((len(dic)))
 
 
 def main():
     testClient()
+
 
 if __name__ == '__main__':
     main()

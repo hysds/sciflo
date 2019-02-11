@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        monitor_sciflo.cgi
 # Purpose:     Monitor the execution of a sciflo.
 #
@@ -8,7 +8,7 @@
 # Created:     Thu Jul 27 10:56:00 2006
 # Copyright:   (c) 2006, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 import cgi
 #import cgitb; cgitb.enable()
 from string import Template
@@ -27,9 +27,9 @@ from urlparse import urlparse, urljoin
 
 import sciflo
 from sciflo.utils.sajax1 import (form, sajax_init, sajax_export, sajax_handle_client_request,
-sajax_show_javascript)
+                                 sajax_show_javascript)
 from sciflo.utils import (getListFromUnknownObject, getNamespacePrefixDict, escapeCharsForCDATA,
-sanitizeHtml)
+                          sanitizeHtml)
 from sciflo.grid.executor import PICKLE_FIELDS, ScifloExecutorError
 from sciflo.grid.funcs import CANCELLED_MESSAGE
 from cgiUtils import *
@@ -38,19 +38,23 @@ CGI_URL_BASE = sciflo.utils.getCgiBaseHref()
 HTML_URL_BASE = sciflo.utils.getHtmlBaseHref()
 REL_URL = sciflo.utils.getRelativeUrl(CGI_URL_BASE, HTML_URL_BASE)
 
-basicTemplate = form.getfirst('basicTemplate',None)
-if basicTemplate is None: import pageTemplate
-else: import basicPageTemplate as pageTemplate
+basicTemplate = form.getfirst('basicTemplate', None)
+if basicTemplate is None:
+    import pageTemplate
+else:
+    import basicPageTemplate as pageTemplate
 
 JQUERY_URL = os.path.join(REL_URL, 'jquery-ui/js/jquery-1.9.0.js')
-JQUERY_UI_URL = os.path.join(REL_URL, 'jquery-ui/js/jquery-ui-1.10.0.custom.js')
-JQUERY_CSS_URL = os.path.join(REL_URL, 'jquery-ui/css/smoothness/jquery-ui-1.10.0.custom.css')
+JQUERY_UI_URL = os.path.join(
+    REL_URL, 'jquery-ui/js/jquery-ui-1.10.0.custom.js')
+JQUERY_CSS_URL = os.path.join(
+    REL_URL, 'jquery-ui/css/smoothness/jquery-ui-1.10.0.custom.css')
 D3_URL = os.path.join(REL_URL, 'd3/d3.js')
 
-#config file
+# config file
 configFile = None
 
-#templates
+# templates
 spacesStr = '&nbsp;' * 3
 
 formDataTpl = Template('''
@@ -161,7 +165,7 @@ statusRowTpl = Template('''
             <td id="results">$resultLnk</td>
         </tr>''')
 
-#status color
+# status color
 statusColorDict = {'waiting': '#FFA000',
                    'ready': '#FFFF00',
                    'staging': '#CCFF00',
@@ -174,29 +178,36 @@ statusColorDict = {'waiting': '#FFA000',
                    'cached': '#99FFFF'
                    }
 
-#results section
+# results section
 resultsSectionTpl = Template('''
 <div id="resultsSection">
     $resultsContent
 </div>''')
 
-#execution log
+# execution log
 executionLogLinkTpl = Template('''
 <br/><b>Execution log:</b> <a href="$logStr" target="_blank">log</a>''')
+
 
 def queryMethod(json, keys):
     """Return query results."""
     if isinstance(keys, (types.ListType, types.TupleType)):
         return [json[k] for k in keys]
-    elif isinstance(keys, types.StringTypes): return json[keys]
-    else: raise RuntimeError("Unknown type: %s" % type(keys))
-    
+    elif isinstance(keys, types.StringTypes):
+        return json[keys]
+    else:
+        raise RuntimeError("Unknown type: %s" % type(keys))
+
+
 def refresh(jsonUrl):
     """Backend for ajax refresh() call.  Return current status table html
     string."""
 
-    try: return getStatusTable(jsonUrl)
-    except: return ''
+    try:
+        return getStatusTable(jsonUrl)
+    except:
+        return ''
+
 
 def printResults(jsonUrl, status):
     """Backend for ajax printResults() call.  Return results section as
@@ -204,74 +215,84 @@ def printResults(jsonUrl, status):
 
     return getResultsSection(jsonUrl, status)
 
+
 def getResultsSection(jsonUrl, status):
     """Return html string of results section."""
 
-    #get json
+    # get json
     json = sciflo.grid.utils.loadJson(jsonUrl, unpickleKeys=PICKLE_FIELDS)
-    
-    #if done or cached, print results
-    if status in ('done','exception'):
 
-        #if exception, print get error and print
+    # if done or cached, print results
+    if status in ('done', 'exception'):
+
+        # if exception, print get error and print
         if status == 'exception':
-            res, trace, outputDir = queryMethod(json, ['result', 'exceptionMessage', 'outputDir'])
+            res, trace, outputDir = queryMethod(
+                json, ['result', 'exceptionMessage', 'outputDir'])
             if isinstance(res, ScifloExecutorError) and re.search(r'%s' % CANCELLED_MESSAGE, str(res)):
                 errorMsg = 'SciFlo execution was cancelled.'
             else:
-                #extract Invalid, *Errors, and *Exceptions embedded within soap exceptions
-                errMatch = re.search(r'(?:Invalid|.*Error|.*Exception):(.*?)>', str(res), re.S)
-                if errMatch: errorMsg = errMatch.group(1)
-                else: errorMsg = re.search(r'Exception Value:(.*?)Traceback ', str(res), re.S).group(1)
+                # extract Invalid, *Errors, and *Exceptions embedded within soap exceptions
+                errMatch = re.search(
+                    r'(?:Invalid|.*Error|.*Exception):(.*?)>', str(res), re.S)
+                if errMatch:
+                    errorMsg = errMatch.group(1)
+                else:
+                    errorMsg = re.search(
+                        r'Exception Value:(.*?)Traceback ', str(res), re.S).group(1)
             errorHtml = '''<div id="annotatedSciflo"><b>Annotated SciFlo: </b><a href="%s" target="_blank">xml</a></div><br/>''' % \
-                         os.path.join(outputDir, 'sciflo.sf.xml')
+                os.path.join(outputDir, 'sciflo.sf.xml')
             if trace is None:
-                errorHtml += '<font color="red"><b>Error: </b><br/>%s</font><br/><br/>' % escapeCharsForCDATA(errorMsg)
+                errorHtml += '<font color="red"><b>Error: </b><br/>%s</font><br/><br/>' % escapeCharsForCDATA(
+                    errorMsg)
                 #errorHtml += '<b>Exception: </b><br/>%s' % escapeCharsForCDATA(str(res))
             else:
                 trace = map(str, eval(trace))
-                errorHtml += '<font color="red"><b>Error: </b><br/>%s</font><br/><br/>' % escapeCharsForCDATA(errorMsg)
+                errorHtml += '<font color="red"><b>Error: </b><br/>%s</font><br/><br/>' % escapeCharsForCDATA(
+                    errorMsg)
                 #errorHtml += '<b>Exception in %s:</b><br/>' % escapeCharsForCDATA(trace[0])
                 #errorHtml += '%s<br/>' % escapeCharsForCDATA(trace[2])
-            errorHtml = errorHtml.replace('\n','<br/>')
-            return resultsSectionTpl.substitute({'resultsContent':errorHtml})
+            errorHtml = errorHtml.replace('\n', '<br/>')
+            return resultsSectionTpl.substitute({'resultsContent': errorHtml})
 
-        #get call, result, workdir
-        wuid, scifloXml, result, outputDir = queryMethod(json, ['scifloid', 'call', 'result', 'outputDir'])
+        # get call, result, workdir
+        wuid, scifloXml, result, outputDir = queryMethod(
+            json, ['scifloid', 'call', 'result', 'outputDir'])
 
-        #get link to annotated sciflo
+        # get link to annotated sciflo
         annotatedXmlFile = os.path.join(outputDir, 'sciflo.sf.xml')
 
-        #get ns prefix dict
+        # get ns prefix dict
         nsDict = getNamespacePrefixDict(scifloXml)
 
-        #get lxml elt
+        # get lxml elt
         elt = XML(scifloXml)
 
-        #get global outputs via xpath
+        # get global outputs via xpath
         outputsRows = []
-        outputsElt = elt.xpath('./*/sf:outputs',namespaces=nsDict)
-        #loop through and clean out comment elements
+        outputsElt = elt.xpath('./*/sf:outputs', namespaces=nsDict)
+        # loop through and clean out comment elements
         otElts = []
         for i in outputsElt[0]:
             otTag = str(i.tag)
-            if otTag == 'None': continue
+            if otTag == 'None':
+                continue
             otElts.append(i)
-        #loop over and get html for results
+        # loop over and get html for results
         resIdx = 0
         for i in otElts:
             outputsRows.append(outputsTableRowTpl.substitute(
-                {'tag': re.sub(r'^{.*}','',str(i.tag)),
-                 'value': getResultLinkHtml(wuid,result[resIdx], resIdx,
-                                                showFilesInline=True,
-                                                outputDir=outputDir)}))
+                {'tag': re.sub(r'^{.*}', '', str(i.tag)),
+                 'value': getResultLinkHtml(wuid, result[resIdx], resIdx,
+                                            showFilesInline=True,
+                                            outputDir=outputDir)}))
             resIdx += 1
 
-        #get table
+        # get table
         return outputsTableTpl.substitute({'tbodyContent': '\n'.join(outputsRows),
                                            'annotatedSciflo': annotatedXmlFile})
 
-    #elif status == 'exception':
+    # elif status == 'exception':
     #    resLnkHtml = '<font color="red"><b>sciflo encountered exception.</b></font>'
     elif status == 'cancelled':
         resLnkHtml = '<font color="red"><b>SciFlo execution was cancelled.</b></font>'
@@ -279,74 +300,88 @@ def getResultsSection(jsonUrl, status):
         #resLnkHtml =' <font color="red"><b>NOT IMPLEMENTED: %s.</b></font>' % status
         resLnkHtml = ''
 
-    #handle status
-    return resultsSectionTpl.substitute({'resultsContent':resLnkHtml})
+    # handle status
+    return resultsSectionTpl.substitute({'resultsContent': resLnkHtml})
+
 
 def getWorkUnitResultLink(wuid, results, outputDir, outputElt, showFilesInline=False, tracebackMessage=None):
     """Return html string of links to results."""
-    
-    #if implicit work unit or exception
+
+    # if implicit work unit or exception
     if outputElt is None or isinstance(results, Exception):
         return getResultLinkHtml(wuid, results, 0, showFilesInline=showFilesInline,
                                  tracebackMessage=tracebackMessage,
                                  outputDir=outputDir)
-    
-    #if only one element
-    if  len(outputElt.getchildren()) == 1:
+
+    # if only one element
+    if len(outputElt.getchildren()) == 1:
         return getResultLinkHtml(wuid, results, 0, showFilesInline=showFilesInline,
                                  tracebackMessage=tracebackMessage,
                                  outputName=outputElt.getchildren()[0].tag,
                                  outputDir=outputDir)
-    
-    #output elements
+
+    # output elements
     retHtml = ''
     for i, j in enumerate(outputElt.getchildren()):
         retHtml += getResultLinkHtml(wuid, results[i], i, showFilesInline=showFilesInline,
-            tracebackMessage=tracebackMessage, outputName=j.tag, outputDir=outputDir)
+                                     tracebackMessage=tracebackMessage, outputName=j.tag, outputDir=outputDir)
         retHtml += '<br/>'
     return retHtml
+
 
 def getStatusTable(jsonUrl):
     """Return html string of status table."""
 
-    #refStarttime
-    #refStarttime=time.time()
-    
-    #get json
+    # refStarttime
+    # refStarttime=time.time()
+
+    # get json
     json = sciflo.grid.utils.loadJson(jsonUrl, unpickleKeys=PICKLE_FIELDS)
     scifloid = json['scifloid']
 
-    #query for current status
+    # query for current status
     curStatus, scifloStarttime, scifloStr, scifloExecLog = \
         queryMethod(json, ['status', 'startTime', 'call', 'executionLog'])
     sflObj = sciflo.grid.doc.Sciflo(scifloStr)
     sflObj.resolve()
     nsDict = sflObj._namespacePrefixDict
-    
-    #get flow output configs
+
+    # get flow output configs
     flowOutputConfigs = sflObj.getFlowOutputConfigs()
     flowOutputIds = [i.getId() for i in flowOutputConfigs]
 
     statusInfoList = []
-    procIds, procIdWuidMap, workDir = queryMethod(json, ['procIds', 'procIdWuidMap', 'workDir'])
+    procIds, procIdWuidMap, workDir = queryMethod(
+        json, ['procIds', 'procIdWuidMap', 'workDir'])
     for i, procId in enumerate(procIds):
         wuid = procIdWuidMap[procId]
         if wuid is not None:
             wuidDir = os.path.join(workDir, wuid)
             wuJsonUrl = os.path.join(wuidDir, 'workunit.json')
-            wuidJson = sciflo.grid.utils.loadJson(wuJsonUrl, unpickleKeys=PICKLE_FIELDS)
+            wuidJson = sciflo.grid.utils.loadJson(
+                wuJsonUrl, unpickleKeys=PICKLE_FIELDS)
             typ, status, workerStatus, args, result, tbMessage, execLog, digest, startTime, endTime = \
                 queryMethod(wuidJson, ['typ', 'status', 'workerStatus', 'args', 'result',
                                        'tracebackMessage', 'executionLog', 'hex', 'startTime',
                                        'endTime'])
             if workerStatus is None or status == 'cancelled':
-                if status == 'sent': workerStatus = 'working'
-                else: workerStatus = status
-            if status in ('finalizing'): workerStatus = status
+                if status == 'sent':
+                    workerStatus = 'working'
+                else:
+                    workerStatus = status
+            if status in ('finalizing'):
+                workerStatus = status
         else:
-            typ = ''; status = 'waiting'; args = []; result = None
-            tracebackMessage = ''; executionLog = ''; digest = None
-            startTime = None; endTime = None; workerStatus = 'waiting'
+            typ = ''
+            status = 'waiting'
+            args = []
+            result = None
+            tracebackMessage = ''
+            executionLog = ''
+            digest = None
+            startTime = None
+            endTime = None
+            workerStatus = 'waiting'
         #f = open('/tmp/error_log', 'a')
         #print >>f, "%s,%s,%s,%s" % (procId, wuid, status, workerStatus)
         statusInfoList.append({'index': i,
@@ -363,82 +398,91 @@ def getStatusTable(jsonUrl):
                                'entryTime': startTime,
                                'finishedTime': endTime})
 
-    #create status table, execution log, and jsonData str
+    # create status table, execution log, and jsonData str
     jsonDataList = []
     statusRows = []
     sortedStatusInfoList = []
     for x in statusInfoList:
-      index = x['index']
-      sortedStatusInfoList.append((int(index), x))
+        index = x['index']
+        sortedStatusInfoList.append((int(index), x))
     sortedStatusInfoList.sort()
     statusInfoList = [x[1] for x in sortedStatusInfoList]
     procIdList = [x['procId'] for x in statusInfoList]
     for statusInfo in statusInfoList:
-        
-        #get procId for json
+
+        # get procId for json
         thisprocid = statusInfo['procId']
-        
-        #get process output elts
+
+        # get process output elts
         outputElt = None
         if not thisprocid.startswith('implicit_'):
             for i in sflObj._flowProcessesProcess:
-                if thisprocid == i.get('id'): outputElt = i.xpath('./sf:outputs', namespaces=nsDict)[0]
+                if thisprocid == i.get('id'):
+                    outputElt = i.xpath('./sf:outputs', namespaces=nsDict)[0]
             if outputElt is None:
                 raise RuntimeError, "Cannot find process %s's output elements in sciflo doc." % thisprocid
 
-        #get wuid
+        # get wuid
         thiswuid = statusInfo['wuid']
 
-        #set wuid and color
+        # set wuid and color
         if thiswuid is None:
             statusInfo['wuidStatus'] = 'waiting'
             statusInfo['colorStatus'] = statusColorDict['waiting']
 
-            #set execution time
+            # set execution time
             statusInfo['executionTime'] = ''
         else:
             wuidStatus = statusInfo['status']
             statusInfo['wuidStatus'] = wuidStatus
-            statusInfo['colorStatus'] = statusColorDict.get(wuidStatus,'#FFFFFF')
+            statusInfo['colorStatus'] = statusColorDict.get(
+                wuidStatus, '#FFFFFF')
 
-            #set execution time
+            # set execution time
             starttime = statusInfo['entryTime']
             endtime = statusInfo['finishedTime']
-            #starttime = statusInfo['entryTime'] #get from schedule store
-            #endtime = statusInfo['finishedTime'] #get from schedule store
-            if None in (starttime,endtime): statusInfo['executionTime'] = ''
-            else: statusInfo['executionTime'] = "%02.3f" % (endtime-starttime)
-            
-        #add json data
-        jsonDataList.append("'%s':'%s'" % (thisprocid,statusInfo['colorStatus']))
+            # starttime = statusInfo['entryTime'] #get from schedule store
+            # endtime = statusInfo['finishedTime'] #get from schedule store
+            if None in (starttime, endtime):
+                statusInfo['executionTime'] = ''
+            else:
+                statusInfo['executionTime'] = "%02.3f" % (endtime-starttime)
 
-        #if finished and there is a global output that depends on this,
-        #add global output to json
+        # add json data
+        jsonDataList.append("'%s':'%s'" %
+                            (thisprocid, statusInfo['colorStatus']))
+
+        # if finished and there is a global output that depends on this,
+        # add global output to json
         if statusInfo['wuidStatus'] in sciflo.grid.finishedStatusList:
             for i in range(len(flowOutputIds)):
                 if flowOutputIds[i] == thisprocid:
-                    if statusInfo['wuidStatus'] in ['exception','cancelled']: outputColor = 'lightpink'
-                    else: outputColor = '#9999CC'
-                    outputJson = "'%s':'%s'" % (sflObj.globalOutputs[i],outputColor)
+                    if statusInfo['wuidStatus'] in ['exception', 'cancelled']:
+                        outputColor = 'lightpink'
+                    else:
+                        outputColor = '#9999CC'
+                    outputJson = "'%s':'%s'" % (
+                        sflObj.globalOutputs[i], outputColor)
                     if outputJson not in jsonDataList:
                         jsonDataList.append(outputJson)
 
-        #get dependency procids and index
+        # get dependency procids and index
         depProcs = []
         statusInfo['dependencies'] = ''
         #print >>sys.stderr, "statusInfo['args']:", statusInfo['args']
         for arg in statusInfo['args']:
-            if isinstance(arg,sciflo.grid.doc.UnresolvedArgument):
+            if isinstance(arg, sciflo.grid.doc.UnresolvedArgument):
                 depProcs.append(str(procIdList.index(arg.getId()) + 1))
-        if len(depProcs) > 0: statusInfo['dependencies'] = ', '.join(depProcs)
+        if len(depProcs) > 0:
+            statusInfo['dependencies'] = ', '.join(depProcs)
 
-        #if type is sciflo, link status text to status of sciflo
+        # if type is sciflo, link status text to status of sciflo
         if statusInfo['type'] == 'sciflo':
             rootBaseUrl = os.path.dirname(os.environ['HTTP_REFERER'])
             statusInfo['wuidStatus'] = '''<a href="%s/monitor_sciflo.cgi?wuid=%s" target="_blank">%s</a>''' % \
-            (rootBaseUrl, thiswuid, statusInfo['wuidStatus'])
+                (rootBaseUrl, thiswuid, statusInfo['wuidStatus'])
 
-        #get result link
+        # get result link
         if statusInfo['result'] is None:
             if statusInfo['status'] == 'cached':
                 #thisreswuid = queryMethod(thiswuid,'digest')
@@ -447,22 +491,23 @@ def getStatusTable(jsonUrl):
                 thisreswuid = statusInfo['digest']
                 thisRes = statusInfo['result']
                 thisError = statusInfo['tracebackMessage']
-                statusInfo['resultLnk'] = getWorkUnitResultLink(thiswuid,thisRes,
+                statusInfo['resultLnk'] = getWorkUnitResultLink(thiswuid, thisRes,
                                                                 statusInfo['wuidDir'],
                                                                 outputElt,
                                                                 tracebackMessage=thisError)
-                #print >>sys.stderr, "#####",thisreswuid, statusInfo['resultLnk']
-            else: statusInfo['resultLnk'] = ''
+                # print >>sys.stderr, "#####",thisreswuid, statusInfo['resultLnk']
+            else:
+                statusInfo['resultLnk'] = ''
         else:
-            statusInfo['resultLnk'] = getWorkUnitResultLink(thiswuid,statusInfo['result'],
-                statusInfo['wuidDir'], outputElt, tracebackMessage=statusInfo['tracebackMessage'])
+            statusInfo['resultLnk'] = getWorkUnitResultLink(thiswuid, statusInfo['result'],
+                                                            statusInfo['wuidDir'], outputElt, tracebackMessage=statusInfo['tracebackMessage'])
 
-        #fill template
+        # fill template
         statusRows.append(statusRowTpl.substitute(statusInfo))
 
     scifloExecLog = escapeCharsForCDATA(scifloExecLog)
-    
-    #print cancel link if not yet done
+
+    # print cancel link if not yet done
     if curStatus in sciflo.grid.finishedStatusList:
         cancelSciflo = ''
     else:
@@ -475,123 +520,138 @@ def getStatusTable(jsonUrl):
         </div>
         '''
 
-    #return table and json data
+    # return table and json data
     returnTbl = statusTableTpl.substitute({'tbodyContent': '\n'.join(statusRows),
                                            'scifloStatus': curStatus, 'json': jsonUrl,
                                            'scifloStatusColor': statusColorDict[curStatus],
                                            'colorLegend': getColorLegend(),
                                            'cancelSciflo': cancelSciflo,
                                            'execLog': executionLogLinkTpl.substitute({
-                                           'logStr': scifloExecLog}),
+                                               'logStr': scifloExecLog}),
                                            'executeTime': "%02.3f" % (time.time()-float(scifloStarttime)),
-                                           'refreshTime': ''})#"%02.3f" % (time.time()-refStarttime)})
+                                           'refreshTime': ''})  # "%02.3f" % (time.time()-refStarttime)})
     jsonDataStr = '{' + ','.join(jsonDataList) + '}'
     return returnTbl + '_SPLIT_ON_THIS_' + jsonDataStr
+
 
 def getColorLegend():
     """Return html string for color legend."""
 
     legStr = "<div>Work Unit Status/Color Legend:"
     legList = []
-    for s in ('waiting','ready','staging','working','finalizing','done','cached',
-              'exception','cancelled','paused'):
-        legList.append('''<font style="background-color: %s">%s</font>''' % (statusColorDict[s],s))
+    for s in ('waiting', 'ready', 'staging', 'working', 'finalizing', 'done', 'cached',
+              'exception', 'cancelled', 'paused'):
+        legList.append(
+            '''<font style="background-color: %s">%s</font>''' % (statusColorDict[s], s))
     legStr += ",".join(legList)
     legStr += "</div>"
     return legStr
 
-def getScifloInputsTable(scifloXml,args):
+
+def getScifloInputsTable(scifloXml, args):
     """Return inputs table for this sciflo as an html string."""
 
-    #get ns prefix dict
+    # get ns prefix dict
     nsDict = getNamespacePrefixDict(scifloXml)
 
-    #get lxml elt
+    # get lxml elt
     elt = XML(scifloXml)
 
-    #get normalized sciflo args
+    # get normalized sciflo args
     args = sciflo.grid.normalizeScifloArgs(args)
 
-    #get global inputs via xpath
+    # get global inputs via xpath
     inputsRows = []
-    inputsElt = elt.xpath('./*/sf:inputs',namespaces=nsDict)[0]
+    inputsElt = elt.xpath('./*/sf:inputs', namespaces=nsDict)[0]
     inElts = [i for i in inputsElt if i.tag is not None]
     if isinstance(args, (types.ListType, types.TupleType)):
         inIdx = 0
         for i in inElts:
-            try: arg = args[inIdx]
-            except: arg = i.text
-            if isinstance(arg, types.StringType) and len(arg) > 240: arg = arg[0:240] + ' ...'
+            try:
+                arg = args[inIdx]
+            except:
+                arg = i.text
+            if isinstance(arg, types.StringType) and len(arg) > 240:
+                arg = arg[0:240] + ' ...'
             inputsRows.append(inputsTableRowTpl.substitute(
-                {'tag': re.sub(r'^{.*}','',i.tag),'value': sanitizeHtml(arg)}))
+                {'tag': re.sub(r'^{.*}', '', i.tag), 'value': sanitizeHtml(arg)}))
             inIdx += 1
     elif isinstance(args, types.DictType):
         for i in inElts:
             arg = args.get(i.tag, i.text)
-            if isinstance(arg, types.StringType) and len(arg) > 240: arg = arg[0:240] + ' ...'
+            if isinstance(arg, types.StringType) and len(arg) > 240:
+                arg = arg[0:240] + ' ...'
             inputsRows.append(inputsTableRowTpl.substitute(
-                {'tag': re.sub(r'^{.*}','',i.tag),'value': sanitizeHtml(arg)}))
-    else: raise RuntimeError, "Unknown type for args: %s" % type (args)
+                {'tag': re.sub(r'^{.*}', '', i.tag), 'value': sanitizeHtml(arg)}))
+    else:
+        raise RuntimeError, "Unknown type for args: %s" % type(args)
 
-    #get table
+    # get table
     return inputsTableTpl.substitute({'tbodyContent': '\n'.join(inputsRows),
-                                      'scifloName': elt.xpath('./sf:flow',namespaces=nsDict)[0].get('id'),
+                                      'scifloName': elt.xpath('./sf:flow', namespaces=nsDict)[0].get('id'),
                                       'scifloDesc': elt.xpath('./*/sf:description/text()',
                                                               namespaces=nsDict)[0]})
 
+
 def printForm():
     """Just print the form."""
-    print monitorScifloTpl.substitute({'spaces':spacesStr})
+    print monitorScifloTpl.substitute({'spaces': spacesStr})
+
 
 def handleForm(form):
     """Handle form."""
 
-    #get scifloid and json values
+    # get scifloid and json values
     jsonUrl = sanitizeHtml(form['json'].value)
     json = sciflo.grid.utils.loadJson(jsonUrl, unpickleKeys=PICKLE_FIELDS)
     scifloid = queryMethod(json, 'scifloid')
 
-    #query for current status and type; bomb if not sciflo
-    curStatus, outputDir = queryMethod(json, ['status','outputDir'])
+    # query for current status and type; bomb if not sciflo
+    curStatus, outputDir = queryMethod(json, ['status', 'outputDir'])
 
-    #if curstatus is none, print form with error
+    # if curstatus is none, print form with error
     if curStatus is None or outputDir is None:
         print '''<font color="red"><b>Invalid scifloid.</b></font><br/>'''
         printForm()
         return
-    
-    #print scifloid
+
+    # print scifloid
     print '<div id="scifloid" style="display:none;">%s</div>' % scifloid
-    
-    #get sciflo xml
+
+    # get sciflo xml
     scifloXml, args = queryMethod(json, ['call', 'args'])
-    
-    #get svg/png for graph
+
+    # get svg/png for graph
     graphSvgUrl = os.path.join(outputDir, 'scifloGraph.svg')
-    try: svgStr = urllib.urlopen(graphSvgUrl).read()
-    except: svgStr = None
+    try:
+        svgStr = urllib.urlopen(graphSvgUrl).read()
+    except:
+        svgStr = None
     graphPngUrl = os.path.join(outputDir, 'scifloGraph.png')
 
-    #print sciflo arguments
+    # print sciflo arguments
     print getScifloInputsTable(scifloXml, args)
     print '<br/>'
-    
-    #show graph png
-    #print '<b>Execution graph:</b><br/>'
-    #print '<img id="pngGraph" src="%s">' % graphPngUrl
-    #print '<br/><br/>'
-    
-    #get status table and json data for svg
+
+    # show graph png
+    # print '<b>Execution graph:</b><br/>'
+    # print '<img id="pngGraph" src="%s">' % graphPngUrl
+    # print '<br/><br/>'
+
+    # get status table and json data for svg
     gstCount = 1
     while True:
         try:
-            statusTable, jsonDataStr = getStatusTable(jsonUrl).split('_SPLIT_ON_THIS_')
+            statusTable, jsonDataStr = getStatusTable(
+                jsonUrl).split('_SPLIT_ON_THIS_')
             break
-        except: time.sleep(1)
+        except:
+            time.sleep(1)
         gstCount += 1
-        if gstCount > 5: raise
-    
-    #print svg
+        if gstCount > 5:
+            raise
+
+    # print svg
     print '<b>Execution monitoring:</b>'
     print '<div id="jsonDataStr" style="display: none;"><pre>%s</pre></div>' % jsonDataStr
     print '<div id="svgGraph">'
@@ -606,24 +666,25 @@ def handleForm(form):
     print '<br/>'
     print getColorLegend()
     print '<br/>'
-    
-    #print initial status table
+
+    # print initial status table
     print '<div id="updateStatusTable">'
     print statusTable
     print '</div>'
     print '<br/>'
 
-    #print results section, initially empty
+    # print results section, initially empty
     print getResultsSection(jsonUrl, curStatus)
 
+
 if __name__ == '__main__':
-    
-    #initiate sajax stuff
+
+    # initiate sajax stuff
     sajax_init()
-    sajax_export(refresh,printResults)
+    sajax_export(refresh, printResults)
     sajax_handle_client_request()
 
-    #print html
+    # print html
     print Template('''
     <html>
     <head>
@@ -890,7 +951,7 @@ if __name__ == '__main__':
         </script>
     ''').substitute(MOLD_RESULTS_URL=urljoin(CGI_URL_BASE, 'mold_results.cgi'),
                     CANCEL_URL=urljoin(CGI_URL_BASE, 'cancel_sciflo.cgi'))
-    
+
     # print end of header, start of body, and add accessibility
     print Template("""</head>
         <body>
@@ -906,9 +967,11 @@ if __name__ == '__main__':
                     spacer=os.path.join(REL_URL, 'portal_images/spacer.gif'),
                     customBodyStart=pageTemplate.customBodyStart)
 
-    #if nothing, print form
-    if len(form) == 0 or not form.has_key('json'): printForm()
-    else: handleForm(form)
+    # if nothing, print form
+    if len(form) == 0 or not form.has_key('json'):
+        printForm()
+    else:
+        handleForm(form)
 
-    #print end of html
+    # print end of html
     print "</body></html>"

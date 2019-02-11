@@ -21,12 +21,15 @@
 
 from math import sqrt
 
+
 class Stats:
     """Simple statistics class that computes mean, std dev, min, max, and rms."""
+
     def __init__(self, label=None, format=None):
         """Create Stats object, optionally set print label and float format string."""
         self.reset()
-        self.labelStr = label; self.formatStr = format
+        self.labelStr = label
+        self.formatStr = format
 
     def add(self, val):
         """Add one data point to the accumulators."""
@@ -35,7 +38,7 @@ class Stats:
         self.mean += dval/self.n    # update mean
         dval = val - self.mean      # diff from new mean
         self.sumsq += dval*dval     # update sum of squares
-        if ( self.n == 1 ):
+        if (self.n == 1):
             self.min = val
             self.max = val
         else:
@@ -47,31 +50,35 @@ class Stats:
         """Calculate the statistics for the data added so far.
         Returns tuple of six values:  n, mean, sigma, min, max, rms.
         """
-        sigma = 0.; rms = 0.
+        sigma = 0.
+        rms = 0.
         if (self.n > 0):
             if (self.n >= 2):
                 sd2 = self.sumsq / (self.n-1)
-                if (sd2 > 0.): sigma = sqrt(sd2)
-                else: sigma = 0.
-            rms = sqrt(self.mean*self.mean +  self.sumsq/self.n)
+                if (sd2 > 0.):
+                    sigma = sqrt(sd2)
+                else:
+                    sigma = 0.
+            rms = sqrt(self.mean*self.mean + self.sumsq/self.n)
         return (self.n, self.mean, sigma, self.min, self.max, rms)
 
     def label(self, str):
         """Label the statistics for printing."""
         self.labelStr = str
         return self
-        
+
     def format(self, str):
         """Set the float format to be used in printing stats."""
         self.formatStr = str
         return self
-        
+
     def __repr__(self):
         """One-line stats representation for simple printing."""
-        if (self.labelStr == None or self.labelStr == ""): self.labelStr = "Stats"
+        if (self.labelStr == None or self.labelStr == ""):
+            self.labelStr = "Stats"
         line = self.labelStr + ": "
         if self.formatStr:
-            a = [self.formatStr for i in xrange(5)]
+            a = [self.formatStr for i in range(5)]
             a.insert(0, '%d')
             format = ' '.join(a)
             line += format % self.calc()
@@ -82,8 +89,10 @@ class Stats:
     def reset(self):
         """Reset the accumulators to start over."""
         self.n = 0
-        self.mean = 0.0; self.sumsq = 0.0
-        self.min = 0.0; self.max = 0.0
+        self.mean = 0.0
+        self.sumsq = 0.0
+        self.min = 0.0
+        self.max = 0.0
         self.labelStr = None
         self.formatStr = None
         return self

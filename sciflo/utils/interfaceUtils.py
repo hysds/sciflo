@@ -1,17 +1,23 @@
-import os, sys, re, json, copy
-from urllib2 import urlopen
-from urlparse import urlparse
+import os
+import sys
+import re
+import json
+import copy
+from urllib.request import urlopen
+from urllib.parse import urlparse
 
-from xmlUtils import getXmlEtree
+from .xmlUtils import getXmlEtree
 
 VIEW_RE = re.compile('^(.+?)\((.*)\)$')
 
+
 def parseView(view):
     """Return view type and arg dict."""
-    
+
     argDict = {}
     match = VIEW_RE.search(view)
-    if not match: raise RuntimeError("Failed to parse view: %s" % view)
+    if not match:
+        raise RuntimeError("Failed to parse view: %s" % view)
     typ = match.group(1)
     for param in match.group(2).split(','):
         if '=' in param:
@@ -21,14 +27,15 @@ def parseView(view):
         argDict[key] = val
     return typ, argDict
 
+
 def getTabConfig(sfl):
     """Parse sciflo document and return tab configuration in JSON format."""
-    
-    #parse doc
+
+    # parse doc
     sflStr = urlopen(sfl).read()
     rt, nsDict = getXmlEtree(sflStr)
-    
-    #get global inputs
+
+    # get global inputs
     globalInputsNames = []
     globalInputsConfig = {}
     globalInputs = rt.xpath('./sf:flow/sf:inputs/*', nsDict)
@@ -40,8 +47,8 @@ def getTabConfig(sfl):
             'group': input.get('group', None),
             'value': input.text
         }
-    
-    #get processes
+
+    # get processes
     optionalTabs = []
     optionalOperators = []
     itemConfig = {}
@@ -59,33 +66,42 @@ def getTabConfig(sfl):
     prevGroup = None
     altSetupTitle = None
     for process in processes:
-        #print process.get('id')
-        
-        #process args
+        # print process.get('id')
+
+        # process args
         argsConfig = []
         ready = True
         for arg in process.xpath('./sf:inputs/*', nsDict):
             val = None
             tagText = arg.get('from', arg.text)
-            if tagText is None: tagText = ''
-            
-            #collect args connected to global input
-            if tagText.startswith('@#inputs.'): val = tagText
-            elif tagText == '@#inputs': val = '@#inputs.%s' % arg.tag
-            elif arg.tag in globalInputsNames: val = '@#inputs.%s' % arg.tag #match implicits
+            if tagText is None:
+                tagText = ''
+
+            # collect args connected to global input
+            if tagText.startswith('@#inputs.'):
+                val = tagText
+            elif tagText == '@#inputs':
+                val = '@#inputs.%s' % arg.tag
+            elif arg.tag in globalInputsNames:
+                val = '@#inputs.%s' % arg.tag  # match implicits
             else:
-                #check if links to a previous process, either @#previous or @#<process name>
-                if tagText.startswith('@#'): ready = False
-            if val is not None: argsConfig.append([arg.tag, val])
-            
-        #collect groups
+                # check if links to a previous process, either @#previous or @#<process name>
+                if tagText.startswith('@#'):
+                    ready = False
+            if val is not None:
+                argsConfig.append([arg.tag, val])
+
+        # collect groups
         group = process.get('group', None)
         if group is None:
-            if ready: group = 'Setup'
-            else: group = prevGroup
+            if ready:
+                group = 'Setup'
+            else:
+                group = prevGroup
         if group:
             if ready and group != 'Setup':
-                if altSetupTitle is None: altSetupTitle = group
+                if altSetupTitle is None:
+                    altSetupTitle = group
                 group = 'Setup'
             if group not in groupNames:
                 groupNames.append(group)
@@ -95,10 +111,11 @@ def getTabConfig(sfl):
                 }
             else:
                 groupsConfig[group]['procs'].append(process.get('id'))
-        
-        if ready: readyToRun.append(process.get('id'))
-        
-        #loop over remove from previous tab/items
+
+        if ready:
+            readyToRun.append(process.get('id'))
+
+        # loop over remove from previous tab/items
         argsConfigCopy = copy.deepcopy(argsConfig)
         for procTag, argVal in argsConfigCopy:
             argTag = argVal.split('.')[1]
@@ -109,15 +126,18 @@ def getTabConfig(sfl):
                     newIdx = newGroup['procs'].index(process.get('id'))
                     if len(newGroup['argsConfigs']) != len(newGroup['procs']):
                         newGroup['argsConfigs'].append([[procTag, argVal]])
-                    else: newGroup['argsConfigs'][newIdx].append([procTag, argVal])
+                    else:
+                        newGroup['argsConfigs'][newIdx].append(
+                            [procTag, argVal])
                     argsConfig.remove([procTag, argVal])
                 else:
                     newGroup['procs'].append(process.get('id'))
                     newGroup['argsConfigs'].append([[procTag, argVal]])
-                globalInputsUsed[argTag] = [globalOverrideGroup, process.get('id')]
+                globalInputsUsed[argTag] = [
+                    globalOverrideGroup, process.get('id')]
             else:
                 if argTag in globalInputsUsed:
-                    #remove from previous argConfig in groupsConfig
+                    # remove from previous argConfig in groupsConfig
                     oldGroup, oldId = globalInputsUsed[argTag]
                     oldIdx = groupsConfig[oldGroup]['procs'].index(oldId)
                     oldArgConfig = groupsConfig[oldGroup]['argsConfigs'][oldIdx]
@@ -126,43 +146,48 @@ def getTabConfig(sfl):
                         if oldTagVal[0] == procTag:
                             rmIdx = x
                             break
-                    if rmIdx is not None: oldArgConfig.pop(rmIdx)
+                    if rmIdx is not None:
+                        oldArgConfig.pop(rmIdx)
                 globalInputsUsed[argTag] = [group, process.get('id')]
         groupsConfig[group]['argsConfigs'].append(argsConfig)
         prevGroup = group
-        
-        #get tab and item name
-        if '/' in group: tabName, itemName = group.split('/')
-        else: tabName, itemName = group, None
-            
-        #collect optional tabs and operators
+
+        # get tab and item name
+        if '/' in group:
+            tabName, itemName = group.split('/')
+        else:
+            tabName, itemName = group, None
+
+        # collect optional tabs and operators
         if process.get('optional', '').lower() == 'true':
             optionalTabs.append(tabName)
             optionalOperators.append(group)
-            
-        #collect paletteIcons
+
+        # collect paletteIcons
         paletteIcon = process.get('paletteIcon', None)
         if paletteIcon is not None:
             itemConfig.setdefault(group, {'paletteIcon': paletteIcon})
-        
+
     #print >>sys.stderr, "groupNames:", groupNames
-    #print >>sys.stderr, "#" * 80
+    # print >>sys.stderr, "#" * 80
     #print >>sys.stderr, "groupsConfig:", json.dumps(groupsConfig, indent=2)
-    ##print >>sys.stderr, "#" * 80
-    
-    #create tab config
+    # print >>sys.stderr, "#" * 80
+
+    # create tab config
     tabNames = []
     tabConfig = {}
     for group in groupNames:
         groupConfig = groupsConfig[group]
-        
-        #get tab and item name
-        if '/' in group: tabName, itemName = group.split('/')
-        else: tabName, itemName = group, None
-        ##print >>sys.stderr, "#" * 80
+
+        # get tab and item name
+        if '/' in group:
+            tabName, itemName = group.split('/')
+        else:
+            tabName, itemName = group, None
+        # print >>sys.stderr, "#" * 80
         ##print >>sys.stderr, "group:", group
-        
-        #loop over procs and add to global inputs
+
+        # loop over procs and add to global inputs
         for i in range(len(groupConfig['procs'])):
             proc = groupConfig['procs'][i]
             argConfigList = groupConfig['argsConfigs'][i]
@@ -170,21 +195,28 @@ def getTabConfig(sfl):
             for tagName, inputName in argConfigList:
                 inputName = inputName.split('.')[1]
                 ##print >>sys.stderr, "    inputName:", inputName
-                
-                #check if global input has special tab
+
+                # check if global input has special tab
                 giGroup = globalInputsConfig[inputName]['group']
                 if giGroup is not None:
-                    #get tab and item name
-                    if '/' in giGroup: giTabName, giItemName = giGroup.split('/')
+                    # get tab and item name
+                    if '/' in giGroup:
+                        giTabName, giItemName = giGroup.split('/')
                     else:
-                        if giGroup == 'Setup': giTabName, giItemName = giGroup, None
-                        else: giTabName, giItemName = giGroup, inputName
-                else: giTabName, giItemName = tabName, itemName
+                        if giGroup == 'Setup':
+                            giTabName, giItemName = giGroup, None
+                        else:
+                            giTabName, giItemName = giGroup, inputName
+                else:
+                    giTabName, giItemName = tabName, itemName
                 ##print >>sys.stderr, "      giTabName, giItemName:", giTabName, giItemName
-                
+
                 if giTabName not in tabNames:
-                    if giTabName != tabName: tabNames.insert(-1, giTabName) #insert special tab before this tab
-                    else: tabNames.append(giTabName)
+                    if giTabName != tabName:
+                        # insert special tab before this tab
+                        tabNames.insert(-1, giTabName)
+                    else:
+                        tabNames.append(giTabName)
                     tabConfig[giTabName] = {
                         'items': [giItemName],
                         'globalInputs': [inputName]
@@ -195,23 +227,27 @@ def getTabConfig(sfl):
                         tabConfig[giTabName]['items'].append(giItemName)
                         tabConfig[giTabName]['globalInputs'].append(inputName)
                     else:
-                        #if global input is listed under a different item, extract it to Setup
-                        giIndex = tabConfig[giTabName]['globalInputs'].index(inputName)
+                        # if global input is listed under a different item, extract it to Setup
+                        giIndex = tabConfig[giTabName]['globalInputs'].index(
+                            inputName)
                         origItem = tabConfig[giTabName]['items'][giIndex]
                         if origItem != giItemName:
                             tabConfig['Setup']['items'].append(None)
-                            tabConfig['Setup']['globalInputs'].append(inputName)
+                            tabConfig['Setup']['globalInputs'].append(
+                                inputName)
                             tabConfig[giTabName]['globalInputs'].pop(giIndex)
                             tabConfig[giTabName]['items'].pop(giIndex)
                         #print >>sys.stderr, "giIndex, origItem:", giIndex, origItem
     #print >>sys.stderr, "tabConfig:", tabNames, json.dumps(tabConfig, indent=2)
-    #print >>sys.stderr, "#" * 80
-    
-    #cvo config
+    # print >>sys.stderr, "#" * 80
+
+    # cvo config
     id = rt.xpath('./sf:flow', nsDict)[0].get('id')
     titleElts = rt.xpath('./sf:flow/sf:title/text()', nsDict)
-    if len(titleElts) == 0: title = id
-    else: title = titleElts[0]
+    if len(titleElts) == 0:
+        title = id
+    else:
+        title = titleElts[0]
     cvoConfig = {
         'id': id,
         'title': title,
@@ -226,16 +262,17 @@ def getTabConfig(sfl):
             'dbName': ('%s_%s' % (id, tabName)).replace(' ', '_'),
             'items': []
         }
-        
-        #set tab as form if no items were configured
+
+        # set tab as form if no items were configured
         isFormTab = False
         if None in tabConfig[tabName]['items']:
             for item in tabConfig[tabName]['items']:
                 if item is not None:
-                    raise RuntimeError("Cannot have a non-item argument with item configurations.")
+                    raise RuntimeError(
+                        "Cannot have a non-item argument with item configurations.")
             isFormTab = True
-        
-        #create form tab or item tab
+
+        # create form tab or item tab
         if isFormTab:
             for gi in tabConfig[tabName]['globalInputs']:
                 giConfig = globalInputsConfig[gi]
@@ -260,9 +297,11 @@ def getTabConfig(sfl):
                             'sflGlobalInput': gi
                         })
                     else:
-                        if itemType == 'datetime': itemType = 'textfield'
+                        if itemType == 'datetime':
+                            itemType = 'textfield'
                         if itemType == 'bbox':
-                            if 'cmp' in argDict: name = argDict['cmp']
+                            if 'cmp' in argDict:
+                                name = argDict['cmp']
                             itemType = 'textfield'
                         tab['items'].append({
                             'type': itemType,
@@ -277,7 +316,7 @@ def getTabConfig(sfl):
                 item = tabConfig[tabName]['items'][i]
                 giConfig = globalInputsConfig[gi]
                 name = gi
-                #print >>sys.stderr, "name, item:", name, item 
+                #print >>sys.stderr, "name, item:", name, item
                 if item not in itemDict:
                     if giConfig['view'] == None:
                         #print >>sys.stderr, "no view"
@@ -304,9 +343,12 @@ def getTabConfig(sfl):
                                 'sflGlobalInput': gi
                             }
                         else:
-                            if itemType == 'datetime': itemType = 'textfield'
+                            if itemType == 'datetime':
+                                itemType = 'textfield'
                             if itemType == 'bbox':
-                                if 'cmp' not in argDict: raise RuntimeError("Cannot find component spec.")
+                                if 'cmp' not in argDict:
+                                    raise RuntimeError(
+                                        "Cannot find component spec.")
                                 name = argDict['cmp']
                                 itemType = 'textfield'
                             itemDict[item] = {
@@ -322,8 +364,10 @@ def getTabConfig(sfl):
                             }
                 else:
                     #print >>sys.stderr, "Got here"
-                    if giConfig['view'] == None: itemType, argDict = 'textfield', {}
-                    else: itemType, argDict = parseView(giConfig['view'])
+                    if giConfig['view'] == None:
+                        itemType, argDict = 'textfield', {}
+                    else:
+                        itemType, argDict = parseView(giConfig['view'])
                     #print >>sys.stderr, "itemType, argDict:", itemType, argDict
                     if 'paletteIcon' in argDict:
                         itemDict[item]['paletteIcon'] = argDict['paletteIcon']
@@ -335,9 +379,12 @@ def getTabConfig(sfl):
                             'sflGlobalInput': gi
                         })
                     else:
-                        if itemType == 'datetime': itemType = 'textfield'
+                        if itemType == 'datetime':
+                            itemType = 'textfield'
                         if itemType == 'bbox':
-                            if 'cmp' not in argDict: raise RuntimeError("Cannot find component spec.")
+                            if 'cmp' not in argDict:
+                                raise RuntimeError(
+                                    "Cannot find component spec.")
                             name = argDict['cmp']
                             itemType = 'textfield'
                         itemDict[item]['items'].append({
@@ -351,35 +398,42 @@ def getTabConfig(sfl):
                 if item not in finishedItems:
                     tab['items'].append(itemDict[item])
                     finishedItems.append(item)
-        
-        #append tab; if setup, assign to setupTab
+
+        # append tab; if setup, assign to setupTab
         if tabName == 'Setup':
-            tab['paletteIcon'] = 'scripts/iearth/imgs/z00gboxb.png' #add setup palette icon
+            # add setup palette icon
+            tab['paletteIcon'] = 'scripts/iearth/imgs/z00gboxb.png'
             cvoConfig['setupTab'] = tab
-        else: cvoConfig['tabs'].append(tab)
+        else:
+            cvoConfig['tabs'].append(tab)
     #print >>sys.stderr, "tabConfig:", tabNames, json.dumps(tabConfig, indent=2)
-    #print >>sys.stderr, "#" * 80    
-        
-    #check for missing tabs/operators and optional tabs
+    # print >>sys.stderr, "#" * 80
+
+    # check for missing tabs/operators and optional tabs
     for x, groupName in enumerate(groupNames):
         groupConfig = groupsConfig[groupName]
-        
-        #get tab and item name
-        if '/' in groupName: tabName, itemName = groupName.split('/')
-        else: tabName, itemName = groupName, None
-        if tabName == 'Setup': continue
+
+        # get tab and item name
+        if '/' in groupName:
+            tabName, itemName = groupName.split('/')
+        else:
+            tabName, itemName = groupName, None
+        if tabName == 'Setup':
+            continue
         foundTab = False
         foundItem = False
         cvoTabNames = []
         for cvoTabCfg in cvoConfig['tabs']:
-            if cvoTabCfg['title'] not in cvoTabNames: cvoTabNames.append(cvoTabCfg['title'])
+            if cvoTabCfg['title'] not in cvoTabNames:
+                cvoTabNames.append(cvoTabCfg['title'])
             if cvoTabCfg['title'] == tabName:
                 foundTab = cvoTabCfg
                 for itemCfg in cvoTabCfg['items']:
                     if itemCfg['title'] == itemName:
                         foundItem = itemCfg
                         break
-                if foundItem: break
+                if foundItem:
+                    break
         if foundItem is False:
             ##print >>sys.stderr, "Not found:", groupName
             if foundTab is False:
@@ -403,14 +457,17 @@ def getTabConfig(sfl):
                                     'sflGlobalInput': 'do_%s' % itemName
                                 }
                             ]
-                       }
+                        }
                     ]
                 }
-                if len(groupNames)-1 == x: cvoConfig['tabs'].append(tab)
+                if len(groupNames)-1 == x:
+                    cvoConfig['tabs'].append(tab)
                 else:
                     if groupNames[x+1].split('/')[0] in cvoTabNames:
-                        cvoConfig['tabs'].insert(cvoTabNames.index(groupNames[x+1].split('/')[0]), tab)
-                    else: cvoConfig['tabs'].append(tab)
+                        cvoConfig['tabs'].insert(cvoTabNames.index(
+                            groupNames[x+1].split('/')[0]), tab)
+                    else:
+                        cvoConfig['tabs'].append(tab)
             else:
                 foundTab['items'].append({
                     'name': itemName,
@@ -429,7 +486,7 @@ def getTabConfig(sfl):
                     ]
                 })
         else:
-            #add do_* item if optional
+            # add do_* item if optional
             if groupName in optionalOperators:
                 foundItem['items'].append({
                     'fieldLabel': '',
@@ -442,13 +499,13 @@ def getTabConfig(sfl):
                     'sflGlobalInput': 'do_%s' % itemName
                 })
     #print >>sys.stderr, "cvoConfig:", json.dumps(cvoConfig, indent=2)
-    #print >>sys.stderr, "#" * 80
-    
-    #add missing global inputs to setup
+    # print >>sys.stderr, "#" * 80
+
+    # add missing global inputs to setup
     misItems = []
     for gi in globalInputsNames:
         if gi not in globalInputsUsed:
-            print >>sys.stderr, "%s not used" % gi
+            print("%s not used" % gi, file=sys.stderr)
             giConfig = globalInputsConfig[gi]
             name = gi
             if giConfig['view'] == None:
@@ -471,9 +528,11 @@ def getTabConfig(sfl):
                         'sflGlobalInput': gi
                     })
                 else:
-                    if itemType == 'datetime': itemType = 'textfield'
+                    if itemType == 'datetime':
+                        itemType = 'textfield'
                     if itemType == 'bbox':
-                        if 'cmp' in argDict: name = argDict['cmp']
+                        if 'cmp' in argDict:
+                            name = argDict['cmp']
                         itemType = 'textfield'
                     misItems.append({
                         'type': itemType,
@@ -483,8 +542,8 @@ def getTabConfig(sfl):
                         'sflGlobalInput': gi
                     })
     cvoConfig['setupTab']['items'].extend(misItems)
-    
-    #set tab enablers
+
+    # set tab enablers
     finalTabNames = []
     firstOptionalSet = False
     enabler = 'setup'
@@ -492,27 +551,33 @@ def getTabConfig(sfl):
     for x, cvoTabCfg in enumerate(cvoConfig['tabs']):
         if x > 0:
             if cvoTabCfg['title'] in optionalTabs:
-                if firstOptionalSet: enabler = lastEnabler
+                if firstOptionalSet:
+                    enabler = lastEnabler
                 else:
                     enabler = cvoConfig['tabs'][x-1]['name']
                     firstOptionalSet = True
-            else: enabler = cvoConfig['tabs'][x-1]['name']
+            else:
+                enabler = cvoConfig['tabs'][x-1]['name']
         cvoTabCfg['enabledBy'] = enabler
         lastEnabler = enabler
-        
-    #set execution enabler and paletteIcons
-    allTabs = [cvoConfig['setupTab']]; allTabs.extend(cvoConfig['tabs'])
+
+    # set execution enabler and paletteIcons
+    allTabs = [cvoConfig['setupTab']]
+    allTabs.extend(cvoConfig['tabs'])
     for cvoTabCfg in allTabs:
         if lastEnabler == cvoTabCfg['name']:
             cvoTabCfg['enableExecute'] = True
-        if cvoTabCfg['name'] == 'setup': continue
+        if cvoTabCfg['name'] == 'setup':
+            continue
         for item in cvoTabCfg['items']:
-            if 'title' not in item: item['title'] = item['name']
+            if 'title' not in item:
+                item['title'] = item['name']
             groupItem = '%s/%s' % (cvoTabCfg['title'], item['title'])
             if groupItem in itemConfig:
                 item['paletteIcon'] = itemConfig[groupItem]['paletteIcon']
-                
-    #set alternate setup title
-    if altSetupTitle is not None: cvoConfig['setupTab']['title'] = altSetupTitle
-                
+
+    # set alternate setup title
+    if altSetupTitle is not None:
+        cvoConfig['setupTab']['title'] = altSetupTitle
+
     return json.dumps(cvoConfig, indent=2)

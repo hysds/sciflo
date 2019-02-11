@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        config.py
 # Purpose:     Grid configuration.
 #
@@ -7,99 +7,113 @@
 # Created:     Thu Jul 21 11:03:23 2005
 # Copyright:   (c) 2005, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 from socket import getfqdn
 
 from sciflo.utils import ScifloConfigParser, validateDirectory, SCIFLO_NAMESPACE
 from sciflo.db import StoreConfig, StoreTypeMapping
-from storeHandler import workUnitStoreFieldsList, scheduleStoreFieldsList
+from .storeHandler import workUnitStoreFieldsList, scheduleStoreFieldsList
+
 
 def getStoreConfigFromConfiguration(file=None):
     """Return the StoreConfig object as defined by the parameters in the
     sciflo configuration xml file.
     """
 
-    #get config parser
+    # get config parser
     configParser = ScifloConfigParser(file)
 
-    #get work unit store type
+    # get work unit store type
     workUnitStoreType = configParser.getMandatoryParameter('workUnitStoreType')
 
-    #print "workUnitStoreType:",workUnitStoreType
+    # print "workUnitStoreType:",workUnitStoreType
 
-    #get params based on store type
+    # get params based on store type
     if workUnitStoreType in StoreTypeMapping:
 
-        #get home and, if bsddb, validate that it is a directory
-        workUnitStoreHome = configParser.getMandatoryParameter('workUnitStoreHome')
+        # get home and, if bsddb, validate that it is a directory
+        workUnitStoreHome = configParser.getMandatoryParameter(
+            'workUnitStoreHome')
         if workUnitStoreType == 'bsddb' and not validateDirectory(workUnitStoreHome):
-            raise RuntimeError, "Couldn't access/create bsddb home %s." % workUnitStoreHome
+            raise RuntimeError(
+                "Couldn't access/create bsddb home %s." % workUnitStoreHome)
 
-        #get filename for bsddb and validate
+        # get filename for bsddb and validate
         workUnitStoreDb = configParser.getMandatoryParameter('workUnitStoreDb')
 
-        #get name
-        workUnitStoreName = configParser.getMandatoryParameter('workUnitStoreName')
+        # get name
+        workUnitStoreName = configParser.getMandatoryParameter(
+            'workUnitStoreName')
 
-        #store config for work unit store
+        # store config for work unit store
         workUnitStoreConfig = StoreConfig(workUnitStoreType, workUnitStoreName, workUnitStoreFieldsList,
                                           workUnitStoreHome, workUnitStoreDb)
 
         return workUnitStoreConfig
     else:
-        raise RuntimeError, "Unknown workUnitStoreType %s in configuration." % workUnitStoreType
+        raise RuntimeError(
+            "Unknown workUnitStoreType %s in configuration." % workUnitStoreType)
+
 
 def getRootWorkDirFromConfiguration(file=None):
     """Return the dir path for workUnit's work directory."""
 
-    #get config parser
+    # get config parser
     configParser = ScifloConfigParser(file)
 
-    #root directory for work dirs
-    workUnitRootWorkDir = configParser.getMandatoryParameter('workUnitRootWorkDir')
+    # root directory for work dirs
+    workUnitRootWorkDir = configParser.getMandatoryParameter(
+        'workUnitRootWorkDir')
 
-    #print "##########################################validating:", workUnitRootWorkDir
+    # print "##########################################validating:", workUnitRootWorkDir
 
-    #validate
+    # validate
     if not validateDirectory(workUnitRootWorkDir):
-        raise RuntimeError, "Couldn't access/create workUnitRootWorkDir %s." % workUnitRootWorkDir
+        raise RuntimeError(
+            "Couldn't access/create workUnitRootWorkDir %s." % workUnitRootWorkDir)
 
     return workUnitRootWorkDir
+
 
 def getScheduleConfigFromConfiguration(file=None):
     """Return the ScheduleConfig object as defined by the sciflo configuration
     xml file.
     """
 
-    #get config parser
+    # get config parser
     configParser = ScifloConfigParser(file)
 
-    #get schedule store type
+    # get schedule store type
     scheduleStoreType = configParser.getMandatoryParameter('scheduleStoreType')
 
-    #print "scheduleStoreType:",scheduleStoreType
+    # print "scheduleStoreType:",scheduleStoreType
 
-    #get params based on store type
+    # get params based on store type
     if scheduleStoreType in StoreTypeMapping:
 
-        #get home and, if bsddb, validate that it is a directory
-        scheduleStoreHome = configParser.getMandatoryParameter('scheduleStoreHome')
+        # get home and, if bsddb, validate that it is a directory
+        scheduleStoreHome = configParser.getMandatoryParameter(
+            'scheduleStoreHome')
         if scheduleStoreType == 'bsddb' and not validateDirectory(scheduleStoreHome):
-            raise RuntimeError, "Couldn't access/create bsddb home %s." % scheduleStoreHome
+            raise RuntimeError(
+                "Couldn't access/create bsddb home %s." % scheduleStoreHome)
 
-        #get filename for bsddb and validate
+        # get filename for bsddb and validate
         scheduleStoreDb = configParser.getMandatoryParameter('scheduleStoreDb')
 
-        #get name
-        scheduleStoreName = configParser.getMandatoryParameter('scheduleStoreName')
+        # get name
+        scheduleStoreName = configParser.getMandatoryParameter(
+            'scheduleStoreName')
 
-        #store config for workunit schedule store
+        # store config for workunit schedule store
         scheduleStoreConfig = StoreConfig(scheduleStoreType, scheduleStoreName, scheduleStoreFieldsList,
                                           scheduleStoreHome, scheduleStoreDb)
 
         return scheduleStoreConfig
     else:
-        raise RuntimeError, "Unknown scheduleStoreType %s in configuration." % scheduleStoreType
+        raise RuntimeError(
+            "Unknown scheduleStoreType %s in configuration." % scheduleStoreType)
+
 
 class GridServiceConfig(object):
     """Class representing the soap grid service configuration for this node.
@@ -108,7 +122,7 @@ class GridServiceConfig(object):
     def __init__(self, file=None):
         "Constructor."
 
-        #get grid service soap config
+        # get grid service soap config
         parserObj = ScifloConfigParser(file)
         self._gridProtocol = parserObj.getMandatoryParameter('gridProtocol')
         self._gridPort = int(parserObj.getMandatoryParameter('gridPort'))
@@ -116,41 +130,47 @@ class GridServiceConfig(object):
         self._gridProxyUrl = parserObj.getParameter('gridProxyUrl')
         self._baseUrl = parserObj.getParameter('baseUrl')
         self._workerTimeout = parserObj.getParameter('workUnitTimeout')
-        if self._workerTimeout is None: self._workerTimeout = 86400
-        else: self._workerTimeout = int(self._workerTimeout)
+        if self._workerTimeout is None:
+            self._workerTimeout = 86400
+        else:
+            self._workerTimeout = int(self._workerTimeout)
         self._addWorkUnitMethod = parserObj.getMandatoryParameterViaXPath(
-            './/{%s}addWorkUnitMethod/{%s}exposedName' % \
-            (SCIFLO_NAMESPACE,SCIFLO_NAMESPACE))
+            './/{%s}addWorkUnitMethod/{%s}exposedName' %
+            (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
         self._queryWorkUnitMethod = parserObj.getMandatoryParameterViaXPath(
-            './/{%s}queryWorkUnitMethod/{%s}exposedName' % \
-            (SCIFLO_NAMESPACE,SCIFLO_NAMESPACE))
+            './/{%s}queryWorkUnitMethod/{%s}exposedName' %
+            (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
         self._cancelWorkUnitMethod = parserObj.getMandatoryParameterViaXPath(
-            './/{%s}cancelWorkUnitMethod/{%s}exposedName' % \
-            (SCIFLO_NAMESPACE,SCIFLO_NAMESPACE))
+            './/{%s}cancelWorkUnitMethod/{%s}exposedName' %
+            (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
         self._callbackMethod = parserObj.getMandatoryParameterViaXPath(
-            './/{%s}callbackMethod/{%s}exposedName' % (SCIFLO_NAMESPACE,SCIFLO_NAMESPACE))
+            './/{%s}callbackMethod/{%s}exposedName' % (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
         self._addWorkUnitPythonMethod = parserObj.getMandatoryParameterViaXPath(
-            './/{%s}addWorkUnitMethod/{%s}pythonFunction' % \
-            (SCIFLO_NAMESPACE,SCIFLO_NAMESPACE))
+            './/{%s}addWorkUnitMethod/{%s}pythonFunction' %
+            (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
         self._queryWorkUnitPythonMethod = parserObj.getMandatoryParameterViaXPath(
-            './/{%s}queryWorkUnitMethod/{%s}pythonFunction' % \
-            (SCIFLO_NAMESPACE,SCIFLO_NAMESPACE))
+            './/{%s}queryWorkUnitMethod/{%s}pythonFunction' %
+            (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
         self._cancelWorkUnitPythonMethod = parserObj.getMandatoryParameterViaXPath(
-            './/{%s}cancelWorkUnitMethod/{%s}pythonFunction' % \
-            (SCIFLO_NAMESPACE,SCIFLO_NAMESPACE))
+            './/{%s}cancelWorkUnitMethod/{%s}pythonFunction' %
+            (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
         self._callbackPythonMethod = parserObj.getMandatoryParameterViaXPath(
-            './/{%s}callbackMethod/{%s}pythonFunction' % (SCIFLO_NAMESPACE,SCIFLO_NAMESPACE))
-        self._workUnitWorkDir = parserObj.getMandatoryParameter('workUnitRootWorkDir')
+            './/{%s}callbackMethod/{%s}pythonFunction' % (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
+        self._workUnitWorkDir = parserObj.getMandatoryParameter(
+            'workUnitRootWorkDir')
 
-        #build wsdl
-        if self._gridProtocol == 'gsi' or self._gridProtocol == 'ssl': prot='https'
-        else: prot='http'
-        
-        #grid base url
+        # build wsdl
+        if self._gridProtocol == 'gsi' or self._gridProtocol == 'ssl':
+            prot = 'https'
+        else:
+            prot = 'http'
+
+        # grid base url
         self._gridBaseUrl = "%s://%s:%s" % (prot, getfqdn(), self._gridPort)
 
-        #callback wsdl
-        self._gridWsdl = "%s/wsdl?%s" % (self._gridBaseUrl, self._gridNamespace)
+        # callback wsdl
+        self._gridWsdl = "%s/wsdl?%s" % (self._gridBaseUrl,
+                                         self._gridNamespace)
 
     def getWorkUnitWorkDir(self):
         """Return the work unit work directory."""
@@ -211,11 +231,11 @@ class GridServiceConfig(object):
     def getGridProxyUrl(self):
         """Return grid proxy url."""
         return self._gridProxyUrl
-    
+
     def getGridBaseUrl(self):
         """Return grid base url."""
         return self._gridBaseUrl
-    
+
     def getWorkerTimeout(self):
         """Return worker timeout."""
         return self._workerTimeout

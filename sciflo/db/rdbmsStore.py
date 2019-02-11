@@ -1,4 +1,4 @@
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        rdbmsStore.py
 # Purpose:     RdbmsStore class.
 #
@@ -7,16 +7,21 @@
 # Created:     Wed May 09 11:01:01 2007
 # Copyright:   (c) 2007, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
-#-----------------------------------------------------------------------------
-import sys, os, types, re, time
+# -----------------------------------------------------------------------------
+import sys
+import os
+import types
+import re
+import time
 try:
-    import cPickle
+    import pickle
     pickle = cPickle
-except ImportError: import pickle
+except ImportError:
+    import pickle
 from sqlalchemy import *
 import sqlalchemy.pool as pool
 
-from store import *
+from .store import *
 from sciflo.utils import validateDirectory
 
 DB_SAFE_FIELDS_MAP = {
@@ -24,26 +29,34 @@ DB_SAFE_FIELDS_MAP = {
     'call': 'wuCall',
 }
 
+
 def getDbSafeFieldName(field):
     """Return db safe field name."""
-    if field in DB_SAFE_FIELDS_MAP: return DB_SAFE_FIELDS_MAP[field]
-    else: return field
+    if field in DB_SAFE_FIELDS_MAP:
+        return DB_SAFE_FIELDS_MAP[field]
+    else:
+        return field
+
 
 def createTable(name, meta, fields):
     """Return new table."""
     dbColumns = [Column('id', Integer, primary_key=True)]
     for field in fields:
         f = getDbSafeFieldName(field)
-        if field in ['wuid', 'wuConfigId', 'scifloid']: columnType = String
-        else: columnType = PickleType
+        if field in ['wuid', 'wuConfigId', 'scifloid']:
+            columnType = String
+        else:
+            columnType = PickleType
         dbColumns.append(Column(f, columnType))
     table = Table(name, meta, *dbColumns)
     table.create()
     return table
 
+
 class RdbmsStoreError(Exception):
     """Exception class for RdbmsStore class."""
     pass
+
 
 class RdbmsStore(Store):
     """Store implemented via rdbms database."""
@@ -51,28 +64,33 @@ class RdbmsStore(Store):
     def __init__(self, name, fieldsList, dbHome, dbName, cleanTable=False):
         """Constructor."""
 
-        #call super()
-        super(RdbmsStore,self).__init__(name, fieldsList)
+        # call super()
+        super(RdbmsStore, self).__init__(name, fieldsList)
 
-        #set db attributes
+        # set db attributes
         self._dbHome = dbHome
         self._dbName = dbName
-        
-        #get db
+
+        # get db
         if self._dbHome.startswith('mysql://'):
             self._db = create_engine(self._dbHome, pool_size=1, max_overflow=0,
                                      use_threadlocal=False)
-        else: self._db = create_engine(self._dbHome)
+        else:
+            self._db = create_engine(self._dbHome)
         #self._db.dialect.is_disconnect = lambda e: isinstance(e, exceptions.SQLError)
         self._db.echo = False
         self._dbMetadata = MetaData(self._db)
-        try: self._table = createTable(self._name, self._dbMetadata, self._fieldsList)
-        except exceptions.SQLError, e:
-            if not re.search(r'already exists', str(e)): raise e
-            self._table = Table(self._name, self._dbMetadata, autoload = True)
+        try:
+            self._table = createTable(
+                self._name, self._dbMetadata, self._fieldsList)
+        except exceptions.SQLError as e:
+            if not re.search(r'already exists', str(e)):
+                raise e
+            self._table = Table(self._name, self._dbMetadata, autoload=True)
             if cleanTable is True:
                 self._table.drop()
-                self._table = createTable(self._name, self._dbMetadata, self._fieldsList)
+                self._table = createTable(
+                    self._name, self._dbMetadata, self._fieldsList)
         self._session = create_session()
         self._retryMax = 10
         self._sleepTime = .5
@@ -90,20 +108,23 @@ class RdbmsStore(Store):
                 self._table.insert(insertDict).execute()
                 break
             except:
-                if tries > self._retryMax: raise
+                if tries > self._retryMax:
+                    raise
                 tries += 1
                 time.sleep(self._sleepTime)
 
     def _remove(self, id):
         """Remove a record from the store by its id (first field)."""
-        
+
         tries = 0
         while True:
             try:
-                self._table.delete(getattr(self._table.c, getDbSafeFieldName(self._fieldsList[0]))==id).execute()
+                self._table.delete(getattr(self._table.c, getDbSafeFieldName(
+                    self._fieldsList[0])) == id).execute()
                 break
             except:
-                if tries > self._retryMax: raise
+                if tries > self._retryMax:
+                    raise
                 tries += 1
                 time.sleep(self._sleepTime)
 
@@ -117,13 +138,14 @@ class RdbmsStore(Store):
         while True:
             try:
                 recs = self._table.select(getattr(self._table.c,
-                    getDbSafeFieldName(queryField))==queryValue).execute().fetchall()
+                                                  getDbSafeFieldName(queryField)) == queryValue).execute().fetchall()
                 break
             except:
-                if tries > self._retryMax: raise
+                if tries > self._retryMax:
+                    raise
                 tries += 1
                 time.sleep(self._sleepTime)
-        
+
         returnResultSet = []
         for result in recs:
             returnValsList = []
@@ -134,52 +156,58 @@ class RdbmsStore(Store):
             returnResultSet.append(returnValsList)
         return returnResultSet
 
-    def _update(self, id, modifyFieldDataDict) :
+    def _update(self, id, modifyFieldDataDict):
         """Update a record."""
-        
+
         updateDict = {}
-        for field in modifyFieldDataDict.keys():
+        for field in list(modifyFieldDataDict.keys()):
 
-            #make sure field is in the list
+            # make sure field is in the list
             if not field in self._fieldsList:
-                raise RdbmsStoreError, "Cannot update.  Field %s is not in this store." % field
+                raise RdbmsStoreError(
+                    "Cannot update.  Field %s is not in this store." % field)
 
-            #make sure it is not the id (first field)
+            # make sure it is not the id (first field)
             if field == self._fieldsList[0]:
-                raise RdbmsStoreError, "Cannot update.  The id field, %s, cannot be modified." % field
-            
+                raise RdbmsStoreError(
+                    "Cannot update.  The id field, %s, cannot be modified." % field)
+
             updateDict[getDbSafeFieldName(field)] = modifyFieldDataDict[field]
         tries = 0
         while True:
             try:
-                self._table.update(getattr(self._table.c, getDbSafeFieldName(self._fieldsList[0]))==id, updateDict).execute()
+                self._table.update(getattr(self._table.c, getDbSafeFieldName(
+                    self._fieldsList[0])) == id, updateDict).execute()
                 break
             except:
-                if tries > self._retryMax: raise
+                if tries > self._retryMax:
+                    raise
                 tries += 1
                 time.sleep(self._sleepTime)
 
     def _queryAllValuesFromFields(self, returnFieldsList):
         """Query all values from a list of fields for all records and return a list."""
 
-        #print "rdbmsStore returnFieldsList:",returnFieldsList, self._name
+        # print "rdbmsStore returnFieldsList:",returnFieldsList, self._name
 
-        #get list of results
+        # get list of results
         tries = 0
         while True:
             try:
                 resultSet = self._table.select().execute().fetchall()
                 break
             except:
-                if tries > self._retryMax: raise
+                if tries > self._retryMax:
+                    raise
                 tries += 1
                 time.sleep(self._sleepTime)
-        
+
         returnResultSet = []
         for result in resultSet:
             returnValsList = []
             for field in returnFieldsList:
-                returnValsList.append(getattr(result, getDbSafeFieldName(field)))
+                returnValsList.append(
+                    getattr(result, getDbSafeFieldName(field)))
             returnResultSet.append(returnValsList)
         return returnResultSet
 
@@ -190,33 +218,37 @@ class RdbmsStore(Store):
         list corresponding to that list.
         """
 
-        #create condition dict
+        # create condition dict
         conditionClause = []
-        for key,val in queryDict.items():
-            conditionClause.append(getattr(self._table.c, getDbSafeFieldName(key))==val)
+        for key, val in list(queryDict.items()):
+            conditionClause.append(
+                getattr(self._table.c, getDbSafeFieldName(key)) == val)
 
-        #get list of results
+        # get list of results
         tries = 0
         while True:
             try:
-                resultSet = self._table.select(and_(*conditionClause)).execute().fetchall()
+                resultSet = self._table.select(
+                    and_(*conditionClause)).execute().fetchall()
                 break
             except:
-                if tries > self._retryMax: raise
+                if tries > self._retryMax:
+                    raise
                 tries += 1
                 time.sleep(self._sleepTime)
 
-        #return result set
+        # return result set
         returnResultSet = []
 
-        #loop
+        # loop
         for result in resultSet:
             returnValsList = []
             for field in returnFieldsList:
-                returnValsList.append(getattr(result, getDbSafeFieldName(field)))
+                returnValsList.append(
+                    getattr(result, getDbSafeFieldName(field)))
             returnResultSet.append(returnValsList)
         return returnResultSet
-    
+
     def drop(self):
         """Drop table."""
         self._table.drop()

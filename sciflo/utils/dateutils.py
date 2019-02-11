@@ -1,10 +1,10 @@
 # 01-02-04
-#v1.0.2
+# v1.0.2
 
 #
 # Date Utils
 # By Fuzzyman see www.voidspace.org.uk/atlantibots/pythonutils.html
-# Written for the Victory Day program for Jesus Fellowship Church 
+# Written for the Victory Day program for Jesus Fellowship Church
 # www.jesus.org.uk
 
 # These are various functions for dealing with dates (including leap years and so on)
@@ -17,7 +17,7 @@
 # (Although there is a function to explicitly check a date).
 
 # Help and inspiration was taken from :
-# http://users.aol.com/s6sj7gt/mikecal.htm and 
+# http://users.aol.com/s6sj7gt/mikecal.htm and
 # http://mathforum.org/library/drmath/view/62338.html
 
 # If you have any bug reports or suggestions please contact me.
@@ -40,29 +40,29 @@ from time import localtime
 
 # First set up some useful values
 
-monthslower = [ 'january', 'february', 'march', 'april', 'may', 'june', 'july',
-          'august', 'september', 'october', 'november', 'december' ]
+monthslower = ['january', 'february', 'march', 'april', 'may', 'june', 'july',
+               'august', 'september', 'october', 'november', 'december']
 
-dayslower =[ 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday',
-        'saturday' ]
+dayslower = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday',
+             'saturday']
 
-monthdict = { 'january' : 31, 'february' : 28, 'march' : 31, 'april' : 30, 'may' : 31,
-              'june' : 30, 'july' : 31, 'august' : 31, 'september' : 30, 'october' : 31,
-              'november' : 30, 'december' : 31 }
+monthdict = {'january': 31, 'february': 28, 'march': 31, 'april': 30, 'may': 31,
+             'june': 30, 'july': 31, 'august': 31, 'september': 30, 'october': 31,
+             'november': 30, 'december': 31}
 
-monthdictleap = { 'january' : 31, 'february' : 29, 'march' : 31, 'april' : 30, 'may' : 31,
-              'june' : 30, 'july' : 31, 'august' : 31, 'september' : 30, 'october' : 31,
-              'november' : 30, 'december' : 31 }
+monthdictleap = {'january': 31, 'february': 29, 'march': 31, 'april': 30, 'may': 31,
+                 'june': 30, 'july': 31, 'august': 31, 'september': 30, 'october': 31,
+                 'november': 30, 'december': 31}
 
-monthlist = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
+monthlist = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
-monthlistleap = [ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
+monthlistleap = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
-days =[ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
-        'Saturday' ]
+days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
+        'Saturday']
 
-months = [ 'January', 'February', 'March', 'April', 'May', 'June', 'July',
-          'August', 'September', 'October', 'November', 'December' ]
+months = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+          'August', 'September', 'October', 'November', 'December']
 
 #############################
 
@@ -194,15 +194,16 @@ def formatteddate(day, month, year, configdict = {}, **configs)
 def realdate(day, month, year):
     """Returns true if the supplied date is a possible date
     and False if it isn't :-) (Note - it *only* tests that the year is greater than zero)."""
-    if  month > 12 or year < 1 or day < 1 or month < 1:
+    if month > 12 or year < 1 or day < 1 or month < 1:
         return False
-    elif  month == 2:      # if it's february we need to know if it's a leap year
+    elif month == 2:      # if it's february we need to know if it's a leap year
         if isleapyear(year):
             numdays = 29
         else:
             numdays = 28
     else:
-        numdays = monthlist[ month-1 ]        # -1 because in the list January is 0
+        # -1 because in the list January is 0
+        numdays = monthlist[month-1]
     if day > numdays:
         return False
     else:
@@ -212,11 +213,11 @@ def realdate(day, month, year):
 def isleapyear(year):
     """Given a year as an integer (e.g. 2004) it returns True if the year is a leap year,
     and False if it isn't."""
-    if year%4 != 0:
+    if year % 4 != 0:
         return False
-    elif year%100 !=0:
+    elif year % 100 != 0:
         return True
-    elif year%400 == 0:
+    elif year % 400 == 0:
         return True
     else:
         return False
@@ -230,7 +231,8 @@ def daysinmonth(year, month):
         else:
             numdays = 28
     else:
-        numdays = monthlist[ month-1 ]        # -1 because in the list January is 0
+        # -1 because in the list January is 0
+        numdays = monthlist[month-1]
     return numdays
 
 
@@ -246,11 +248,12 @@ def datetoday(day, month, year):
         z = y-1
     else:
         z = y
-    dayofweek = ( 23*m//9 + d + 4 + y + z//4 - z//100 + z//400 )
+    dayofweek = (23*m//9 + d + 4 + y + z//4 - z//100 + z//400)
     if m >= 3:
         dayofweek -= 2
-    dayofweek = dayofweek%7
+    dayofweek = dayofweek % 7
     return dayofweek
+
 
 def datestringtoints(datestring):
     """Passed in a datestring - in the form 'yyyymmdd'
@@ -261,6 +264,7 @@ def datestringtoints(datestring):
     if len(datestring) != 8:        # badly formed datestring
         return None
     return (int(datestring[:4]), int(datestring[4:6]), int(datestring[6:8]))
+
 
 def intstodatestring(day, month, year):
     """Given three integers for day, month and year
@@ -285,9 +289,10 @@ def returndate():
         datetuple = localtime()
     except:
         return (2004, 1, 31)
-    return ( datetuple[0], datetuple[1], datetuple[2] )
+    return (datetuple[0], datetuple[1], datetuple[2])
 
-def nearestday(day, month, year, dayofweek = 2, afteronly = 0):
+
+def nearestday(day, month, year, dayofweek=2, afteronly=0):
     """Given a date as three integers (year, month and day) it returns the nearest
     date that is 'dayofweek'. (dayofweek should be an integer from 0 - 6. 0 is Sunday, 1 Monday etc..)
     If afteronly is set to 1 then it finds the nearest date of that day, on or *after* the specified.
@@ -297,7 +302,7 @@ def nearestday(day, month, year, dayofweek = 2, afteronly = 0):
     thisday = datetoday(day, month, year)
     if thisday == dayofweek:
         return (year, month, day)
-    
+
     if thisday < dayofweek:     # this 'if else test' tells us the number of days between the two days of the week
         forward = dayofweek - thisday
         backward = 7 - forward
@@ -308,9 +313,9 @@ def nearestday(day, month, year, dayofweek = 2, afteronly = 0):
         difference = forward
     else:
         difference = -backward
-        
+
     return addnumdays(day, month, year, difference)
-        
+
 
 def addnumdays(day, month, year, modifier):
     """Given a date as three integers (year, month and day) and a number of days to add or subtract
@@ -322,24 +327,25 @@ def addnumdays(day, month, year, modifier):
             month = 3
             day = 1
         while modifier >= 365:      # add any years on
-            if month <= 2 and isleapyear(year) or month > 2  and isleapyear(year+1):
+            if month <= 2 and isleapyear(year) or month > 2 and isleapyear(year+1):
                 numdays = 366
             else:
-                numdays = 365            
+                numdays = 365
             if modifier >= numdays:
                 year += 1
                 modifier -= numdays
             else:
                 break
-                
-        while modifier >= 28:   #add any full months on     
+
+        while modifier >= 28:  # add any full months on
             if month == 2:      # if it's february we need to know if it's a leap year
                 if isleapyear(year):
                     numdays = 29
                 else:
                     numdays = 28
             else:
-                numdays = monthlist[ month-1 ]        # -1 because in the list January is 0
+                # -1 because in the list January is 0
+                numdays = monthlist[month-1]
             if modifier >= numdays:
                 modifier -= numdays
                 if month != 12:
@@ -349,14 +355,15 @@ def addnumdays(day, month, year, modifier):
                     year += 1
             else:
                 break
-# now we need to correct if the new 'day' value is greater than the number of days in the new month...... 
+# now we need to correct if the new 'day' value is greater than the number of days in the new month......
             if month == 2:      # if it's february we need to know if it's a leap year
                 if isleapyear(year):
                     numdays = 29
                 else:
                     numdays = 28
             else:
-                numdays = monthlist[ month-1 ]        # -1 because in the list January is 0
+                # -1 because in the list January is 0
+                numdays = monthlist[month-1]
             if day > numdays:
                 if month != 12:
                     month += 1
@@ -378,13 +385,13 @@ def addnumdays(day, month, year, modifier):
             if month > 2 and isleapyear(year) or month <= 2 and isleapyear(year-1):
                 numdays = 366
             else:
-                numdays = 365            
+                numdays = 365
             if modifier >= numdays:
                 year -= 1
                 modifier -= numdays
             else:
                 break
-            
+
         while modifier >= 28:   # subtract any full months on
             if month == 2:
                 if isleapyear(year):
@@ -397,7 +404,7 @@ def addnumdays(day, month, year, modifier):
             if day > numdays:
                 modifier -= numdays
                 if month != 1:
-                    month -=1
+                    month -= 1
                 else:
                     month = 12
                     year -= 1
@@ -408,16 +415,17 @@ def addnumdays(day, month, year, modifier):
                         numdays = 28
                 else:
                     numdays = monthlist[month-1]
-                day = numdays - adjuster        # if we've gone back a whole month it's now the smae numebr of days before the end of the month
+                # if we've gone back a whole month it's now the smae numebr of days before the end of the month
+                day = numdays - adjuster
             else:
                 break
-            
+
         while modifier > 0:
             year, month, day = decdate(day, month, year)
-            modifier -= 1         
+            modifier -= 1
 
-    return ( year, month, day )
-    
+    return (year, month, day)
+
 
 def incdate(day, month, year):
     """Given a date it adds one day to the date and returns the new date."""
@@ -427,25 +435,27 @@ def incdate(day, month, year):
         else:
             numdays = 28
     else:
-        numdays = monthlist[ month-1 ]        # -1 because in the list January is 0
+        # -1 because in the list January is 0
+        numdays = monthlist[month-1]
     if day < numdays:
         day += 1
     else:       # of course, here day should equal numdays or the date is invalid :-)
         if month == 12:
             month = 1
-            year +=1
+            year += 1
             day = 1
         else:
             month += 1
             day = 1
-    return ( year, month, day )
+    return (year, month, day)
+
 
 def decdate(day, month, year):
     """Given a date it subtracts one day from the date and returns the new date."""
     if day > 1:
         day -= 1
     elif month == 1:        # 1st January
-        year -=1
+        year -= 1
         day = 31
         month = 12
     elif month == 3:        # 1st March
@@ -455,9 +465,10 @@ def decdate(day, month, year):
             day = 28
         month = 2
     else:
-        day = monthlist[ month-2 ]
+        day = monthlist[month-2]
         month -= 1
-    return ( year, month, day )
+    return (year, month, day)
+
 
 def adddate(day1, month1, year1, day2, month2, year2):
     """Given a date as three integers (year1, month1 and day1) and another number of days (day2), months (month2)
@@ -476,7 +487,7 @@ def adddate(day1, month1, year1, day2, month2, year2):
         month += 12
     while month > 12:
         year += 1
-        month -=12
+        month -= 12
     numdays = daysinmonth(year, month)
     if day1 > numdays:
         day1 = numdays
@@ -489,6 +500,7 @@ def adddate(day1, month1, year1, day2, month2, year2):
         year, month, day1 = thisfunc(day1, month, year)
         day2 -= 1
     return year, month, day1
+
 
 def daycount(year, month, day):
     """"This is an implementation of the Julian Day system. This 
@@ -507,6 +519,7 @@ def daycount(year, month, day):
     B = 2 - A + int(A/4)
     return int(365.25*year) + int(30.6001*month) + B + day + 1720995
 
+
 def counttodate(daycount):
     """Given the number for a date using the Julian Day System,
     it returns that date as integer tuple (year, month, day)."""
@@ -514,10 +527,12 @@ def counttodate(daycount):
     daycount = daycount - 2453030
     return addnumdays(25, 1, 2004, daycount)
 
+
 def daysbetween(day1, month1, year1, day2, month2, year2):
     """Given two dates it returns the number of days between them.
     If date1 is earlier than date2 then the result will be positive."""
     return daycount(year2, month2, day2) - daycount(year1, month1, day1)
+
 
 def dayfinish(day):
     """Takes an integer day and returns the correct finish for it
@@ -536,7 +551,8 @@ def dayfinish(day):
     else:
         return 'th'
 
-def formatteddate(day, month, year, configdict = {}, **configs):
+
+def formatteddate(day, month, year, configdict={}, **configs):
     """Given a date in in integers, it returns the date as a nicely formatted string :
     e.g. 24th January 1997 or 2nd February 1948
     configs accepts the following keywords :
@@ -563,12 +579,12 @@ def formatteddate(day, month, year, configdict = {}, **configs):
     if configdict != {} and isinstance(configdict, dict):
         configs = configdict
     for member in keywordlist:
-        if not configs.has_key(member):
+        if member not in configs:
             configs[member] = 0
     outstring = ''
 
     if configs['dayofweek'] and year:
-        outstring = days[datetoday(day, month, year)] +' '
+        outstring = days[datetoday(day, month, year)] + ' '
     if day < 10 and configs['addzero']:
         daystr = '0' + str(day)
     else:
@@ -576,7 +592,7 @@ def formatteddate(day, month, year, configdict = {}, **configs):
     if not configs['monthfirst']:
         outstring += daystr + dayfinish(day) + ' ' + months[month-1]
     else:
-        outstring += months[month-1] + ' ' + daystr + dayfinish(day) 
+        outstring += months[month-1] + ' ' + daystr + dayfinish(day)
     if configs['addcom'] and year:
         outstring += ','
     if year:
@@ -584,52 +600,52 @@ def formatteddate(day, month, year, configdict = {}, **configs):
     if configs['fullstop']:
         outstring += '.'
     return outstring
-    
 
-dateformcon = { 'dayofweek' : 1, 'addzero' : 0, 'addcom' : 1, 'fullstop' : 1, 'monthfirst' : 0 }
+
+dateformcon = {'dayofweek': 1, 'addzero': 0,
+               'addcom': 1, 'fullstop': 1, 'monthfirst': 0}
 
 ############################################################
 
 if __name__ == "__main__":
-    print returndate()
+    print((returndate()))
     year, month, day = returndate()
     test = daycount(year, month, day)
-    print test
-    print counttodate(test)
+    print(test)
+    print((counttodate(test)))
     while True:
-        x = raw_input("Enter Year of date (Enter to quit) >> ")
-        if x=='':
+        x = eval(input("Enter Year of date (Enter to quit) >> "))
+        if x == '':
             break
-        y = raw_input("Enter Month >> ")
-        z = raw_input("Enter Day >> ")
+        y = eval(input("Enter Month >> "))
+        z = eval(input("Enter Day >> "))
         test = daycount(int(x), int(y), int(z))
-        print test
-        print counttodate(test)
+        print(test)
+        print((counttodate(test)))
 
-
-    
-    print realdate(32, 1, 2004)
+    print((realdate(32, 1, 2004)))
     while True:
-        x = raw_input("Enter Modifier (0 to quit) >> ")
-        if x=='0':
+        x = eval(input("Enter Modifier (0 to quit) >> "))
+        if x == '0':
             break
-        print addnumdays(31, 3, 2004, -int(x) )
+        print((addnumdays(31, 3, 2004, -int(x))))
 
     while True:
-        x = raw_input("Enter Day of Week 0-6 (7 to quit) >> ")
-        if x=='7':
+        x = eval(input("Enter Day of Week 0-6 (7 to quit) >> "))
+        if x == '7':
             break
-        print nearestday(24, 1, 2004, int(x))
+        print((nearestday(24, 1, 2004, int(x))))
 
     while True:
-        x = raw_input("Enter Years to Add (Enter to quit) >> ")
-        if x=='':
+        x = eval(input("Enter Years to Add (Enter to quit) >> "))
+        if x == '':
             break
-        y = raw_input("Enter Months to Add >> ")
-        z = raw_input("Enter Days To Add >> ")
-        print adddate(24, 1, 2004, int(z), int(y), int(x))
-        year, month , day = adddate(24, 1, 2004, int(z), int(y), int(x))
-        print "The nearest Tuesday after that date is ", nearestday(day, month, year)
+        y = eval(input("Enter Months to Add >> "))
+        z = eval(input("Enter Days To Add >> "))
+        print((adddate(24, 1, 2004, int(z), int(y), int(x))))
+        year, month, day = adddate(24, 1, 2004, int(z), int(y), int(x))
+        print(("The nearest Tuesday after that date is ",
+               nearestday(day, month, year)))
 
 
 """

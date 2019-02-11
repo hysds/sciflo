@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 import ldap
 import os
 import sys
@@ -6,31 +6,33 @@ import zlib
 import base64
 from tempfile import mktemp
 
-def authenticate(user,passwd):
+
+def authenticate(user, passwd):
     """Authenticate via LDAP."""
-    
+
     caCertStr = zlib.decompress(base64.b64decode(encodedCompressedCaCert))
     certFile = mktemp('.pem')
-    open(certFile,'w').write(caCertStr)
+    open(certFile, 'w').write(caCertStr)
     try:
-        ldap.set_option(ldap.OPT_X_TLS_CACERTFILE,certFile)
+        ldap.set_option(ldap.OPT_X_TLS_CACERTFILE, certFile)
         l = ldap.open("ldap.jpl.nasa.gov")
-        l.protocol_version = ldap.VERSION3    
+        l.protocol_version = ldap.VERSION3
         l.start_tls_s()
-        l.simple_bind_s('uid=%s, ou=personnel, dc=dir, dc=jpl, dc=nasa, dc=gov' % user,passwd)
+        l.simple_bind_s(
+            'uid=%s, ou=personnel, dc=dir, dc=jpl, dc=nasa, dc=gov' % user, passwd)
         l.unbind_s()
-    except ldap.NO_SUCH_OBJECT, e:
+    except ldap.NO_SUCH_OBJECT as e:
         info = e.args[0]['info']
         desc = e.args[0]['desc']
-        print "%s: %s" % (info,desc)
-    except ldap.INVALID_CREDENTIALS, e:
+        print(("%s: %s" % (info, desc)))
+    except ldap.INVALID_CREDENTIALS as e:
         info = e.args[0]['info']
         desc = e.args[0]['desc']
-        print "%s: %s" % (info,desc)
-    except ldap.INAPPROPRIATE_AUTH, e:
+        print(("%s: %s" % (info, desc)))
+    except ldap.INAPPROPRIATE_AUTH as e:
         info = e.args[0]['info']
         desc = e.args[0]['desc']
-    	print "%s: %s" % (info,desc)
+        print(("%s: %s" % (info, desc)))
     os.unlink(certFile)
 
 
@@ -39,4 +41,4 @@ encodedCompressedCaCert = '''eNrsvdeS40iSNXyPp6DtXuy0ZU8RWv3WZj9AAJSgBOUdNAWoNZ/
 if __name__ == "__main__":
     user = sys.argv[1]
     passwd = sys.argv[2]
-    authenticate(user,passwd)
+    authenticate(user, passwd)

@@ -1,4 +1,5 @@
 import random
 
+
 def getRandom():
-	return random.random()
+    return random.random()

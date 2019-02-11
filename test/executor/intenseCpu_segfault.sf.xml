@@ -71,7 +71,7 @@ def add(v1, v2):
 def add(v1, v2):
     import time
     time.sleep(5)
-    import binning
+    import binning64
     return v1 + v2
             ]]></sf:binding>
           </sf:op>
@@ -96,7 +96,7 @@ def cpuTest(c):
     t1 = time.time()
     while a < c:
         a = add(a, 1)
-    print "cpuTest took %s seconds." % (time.time() - t1)
+    print("cpuTest took %s seconds." % (time.time() - t1))
     return a
             ]]></sf:binding>
           </sf:op>

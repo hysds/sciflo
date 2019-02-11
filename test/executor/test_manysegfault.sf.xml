@@ -33,7 +33,7 @@
           <sf:op>
             <sf:binding>python:<![CDATA[
 def add(v1, v2):
-    import binning
+    import binning64
     import time
     time.sleep(10)
     return v1 + v2
@@ -54,7 +54,7 @@ def add(v1, v2):
           <sf:op>
             <sf:binding>python:<![CDATA[
 def add(v1, v2):
-    import binning
+    import binning64
     import time
     time.sleep(10)
     return v1 + v2
@@ -75,7 +75,7 @@ def add(v1, v2):
           <sf:op>
             <sf:binding>python:<![CDATA[
 def add(v1, v2):
-    import binning
+    import binning64
     import time
     time.sleep(10)
     return v1 + v2
@@ -96,7 +96,7 @@ def add(v1, v2):
           <sf:op>
             <sf:binding>python:<![CDATA[
 def add(v1, v2):
-    import binning
+    import binning64
     import time
     time.sleep(10)
     return v1 + v2
@@ -117,7 +117,7 @@ def add(v1, v2):
           <sf:op>
             <sf:binding>python:<![CDATA[
 def add(v1, v2):
-    import binning
+    import binning64
     import time
     time.sleep(10)
     return v1 + v2
@@ -138,7 +138,7 @@ def add(v1, v2):
           <sf:op>
             <sf:binding>python:<![CDATA[
 def add(v1, v2):
-    import binning
+    import binning64
     import time
     time.sleep(10)
     return v1 + v2
