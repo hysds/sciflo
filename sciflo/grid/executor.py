@@ -602,7 +602,7 @@ in runLockedFunction() for sciflo '%s': %s\n%s" %
             if self.executionError is not None:
                 self.logger.debug("Calling terminate() for sciflo '%s'..." %
                                   self.scifloName, extra={'id': self.scifloid})
-                #self.pool.terminate()
+                self.pool.terminate()
                 self.output = ScifloExecutorError("Error result for '%s': \
 %s\n%s" % self.executionError)
                 self.annDoc.addGlobalOutput(

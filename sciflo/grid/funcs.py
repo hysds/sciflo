@@ -229,12 +229,11 @@ previously cached execution: %s" % info['executionLog'])
     import signal
 
     def handler(signum, frame):
-        try:
-            if p.is_alive():
-                p.terminate()
+        if p.is_alive():
+            if hasattr(p._popen, 'terminate'): p.terminate()
+        if os.getpid() == p._parent_pid:
             p.join(timeout=0)
-        except:
-            pass
+        raise(SystemExit)
     signal.signal(signal.SIGTERM, handler)
 
     WORKER_LOGGER.debug("Starting process for '%s'." % procId,
