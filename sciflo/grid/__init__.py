@@ -12,4 +12,3 @@ from .doc import *
 from . import funcs
 from . import executor
 from . import annotatedDoc
-from . import soapFuncs

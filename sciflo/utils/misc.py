@@ -838,18 +838,6 @@ SCIFLO_CONFIG_XML_TEMPLATE = Template('''<?xml version="1.0"?>
     <exposedName>workUnitCallback</exposedName>
     <pythonFunction>sciflo.grid.workUnitCallback</pythonFunction>
   </callbackMethod>
-  <submitScifloMethod>
-    <exposedName>submitSciflo</exposedName>
-    <pythonFunction>sciflo.grid.soapFuncs.submitSciflo_server</pythonFunction>
-  </submitScifloMethod>
-  <submitScifloNoCacheMethod>
-    <exposedName>submitSciflo_nocache</exposedName>
-    <pythonFunction>sciflo.grid.soapFuncs.submitSciflo_server_nocache</pythonFunction>
-  </submitScifloNoCacheMethod>
-  <cancelScifloMethod>
-    <exposedName>cancelSciflo</exposedName>
-    <pythonFunction>sciflo.grid.soapFuncs.cancelSciflo_server</pythonFunction>
-  </cancelScifloMethod>
 </scifloConfig>
 ''')
 
@@ -993,9 +981,11 @@ def getUserScifloConfig(userConfigFile=None, globalConfigFile=None):
         configStr = indent(lxml.etree.tostring(gcfElt, encoding='unicode'))
 
     # write config file if it doesn't exist, otherwise check if it needs to be updated
-    with open(userScifloConfigFile, 'r') as f:
-        configStr_from_file = f.read()
-    if not os.path.exists(userScifloConfigFile) or configStr_from_file != configStr:
+    configStr_from_file = None
+    if os.path.exists(userScifloConfigFile):
+        with open(userScifloConfigFile, 'r') as f:
+            configStr_from_file = f.read()
+    if configStr_from_file is None or configStr_from_file != configStr:
         with open(userScifloConfigFile, 'w') as f:
             f.write(configStr)
     return userScifloConfigFile
@@ -1120,10 +1110,6 @@ def filterLocal(urlsElt):
 def makeLocal(urlArg, noDODSFlag=False, dir=None):
     """Download all files locally and rewrite urls.  Return as list.  If noDODSFlag
     is True and the only available url, otherwise empty string is given."""
-
-    # if SOAPpy.Types.*ArrayType, coerce to list (hack)
-    if re.search(r'soappy\.types\..*arrayType', getType(urlArg), re.IGNORECASE):
-        urlArg = urlArg._aslist()
 
     retList = []
     if isinstance(urlArg, (list, tuple)):

@@ -14,8 +14,6 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import http.client
-import SOAPpy
-from SOAPpy import WSDL
 from subprocess import *
 from xml.parsers.expat import ExpatError
 from pprint import pprint
@@ -197,79 +195,6 @@ class InlinePythonFunctionWorkUnit(WorkUnit):
             print("InlinePythonFunctionWorkUnit: %s" % code)
         exec(code, locals())  # exec the inline python in local namespace
         return eval(funcCall)(*funcArgs)
-
-
-class SoapWorkUnitError(Exception):
-    """Exception class for SoapWorkUnit class."""
-    pass
-
-
-class SoapWorkUnit(WorkUnit):
-    """WorkUnit subclass to call a SOAP service."""
-
-    def _run(self):
-        """Call the SOAP service and return the result."""
-
-        def _adjustSoapArg(arg):
-            if isinstance(arg, (str,)):
-                newArg = "'''%s'''" % arg
-            elif isinstance(arg, SOAPpy.Types.arrayType):
-                newArg = "%s" % arg._aslist()
-            elif isinstance(arg, SOAPpy.Types.structType):
-                newArg = "%s" % arg._asdict()
-            else:
-                newArg = "%s" % arg
-            return newArg
-
-        soapCall = self._call  # generate call
-        wsdlFile = self._args[0]
-        soapArgs = self._args[1:]
-
-        if self._verbose:
-            SOAPpy.Config.debug = 1
-
-        # get proxy
-        if wsdlFile.startswith('https://'):
-            wsdlFile = urllib.request.urlopen(wsdlFile)
-        try:
-            server = WSDL.Proxy(wsdlFile)  # get soap server
-        except ExpatError as e:
-            try:
-                wsdlStr = urllib.request.urlopen(wsdlFile).read()
-            except Exception as e:
-                raise SoapWorkUnitError(
-                    "Got error accessing wsdl at %s.  Check url?\n%s" % (wsdlFile, e))
-            raise SoapWorkUnitError(
-                "Got error parsing wsdl at %s.  Check url?\n%s" % (wsdlFile, e))
-
-        argsStrList = []
-        for soapArg in soapArgs:
-            argsStrList.append(_adjustSoapArg(soapArg))
-        callLine = 'server.%s(%s)' % (soapCall, ",".join(argsStrList))
-        if self._verbose:
-            print("SoapWorkUnit: %s" % callLine)
-        res = eval(callLine)
-
-        # check if AsyncResult
-        if isinstance(res, (str,)) and res.startswith('scifloAsync:'):
-            res = res[12:]
-            print("Querying for async result...")
-            retries = 17280
-            sleep = 5
-            for i in range(retries):
-                try:
-                    return pickle.loads(urllib.request.urlopen(res).read())
-                except urllib.error.HTTPError as e:
-                    if re.search(r'HTTP Error 404', str(e)):
-                        print(
-                            "Got 404(Not Found).  Going to sleep and will retry again.")
-                    else:
-                        raise
-                time.sleep(sleep)
-            raise SoapWorkUnitError(
-                'Timed out trying to query for AsyncResult.')
-        else:
-            return res
 
 
 class ExecutableWorkUnitError(Exception):

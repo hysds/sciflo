@@ -13,7 +13,6 @@ from .workUnit import *
 
 # mapping of work unit types to their respective WorkUnit subclass
 WorkUnitTypeMapping = {
-    'soap': SoapWorkUnit,
     'python function': PythonFunctionWorkUnit,
     'inline python function': InlinePythonFunctionWorkUnit,
     'executable': ExecutableWorkUnit,

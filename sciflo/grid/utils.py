@@ -21,7 +21,6 @@ import copy
 from random import Random
 from socket import getfqdn
 import pickle as pickle
-from SOAPpy import SOAPProxy
 from collections import UserList
 from urllib.parse import urlparse
 from io import StringIO

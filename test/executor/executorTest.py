@@ -27,6 +27,11 @@ class ExecutorTestCase(unittest.TestCase):
         # get temporary output directory
         self.outputDir = mkdtemp()
 
+        # create test directory
+        self.testDir = "/tmp/testdir"
+        if not os.path.isdir(self.testDir):
+            os.makedirs(self.testDir, 0o755)
+
         # change to test directory
         os.chdir(dirName)
 
@@ -169,6 +174,10 @@ class ExecutorTestCase(unittest.TestCase):
 
     def teadDown(self):
         """Cleanup."""
+
+        # cleanup test directory
+        if os.path.exists(self.testDir):
+            shutil.rmtree(self.testDir)
 
         # cleanup output directory
         if os.path.exists(self.outputDir):

@@ -8,7 +8,6 @@ import json
 import pickle as pickle
 from random import Random
 from queue import Empty
-from SOAPpy.Errors import HTTPError
 from lxml.etree import _ElementStringResult, _Element, tostring, fromstring
 from celery.exceptions import SoftTimeLimitExceeded
 
@@ -84,10 +83,6 @@ def forkChildAndRun(q, func, *args, **kargs):
         os.setpgid(0, 0)
         try:
             res = func(*args, **kargs)
-
-            # catch HTTPError from SOAPpy.Errors exception or else unpickle will fail later
-            if isinstance(res[0], HTTPError):
-                res = (SoapHttpError('SOAPpy.Errors.HTTPError'), res[1])
 
             # catch SoftTimeLimitExceeded from celery since it can't be pickled
             if isinstance(res[0], SoftTimeLimitExceeded):

@@ -9,8 +9,6 @@
 #              U.S. Government Sponsorship acknowledged.
 # -----------------------------------------------------------------------------
 import types
-import SOAPpy
-from SOAPpy import WSDL, SOAPProxy
 import re
 import urllib.request
 import urllib.error
@@ -33,8 +31,7 @@ def getCallback(config):
     print config
     print "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
     '''
-    if not isinstance(config, tuple) and not isinstance(config, list) and \
-            not isinstance(config, SOAPpy.Types.arrayType):
+    if not isinstance(config, tuple) and not isinstance(config, list):
         raise RuntimeError("Argument must be a tuple, list, or ArrayType.  Got %s %s." % (
             type(config), config))
 
@@ -76,47 +73,6 @@ class ScifloCallback(object):
         return self._callable(*args, **kargs)
 
 
-class SoapCallbackError(Exception):
-    """Exception class for SOAPCallback class."""
-    pass
-
-
-class SOAPCallback(ScifloCallback):
-    """HTTP SOAP callback class."""
-
-    def __init__(self, args):
-        """Constructor."""
-
-        # call super
-        super(SOAPCallback, self).__init__(args)
-
-        # if only 2 args, assume first arg is wsdl url and second is soap method
-        if len(self._args) == 2:
-            self._wsdl = self._args[0]
-            self._method = self._args[1]
-
-            # create proxy
-            if self._wsdl.startswith('https://'):
-                wsdl = urllib.request.urlopen(self._wsdl)
-            else:
-                wsdl = self._wsdl
-            self._proxy = WSDL.Proxy(wsdl)
-
-        # if 3, args are address (http[s]://hostname:port), namespace, and method
-        elif len(self._args) == 3:
-            self._addr = self._args[0]
-            self._namespace = self._args[1]
-            self._method = self._args[2]
-
-            # create proxy
-            self._proxy = SOAPProxy(self._addr, namespace=self._namespace)
-        else:
-            raise SOAPCallbackError("Cannot resolve args.")
-
-        # set callable
-        self._callable = eval("self._proxy.%s" % self._method)
-
-
 class FunctionCallbackError(Exception):
     """Exception class for FunctionCallback class."""
     pass
@@ -143,7 +99,5 @@ class FunctionCallback(ScifloCallback):
 
 # mapping of sciflo call types to their respective ScifloCallback subclass
 CallbackMapping = {
-    'http': SOAPCallback,
-    'ssl': SOAPCallback,
     'local': FunctionCallback
 }
