@@ -24,11 +24,6 @@ class ExecutorTestCase(unittest.TestCase):
     def setUp(self):
         """Setup."""
 
-        # prep test dir
-        self.testDir = "/tmp/testdir"
-        if not os.path.isdir(self.testDir):
-            os.makedirs(self.testDir, 0x755)
-
         # get temporary output directory
         self.outputDir = mkdtemp()
 
