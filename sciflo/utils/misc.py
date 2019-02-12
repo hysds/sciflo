@@ -993,9 +993,11 @@ def getUserScifloConfig(userConfigFile=None, globalConfigFile=None):
         configStr = indent(lxml.etree.tostring(gcfElt, encoding='unicode'))
 
     # write config file if it doesn't exist, otherwise check if it needs to be updated
-    with open(userScifloConfigFile, 'r') as f:
-        configStr_from_file = f.read()
-    if not os.path.exists(userScifloConfigFile) or configStr_from_file != configStr:
+    configStr_from_file = None
+    if os.path.exists(userScifloConfigFile):
+        with open(userScifloConfigFile, 'r') as f:
+            configStr_from_file = f.read()
+    if configStr_from_file is None or configStr_from_file != configStr:
         with open(userScifloConfigFile, 'w') as f:
             f.write(configStr)
     return userScifloConfigFile
