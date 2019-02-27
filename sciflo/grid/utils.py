@@ -376,7 +376,7 @@ def getFunction(funcStr, addToSysPath=None):
             exec("import sys; sys.path.insert(1,'%s')" % addToSysPath)
         exec("import %s" % importLib2)
         exec("import importlib")
-        exec("reload(%s)" % importLib2)
+        exec("importlib.reload(%s)" % importLib2)
 
     # return function
     return eval(funcStr)
