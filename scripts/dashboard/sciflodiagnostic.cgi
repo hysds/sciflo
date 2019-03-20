@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:        sciflodiagnostic.cgi
 # Purpose:     Display flowcheck results.
 #
@@ -9,16 +9,20 @@
 # Created:     Wed Jun 27 23:26:44 2007
 # Copyright:   (c) 2007, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
-#-------------------------------------------------------------------------------------
-import cgi
-import cgitb; cgitb.enable()
-import os, sys, urllib, tempfile
-from string import Template
-import elementtree.ElementTree as ET
-
-import sciflo
-from cgiUtils import *
+# -------------------------------------------------------------------------------------
+import tempfile
+import urllib
+import sys
 import pageTemplate
+from cgiUtils import *
+import sciflo
+import elementtree.ElementTree as ET
+from string import Template
+import os
+import cgi
+import cgitb
+cgitb.enable()
+
 
 CGI_URL_BASE = sciflo.utils.getCgiBaseHref()
 HTML_URL_BASE = sciflo.utils.getHtmlBaseHref()
@@ -138,35 +142,37 @@ style="background-color: white; padding: 5px; display: inline;" hasShadow="true"
 displayMinimizeAction="true" windowState="minimized"><pre>$content</pre></span><a href="#"
 onclick="dojo.widget.byId('$idUnique').show(); return false;">$id</a>''')
 
-#DIALOG_DIV_TMPL = Template('''
-#<span dojoType="dialog" id="$idUnique" bgColor="black" bgOpacity="0.5" toggle="fade"
-#toggleDuration="250" followScroll="false" closeOnBackgroundClick="true"
-#style="display: inline;"><span dojoType="FloatingPane" title="$id" id="${idUnique}Pane"
-#layoutAlign="client" style="background-color: white; padding: 5px; display: inline;"
-#hasShadow="true" templateCssString="%s"><span
-#style="font-style: normal; font-weight: normal;"><pre>$content</pre></span></span></span><a href="#"
-#onclick="dojo.widget.byId('$idUnique').show(); return false;">$id</a>''' % FLOATING_PANE_CSS)
+# DIALOG_DIV_TMPL = Template('''
+# <span dojoType="dialog" id="$idUnique" bgColor="black" bgOpacity="0.5" toggle="fade"
+# toggleDuration="250" followScroll="false" closeOnBackgroundClick="true"
+# style="display: inline;"><span dojoType="FloatingPane" title="$id" id="${idUnique}Pane"
+# layoutAlign="client" style="background-color: white; padding: 5px; display: inline;"
+# hasShadow="true" templateCssString="%s"><span
+# style="font-style: normal; font-weight: normal;"><pre>$content</pre></span></span></span><a href="#"
+# onclick="dojo.widget.byId('$idUnique').show(); return false;">$id</a>''' % FLOATING_PANE_CSS)
 
 if __name__ == "__main__":
-    
+
     print "Content-Type: text/html\n\n"
     print pageTemplate.pageTemplateHeadStart.substitute(title='Flow Status',
                                                         additionalHead=ADDITIONAL_HEAD)
     print pageTemplate.pageTemplateHeadEnd.substitute(additionalHead='',
-                                                  bodyOnload='')
-    
+                                                      bodyOnload='')
+
     form = cgi.FieldStorage()
-    
-    #run live?
+
+    # run live?
     runLive = form.getfirst("live", None)
-    if runLive is not None: runLive = True
-    else: runLive = False
-    
-    #get flows dir
+    if runLive is not None:
+        runLive = True
+    else:
+        runLive = False
+
+    # get flows dir
     flowsRootDir = os.path.join(sys.prefix, 'share', 'sciflo', 'web', 'flows')
     flowsDir = form.getfirst('flowsDir', None)
-    
-    #run flowcheck.sh live and wait for results
+
+    # run flowcheck.sh live and wait for results
     if runLive:
         if flowsDir is None:
             print "<center><h1>Run Live</h1></center>"
@@ -177,16 +183,16 @@ if __name__ == "__main__":
             Path = tempfile.mktemp(suffix=".xml")
             flowcheckScript = os.path.join(sys.prefix, 'bin', 'flowcheck.sh')
             os.system('SCIFLO_DIR=%s %s %s %s > /dev/null 2>&1' % (sys.prefix,
-                flowcheckScript, Path, os.path.join(flowsRootDir, flowsDir)))
+                                                                   flowcheckScript, Path, os.path.join(flowsRootDir, flowsDir)))
             print "<center><h1>Live Run</h1></center>"
-    #otherwise use precomputed results
+    # otherwise use precomputed results
     else:
-        #get path to flowcheck xml
+        # get path to flowcheck xml
         Path = form.getfirst("Path", '/tmp/flowcheck.xml')
         print "<center><h1>Flow Status</h1></center>"
-    
+
     # Check to see if path is local or remote
-    
+
     if Path.startswith('http'):
         u = urllib.urlopen(Path)
         data = u.read()
@@ -201,19 +207,22 @@ if __name__ == "__main__":
         tree = ET.ElementTree()
         tree.parse(xmlfilepath)
         root = tree.getroot()
-    #------------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     print '<body text="Black"><table border="1px">'
-    
+
     for y, i in enumerate(root):
         print '<tr>'
         success = False
         if y == 0:
-            for j in i[:4]: print '<td width="200"><b>' + j.text + '</b></td>'
+            for j in i[:4]:
+                print '<td width="200"><b>' + j.text + '</b></td>'
             continue
-        'Name','Path','Time','Status','Messages'
+        'Name', 'Path', 'Time', 'Status', 'Messages'
         nameElt, pathElt, timeElt, statusElt, messageElt = i
-        if statusElt.text == 'Successful': color = 'green'
-        else: color = 'red'
+        if statusElt.text == 'Successful':
+            color = 'green'
+        else:
+            color = 'red'
         status = DIALOG_DIV_TMPL.substitute(content=messageElt.text,
                                             id=nameElt.text,
                                             idUnique=nameElt.text + str(y))
@@ -228,8 +237,9 @@ if __name__ == "__main__":
         print '<a href="?live=1&flowsDir=%s">Run Live</a>' % flowsDir
         print '<br/>'
     print '</body>'
-    
+
     print pageTemplate.pageTemplateFoot.substitute()
-    
-    #cleanup
-    if runLive: os.unlink(Path)
+
+    # cleanup
+    if runLive:
+        os.unlink(Path)

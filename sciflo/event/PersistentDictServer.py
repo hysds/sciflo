@@ -37,7 +37,8 @@ from multiple remote clients.  The protocol accepts a four commands:
             val = Pdict.get(line, NoneMsg)
             self.sendline(val)
         elif self.state == 'delete':
-            if line in Pdict: del Pdict[line]
+            if line in Pdict:
+                del Pdict[line]
             self.sendline(OkMsg)
         elif self.state == 'insert':
             self.key = line
@@ -56,16 +57,12 @@ class PersistentDictFactory(Factory):
     protocol = PersistentDictProtocol
 
 
-#def tac():
+# def tac():
 if True:
     application = service.Application("pdict")
     pdictService = internet.TCPServer(8007, PersistentDictFactory())
     pdictService.setServiceParent(application)
 
 
-#if __name__ == '__main__':
+# if __name__ == '__main__':
 #    tac()
-
-
-
-

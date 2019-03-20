@@ -36,7 +36,7 @@ def add(v1, v2):
     import time
     t1 = time.time()
     time.sleep(5)
-    print "add1 elapsed time:", time.time() - t1
+    print("add1 elapsed time:", time.time() - t1)
     return v1 + v2
             ]]></sf:binding>
           </sf:op>
@@ -58,7 +58,7 @@ def add(v1, v2):
     import time
     t1 = time.time()
     time.sleep(1)
-    print "add2 elapsed time2:", time.time() - t1
+    print("add2 elapsed time2:", time.time() - t1)
     return v1 + v2
             ]]></sf:binding>
           </sf:op>

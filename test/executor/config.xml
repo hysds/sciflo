@@ -34,16 +34,4 @@
         <exposedName>workUnitCallback</exposedName>
         <pythonFunction>sciflo.grid.workUnitCallback</pythonFunction>
     </callbackMethod>
-    <submitScifloMethod>
-        <exposedName>submitSciflo</exposedName>
-        <pythonFunction>testGridModule.submit</pythonFunction>
-    </submitScifloMethod>
-    <submitScifloNoCacheMethod>
-        <exposedName>submitSciflo_nocache</exposedName>
-        <pythonFunction>testGridModule.submit_nocache</pythonFunction>
-    </submitScifloNoCacheMethod>
-    <cancelScifloMethod>
-        <exposedName>cancelSciflo</exposedName>
-        <pythonFunction>testGridModule.cancel</pythonFunction>
-    </cancelScifloMethod>
 </scifloConfig>

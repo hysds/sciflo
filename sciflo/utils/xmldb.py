@@ -1,5 +1,5 @@
 #!/bin/env python
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Name:      xmldb.py
 # Purpose:   Wrapper interface for XML Database functionality:
 #              createContainer, createDocument, xquery, addIndex, etc.
@@ -10,8 +10,19 @@
 # Created:     Thu Feb 2 17:18:44 2006
 # Copyright:   (c) 2005, California Institute of Technology / Jet Propulsion Laboratory
 #              U.S. Government Sponsorship acknowledged.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
+import types
+import re
+import os
+import sys
+from lxml.etree import XML
+from urllib.request import urlopen
+from datetime import datetime
+from io import StringIO
+from dbxml import XmlManager, XmlValue
+import dbxml
+from bsddb3 import *
 USAGE = """
 xmldb.py [-q <xquery>] [-u <xqueryUrl>] xmlDocUrls . . . [< <xmlDoc>] [> <queryResults>]
 
@@ -28,26 +39,23 @@ that returns an XML document.  Thus, one can hit a web service and extract or
 reformat information from the returned XML in a single call to xmldb.
 """
 
-import sys, os, re, types
-from bsddb3 import *
-import dbxml
-from dbxml import XmlManager, XmlValue
-from cStringIO import StringIO
 #from tempfile import mkstemp
-from datetime import datetime
-from urllib import urlopen
-from lxml.etree import XML
 
 Verbose = True
 
+
 def warn(*str): sys.stderr.write(' '.join(str) + '\n')
+
+
 def die(str, status=1): warn(str); sys.exit(status)
+
 
 class XmlDb:
     """Holds XML database context like toplevel manager, container, transactionContext, etc.
     Has methods to createContainer, removeContainer, setActiveContainer, putDocument (to active
     container), getDocument, printDocument, commit a transaction, do an xquery, etc. 
-    """ 
+    """
+
     def __init__(self, containerFile=None, dbManager=None, container=None,
                  updateContext=None, transactional=False, transaction=None,
                  dbEnv=None, actualDb='dbxml', verbose=False):
@@ -61,8 +69,8 @@ class XmlDb:
             self.transactional = True
             if dbEnv is None:
                 self.dbEnv = DBEnv()
-                self.dbEnv.open(None, dbxml.DB_CREATE|dbxml.DB_INIT_LOCK|dbxml.DB_INIT_LOG|
-                                      dbxml.DB_INIT_MPOOL|dbxml.DB_INIT_TXN, 0)
+                self.dbEnv.open(None, dbxml.DB_CREATE | dbxml.DB_INIT_LOCK | dbxml.DB_INIT_LOG |
+                                dbxml.DB_INIT_MPOOL | dbxml.DB_INIT_TXN, 0)
             else:
                 self.dbEnv = dbEnv
         else:
@@ -90,9 +98,11 @@ class XmlDb:
             if containerFile:
                 self.containerFile = containerFile
                 if self.transactional:
-                    self.container = self.dbManager.createContainer(containerFile, dbxml.DBXML_TRANSACTIONAL)
+                    self.container = self.dbManager.createContainer(
+                        containerFile, dbxml.DBXML_TRANSACTIONAL)
                 else:
-                    self.container = self.dbManager.createContainer(containerFile)
+                    self.container = self.dbManager.createContainer(
+                        containerFile)
                 self.containerAlias = os.path.basename(containerFile)
                 self.container.addAlias(self.containerAlias)
             else:
@@ -102,61 +112,66 @@ class XmlDb:
         else:
             self.updateContext = updateContext
         self.queryContext = self.dbManager.createQueryContext()
-    
+
     def createContainer(self, containerFile):
         """Create a container within the database (can be multiple containers)."""
         self.containerFile = containerFile
         if self.transactional:
-            self.container = self.dbManager.createContainer(containerFile, dbxml.DBXML_TRANSACTIONAL)
+            self.container = self.dbManager.createContainer(
+                containerFile, dbxml.DBXML_TRANSACTIONAL)
         else:
             self.container = self.dbManager.createContainer(containerFile)
         return self
-    
+
     def setActiveContainer(self, containerFile):
         """Activate a particular container"""
         self.container = self.dbManager.openContainer(containerFile)
         return self
-    
+
     def removeContainer(self, containerFile):
         self.dbManager.removeContainer(containerFile)
-        return self    
-    
+        return self
+
     def commit(self):
         if self.transactional:
             self.transaction.commit()
         else:
             warn('XmlDb: commit is a no-op on a non-transactional db.')
         return self
-    
+
     def putDocument(self, name, doc):
-        if self.verbose: warn('xmldb: inserting %s into %s:\n%s' % \
-                      (name, self.containerFile, firstThreeLines(doc)))
+        if self.verbose:
+            warn('xmldb: inserting %s into %s:\n%s' %
+                 (name, self.containerFile, firstThreeLines(doc)))
         if self.transactional:
-            self.container.putDocument(self.transaction, name, doc, self.updateContext)
+            self.container.putDocument(
+                self.transaction, name, doc, self.updateContext)
         else:
             self.container.putDocument(name, doc, self.updateContext)
         return self
-    
+
     def getDocument(self, name): return self.container.getDocument(name)
-    
-    def printDocument(self, name): print self.getDocument(name).getContent()
-    
+
+    def printDocument(self, name): print(self.getDocument(name).getContent())
+
     def setNamespaces(self, namespaces=None):
         queryContext = self.dbManager.createQueryContext()
         if namespaces is not None:
-            for prefix, uri in namespaces.iteritems():
-                if self.verbose: warn('xmldb: setNamespace %s: %s' % (prefix, uri)) 
+            for prefix, uri in namespaces.items():
+                if self.verbose:
+                    warn('xmldb: setNamespace %s: %s' % (prefix, uri))
                 queryContext.setNamespace(prefix, uri)
         self.queryContext = queryContext
         return self
-    
+
     def getQueryContext(self): return self.queryContext
-    
+
     def xquery(self, query, namespaces=None):
         """Perform an XQuery and return the resultSet.
         If a namespaces dictionary of {prefix: URI} is provided, then the queryContext is replaced.
         """
-        if namespaces: self.setNamespaces(namespaces)
+        if namespaces:
+            self.setNamespaces(namespaces)
         queryProlog = 'declare namespace my = "http://fubar.net/my";\n'
         if self.containerAlias:
             queryProlog += 'declare variable $top := fn:collection("%s");\n\n' % self.containerAlias
@@ -165,77 +180,95 @@ class XmlDb:
     #        queryProlog += 'declare function my:top() {let $r := fn:collection("%s") return $r};\n\n' % self.containerFile
         warn('xmldb: query prolog:\n%s' % queryProlog)
         fullQuery = queryProlog + query.strip()
-        if self.verbose: warn('xmldb: query:\n%s' % fullQuery)
+        if self.verbose:
+            warn('xmldb: query:\n%s' % fullQuery)
         return self.dbManager.query(fullQuery, self.queryContext)
-    
+
     def xqueryResults(self, query, namespaces=None):
         """Perform an XQuery and return the results as a string."""
         results = self.xquery(query, namespaces)
         f = StringIO()
         for item in results:
-            print >>f, item.asString().strip()
+            print(item.asString().strip(), file=f)
         return f.getvalue().strip()
-    
+
     def close(self):
-        if transactional: self.dbEnv.close()
-        
+        if transactional:
+            self.dbEnv.close()
+
 # Simple query functions follow.
+
+
 def createQueryableDocuments(docs, namespaces=None, tempContainerFile=None, verbose=True):
     """Create a temporary XML database and insert the document."""
-    if isinstance(docs, types.StringType): docs = [docs]
-    if isinstance(docs, types.TupleType): docs = dict(docs)
-    if namespaces is None: namespaces = {}    
+    if isinstance(docs, bytes):
+        docs = [docs]
+    if isinstance(docs, tuple):
+        docs = dict(docs)
+    if namespaces is None:
+        namespaces = {}
     if tempContainerFile is None:
-#        fh, tempContainerFile = mkstemp('.dbxml', 'xmldbtemp'); os.close(fh)
+        #        fh, tempContainerFile = mkstemp('.dbxml', 'xmldbtemp'); os.close(fh)
         tempContainerFile = '/tmp/xmldb_tmpfile%s.dbxml' % fileTimeStampNow()
 
-    if verbose: warn('xmldb: creating container %s' % tempContainerFile)
+    if verbose:
+        warn('xmldb: creating container %s' % tempContainerFile)
     db = XmlDb(tempContainerFile, verbose=True)
-    if isinstance(docs, types.ListType):
+    if isinstance(docs, list):
         for i, doc in enumerate(docs):
             if not doc.strip().startswith('<'):
-                if verbose: warn('xmldb: Retrieving %s' % doc)
+                if verbose:
+                    warn('xmldb: Retrieving %s' % doc)
                 doc = urlopen(doc).read()
             name = 'doc%6.6d' % (i+1)
             db.putDocument(name, doc)
-            namespaces.update( extractNamespaces(doc) )
-    elif isinstance(docs, types.DictType):
-        for name, doc in docs.iteritems():
+            namespaces.update(extractNamespaces(doc))
+    elif isinstance(docs, dict):
+        for name, doc in docs.items():
             if not doc.strip().startswith('<'):
-                if verbose: warn('xmldb: Retrieving %s' % doc)
+                if verbose:
+                    warn('xmldb: Retrieving %s' % doc)
                 doc = urlopen(doc).read()
             db.putDocument(name, doc)
-            namespaces.update( extractNamespaces(doc) )            
+            namespaces.update(extractNamespaces(doc))
     else:
         die('xmldb.py: createQueryableDocuments: Bad docs array or dict.')
     return (db, namespaces)
 
+
 def doXQuery(docs, query, namespaces=None, tempContainerFile=None, verbose=False):
     """XQuery the document and return the resultSet and reusable queryContext."""
-    db, namespaces = createQueryableDocuments(docs, namespaces, tempContainerFile, verbose)
+    db, namespaces = createQueryableDocuments(
+        docs, namespaces, tempContainerFile, verbose)
     results = db.xquery(query, namespaces)
-    return (results, db) 
+    return (results, db)
+
 
 def getXQueryResults(docs, query, namespaces=None, tempContainerFile=None, verbose=False):
     """XQuery the document and return the results as a string, discarding temporary db."""
-    db,namespaces = createQueryableDocuments(docs, namespaces, tempContainerFile, verbose)
+    db, namespaces = createQueryableDocuments(
+        docs, namespaces, tempContainerFile, verbose)
     return db.xqueryResults(query, namespaces)
+
 
 def xquerySingleDoc(doc, query, namespaces={}, verbose=False):
     """XQuery the document and return the results as a string."""
-    if not doc.strip().startswith('<'): doc = urlopen(doc).read()
+    if not doc.strip().startswith('<'):
+        doc = urlopen(doc).read()
     mgr = XmlManager(dbxml.DBXML_ALLOW_EXTERNAL_ACCESS)
     queryContext = mgr.createQueryContext()
-    namespaces.update( extractNamespaces(doc) )
-    for prefix, uri in namespaces.iteritems():
-        if verbose: warn('xmldb: setNamespace %s: %s' % (prefix, uri))
+    namespaces.update(extractNamespaces(doc))
+    for prefix, uri in namespaces.items():
+        if verbose:
+            warn('xmldb: setNamespace %s: %s' % (prefix, uri))
         queryContext.setNamespace(prefix, uri)
 
     queryProlog = 'declare namespace my = "http://fubar.net/my";\n'
     queryProlog += "declare variable $top := '.';\n\n"
     warn('xmldb: query prolog:\n%s' % queryProlog)
     fullQuery = queryProlog + query.strip()
-    if verbose: warn('xmldb: query:\n%s' % fullQuery)
+    if verbose:
+        warn('xmldb: query:\n%s' % fullQuery)
 
     xdoc = mgr.createDocument()
     xdoc.setContent(doc)
@@ -245,8 +278,9 @@ def xquerySingleDoc(doc, query, namespaces={}, verbose=False):
 
     f = StringIO()
     for item in results:
-        print >>f, item.asString().strip()
+        print(item.asString().strip(), file=f)
     return f.getvalue().strip()
+
 
 def extractNamespaces(doc):
     """Extract xmlns:prefix="namespace" pairs from the root element of the
@@ -262,10 +296,12 @@ def extractNamespaces(doc):
             ns['_'] = match.group(1)   # default namespace
             ns[''] = match.group(1)
             ns['_default'] = match.group(1)
-        matches = re.finditer(r'xmlns:(\w+?)=[\'"](.*?)[\'"]', rootElement, re.DOTALL)
+        matches = re.finditer(
+            r'xmlns:(\w+?)=[\'"](.*?)[\'"]', rootElement, re.DOTALL)
         for match in matches:
             ns[match.group(1)] = match.group(2)   # prefix = ns
     return ns
+
 
 def extractNamespaces2(doc):
     """Extract xmlns:prefix="namespace" pairs from the root element of the
@@ -275,7 +311,7 @@ def extractNamespaces2(doc):
     ns = {}
     tree = XML(doc)
     for elt in tree.getiterator():
-        for key, ns in elt.attrib.iteritems():
+        for key, ns in elt.attrib.items():
             if key.startswith('xmlns'):
                 if key.find(':') > 0:
                     junk, prefix = key.split(':')
@@ -283,6 +319,7 @@ def extractNamespaces2(doc):
                     prefix = '_default'
                 ns[prefix] = ns
     return ns
+
 
 def extractNamespaces3(doc):
     """Extract xmlns:prefix="namespace" pairs from the root element of the
@@ -294,21 +331,22 @@ def extractNamespaces3(doc):
             return attrib.split(':')[1]
         else:
             return '_default'
-    
-    return dict([ (getPrefix(attrib), ns) for attrib, ns in elt.attrib.iteritems()
-                      if attrib.startswith('xmlns') for elt in XML(doc).getiterator() ])
 
-    
+    return dict([(getPrefix(attrib), ns) for attrib, ns in elt.attrib.items()
+                 if attrib.startswith('xmlns') for elt in XML(doc).getiterator()])
+
+
 # Utilities follow.
 def fileTimeStampNow(utc=False):
     if utc:
         time = datetime.utcnow().isoformat()
     else:
         time = datetime.now().isoformat()
-    return ''.join( re.match(r'(....)-(..)-(..T..):(..):(.*)', time).groups() )
+    return ''.join(re.match(r'(....)-(..)-(..T..):(..):(.*)', time).groups())
+
 
 def firstThreeLines(s):
-    return s[0:s.find('\n',s.find('n',s.find('\n', 0)+1)+1)]
+    return s[0:s.find('\n', s.find('n', s.find('\n', 0)+1)+1)]
 
 
 if __name__ == "__main__":
@@ -317,39 +355,54 @@ if __name__ == "__main__":
 #    if len(argv) < 1: die(USAGE)
     try:
         opts, argv = getopt.getopt(argv[1:], 'hn:p:q:u:v',
-            ['help', 'namespace', 'prefix', 'query', 'queryUrl', 'verbose'])
-    except getopt.GetoptError, (msg, bad_opt):
+                                   ['help', 'namespace', 'prefix', 'query', 'queryUrl', 'verbose'])
+    except getopt.GetoptError as xxx_todo_changeme:
+        (msg, bad_opt) = xxx_todo_changeme.args
         die("%s error: Bad option: %s, %s" % (argv[0], bad_opt, msg))
 
-    query = None; queryUrl = None; namespaces = []; prefixes = []; Verbose = False    
+    query = None
+    queryUrl = None
+    namespaces = []
+    prefixes = []
+    Verbose = False
     for opt, val in opts:
-        if opt   in ('-h', '--help'):      die(USAGE)
-        elif opt in ('-n', '--namespace'): namespaces.append(val)      
+        if opt in ('-h', '--help'):
+            die(USAGE)
+        elif opt in ('-n', '--namespace'):
+            namespaces.append(val)
         elif opt in ('-p', '--prefix'):
-            if val == 'default': val = ''
-            prefixes.append(val)      
-        elif opt in ('-q', '--query'):     query=val      
-        elif opt in ('-u', '--queryUrl'):  queryUrl=val
-        elif opt in ('-v', '--verbose'):   Verbose=True
-    
-    if queryUrl: query = urlopen(queryUrl).read()
-    if query is None: warn('XmlDB error: No query specified.'); die(USAGE)
+            if val == 'default':
+                val = ''
+            prefixes.append(val)
+        elif opt in ('-q', '--query'):
+            query = val
+        elif opt in ('-u', '--queryUrl'):
+            queryUrl = val
+        elif opt in ('-v', '--verbose'):
+            Verbose = True
+
+    if queryUrl:
+        query = urlopen(queryUrl).read()
+    if query is None:
+        warn('XmlDB error: No query specified.')
+        die(USAGE)
     namespaceDict = {}
     for prefix, namespace in zip(prefixes, namespaces):
         namespaceDict[prefix] = namespace
 
     docs = argv
-    if len(docs) == 0: docs['stdin'] = sys.stdin.read()
+    if len(docs) == 0:
+        docs['stdin'] = sys.stdin.read()
 
     if len(docs) == 1:
-        print xquerySingleDoc(docs[0], query, namespaceDict, verbose=Verbose)
+        print(xquerySingleDoc(docs[0], query, namespaceDict, verbose=Verbose))
     else:
-        print getXQueryResults(docs, query, namespaceDict, verbose=Verbose)
+        print(getXQueryResults(docs, query, namespaceDict, verbose=Verbose))
 
 #    results, db = doXQuery(docs, query, namespaceDict, verbose=Verbose)
 #    for item in results:
 #        print item.asString()
-    
+
 # Examples follow:
 """
 xmldb.py -v -p default -n http://schemas.xmlsoap.org/wsdl/ -q /definitions/portType/operation http://gen-dev.jpl.nasa.gov:8080/genesis/wsdl/L2AIRSData.wsdl

@@ -1,10 +1,10 @@
 from smtplib import SMTP
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
-from email.MIMEBase import MIMEBase
-from email.Header import Header
-from email.Utils import parseaddr, formataddr, COMMASPACE, formatdate
-from email import Encoders
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email.header import Header
+from email.utils import parseaddr, formataddr, COMMASPACE, formatdate
+from email.encoders import encode_base64
 
 
 def send_email(sender, cc_recipients, bcc_recipients, subject, body, attachments=[]):
@@ -21,7 +21,7 @@ def send_email(sender, cc_recipients, bcc_recipients, subject, body, attachments
     The charset of the email will be the first one out of US-ASCII, ISO-8859-1
     and UTF-8 that can represent all the characters occurring in the email.
     """
-    
+
     # combined recipients
     recipients = cc_recipients + bcc_recipients
 
@@ -46,16 +46,16 @@ def send_email(sender, cc_recipients, bcc_recipients, subject, body, attachments
 
     # We must always pass Unicode strings to Header, otherwise it will
     # use RFC 2047 encoding even on plain ASCII strings.
-    sender_name = str(Header(unicode(sender_name), header_charset))
+    sender_name = str(Header(str(sender_name), header_charset))
     unicode_parsed_cc_recipients = []
     for recipient_name, recipient_addr in parsed_cc_recipients:
-        recipient_name = str(Header(unicode(recipient_name), header_charset))
+        recipient_name = str(Header(str(recipient_name), header_charset))
         # Make sure email addresses do not contain non-ASCII characters
         recipient_addr = recipient_addr.encode('ascii')
         unicode_parsed_cc_recipients.append((recipient_name, recipient_addr))
     unicode_parsed_bcc_recipients = []
     for recipient_name, recipient_addr in parsed_bcc_recipients:
-        recipient_name = str(Header(unicode(recipient_name), header_charset))
+        recipient_name = str(Header(str(recipient_name), header_charset))
         # Make sure email addresses do not contain non-ASCII characters
         recipient_addr = recipient_addr.encode('ascii')
         unicode_parsed_bcc_recipients.append((recipient_name, recipient_addr))
@@ -69,20 +69,21 @@ def send_email(sender, cc_recipients, bcc_recipients, subject, body, attachments
                                  for recipient_name, recipient_addr in unicode_parsed_cc_recipients])
     msg['BCC'] = COMMASPACE.join([formataddr((recipient_name, recipient_addr))
                                   for recipient_name, recipient_addr in unicode_parsed_bcc_recipients])
-    msg['Subject'] = Header(unicode(subject), header_charset)
+    msg['Subject'] = Header(str(subject), header_charset)
     msg.attach(MIMEText(body.encode(body_charset), 'plain', body_charset))
-    
+
     # Add attachments
     for attachment in attachments:
         part = MIMEBase('application', "octet-stream")
         part.set_payload(attachment.file.read())
-        Encoders.encode_base64(part)
-        part.add_header('Content-Disposition', 'attachment; filename="%s"' % attachment.filename)
+        encode_base64(part)
+        part.add_header('Content-Disposition',
+                        'attachment; filename="%s"' % attachment.filename)
         msg.attach(part)
 
-    #print "#" * 80
-    #print msg.as_string()
-    
+    # print "#" * 80
+    # print msg.as_string()
+
     # Send the message via SMTP to localhost:25
     smtp = SMTP("localhost")
     smtp.sendmail(sender, recipients, msg.as_string())

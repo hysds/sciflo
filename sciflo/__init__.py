@@ -1,13 +1,15 @@
-import db
-import utils
-import webservices
-import grid
-import event
-import mapreduce
+from . import db
+from . import utils
+from . import grid
+from . import event
+from . import mapreduce
 
-#function to help pdb debugging; set breakpoint at sciflo.debug()
+# function to help pdb debugging; set breakpoint at sciflo.debug()
+
+
 def imported(): return None
 
-__version__ = "1.2.0"
+
+__version__ = "1.3.0"
 __description__ = "SciFlo workflow framework and engine"
-__url__         = "https://github.jpl.nasa.gov/hysds-org/sciflo"
+__url__ = "https://github.com/hysds/sciflo"
