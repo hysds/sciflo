@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 import os
 import sys
+import sciflo
 sys.path.append('test')
 
 packages = find_packages()
@@ -25,13 +26,13 @@ scripts = [os.path.join('scripts', 'sflExec.py'),
 data_files = [('tac', [os.path.join('tac', 'PersistentDictServer.tac')])]
 
 setup(name='sciflo',
-      version="1.2.0",
-      description="SciFlo workflow framework and engine",
+      version=sciflo.__version__,
+      description=sciflo.__description__,
+      url=sciflo.__url__,
       author='Brian Wilson',
       author_email='Brian.Wilson@jpl.nasa.gov',
       maintainer='Gerald Manipon',
       maintainer_email='Geraldjohn.M.Manipon@jpl.nasa.gov',
-      url="https://github.com/hysds/sciflo",
       zip_safe=False,
       install_requires=[
           'twisted>=18.9.0', 'pillow>=5.4.1', 'formencode>=1.3.1',
