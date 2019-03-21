@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 import sys
-import sciflo
+from sciflo import __version__, __description__, __url__
 sys.path.append('test')
 
 packages = find_packages()
@@ -26,9 +26,9 @@ scripts = [os.path.join('scripts', 'sflExec.py'),
 data_files = [('tac', [os.path.join('tac', 'PersistentDictServer.tac')])]
 
 setup(name='sciflo',
-      version=sciflo.__version__,
-      description=sciflo.__description__,
-      url=sciflo.__url__,
+      version=__version__,
+      description=__description__,
+      url=__url__,
       author='Brian Wilson',
       author_email='Brian.Wilson@jpl.nasa.gov',
       maintainer='Gerald Manipon',
