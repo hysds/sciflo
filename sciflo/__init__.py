@@ -8,8 +8,3 @@ from . import mapreduce
 
 
 def imported(): return None
-
-
-__version__ = "1.3.0"
-__description__ = "SciFlo workflow framework and engine"
-__url__ = "https://github.com/hysds/sciflo"

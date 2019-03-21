@@ -1,7 +1,6 @@
 from setuptools import setup, find_packages
 import os
 import sys
-from sciflo import __version__, __description__, __url__
 sys.path.append('test')
 
 packages = find_packages()
@@ -26,9 +25,9 @@ scripts = [os.path.join('scripts', 'sflExec.py'),
 data_files = [('tac', [os.path.join('tac', 'PersistentDictServer.tac')])]
 
 setup(name='sciflo',
-      version=__version__,
-      description=__description__,
-      url=__url__,
+      version = "1.3.0",
+      description="SciFlo workflow framework and engine",
+      url="https://github.com/hysds/sciflo",
       author='Brian Wilson',
       author_email='Brian.Wilson@jpl.nasa.gov',
       maintainer='Gerald Manipon',
