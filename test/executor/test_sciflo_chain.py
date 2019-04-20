@@ -137,7 +137,7 @@ def create_merge_job(arg1, arg2, job_queue, wuid=None, job_num=None):
 
 
 def get_result(result):
-    """Test function for processing a reduced job result."""
+    """Evaluator function for processing a job result."""
 
     logger.info("got result: {}".format(json.dumps(result, indent=2)))
     task_id = result[0]
@@ -154,3 +154,10 @@ def get_result(result):
     dataset_id = jobs[0]['_source']['job']['job_info']['metrics']['products_staged'][0]['id']
     logger.info("got dataset_id: {}".format(dataset_id))
     return dataset_id
+
+
+def get_result_force_stoppage(result):
+    """Evaluator function for processing a job result. Force stoppage."""
+
+    dataset_id = get_result(result)
+    raise RuntimeError("Stopping workflow.")
