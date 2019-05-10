@@ -9,7 +9,7 @@ jobs:
           name: Test
           command: |
             source $HOME/verdi/bin/activate
-            cp $HOME/verdi/ops/hysds/configs/celery/celeryconfig.py.tmpl $HOME/verdi/ops/hysds/configs/celery/celeryconfig.py
+            cp $HOME/verdi/ops/hysds/configs/celery/celeryconfig.py.tmpl $HOME/verdi/ops/hysds/celeryconfig.py
             python setup.py test
 
 workflows:
