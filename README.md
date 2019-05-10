@@ -1,24 +1,28 @@
-sciflo
-======
+# sciflo
+
+[![CircleCI](https://circleci.com/gh/hysds/sciflo.svg?style=svg)](https://circleci.com/gh/hysds/sciflo)
 
 SciFlo workflow framework and engine
 
 
-[![Build Status](http://mimosa-vm-9.jpl.nasa.gov:8080/job/sciflo/badge/icon)](http://mimosa-vm-9.jpl.nasa.gov:8080/job/sciflo/)
+## Prerequisites
+
+- pip 9.0.1+
+- setuptools 36.0.1+
+- virtualenv 1.10.1+
+- prov-es 0.1.1+
+- osaka 0.0.1+
+- hysds-commons 0.1+
+- hysds 0.1+
 
 
-Prerequisites
--------------
-  *nix system.
+## Installation
+
+1.  Untar the package: 'tar xvfj sciflo-X.X.X.tbz2'
+
+2.  python setup.py install
 
 
-Installation
-------------
-  1.  Untar the package: 'tar xvfj sciflo-X.X.X.tbz2'
+## Run test cases
 
-  2.  python setup.py install
-
-
-Run test cases
---------------
-  1.  python setup.py test
+1.  python setup.py test
