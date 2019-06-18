@@ -96,7 +96,7 @@ def join_map_jobs(task_ids):
     """Test reduce function that manually joins all mapped jobs."""
 
     print(("task_ids: {}".format(json.dumps(task_ids, indent=2))))
-    res = GroupResult(id=uuid.uuid4(), results=[
+    res = GroupResult(id=uuid.uuid4().bytes, results=[
                       AsyncResult(id[0]) for id in task_ids])
     while True:
         ready = res.ready()

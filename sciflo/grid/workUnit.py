@@ -560,7 +560,7 @@ class ParMapWorkUnit(PythonFunctionWorkUnit):
         if self._async:
             return [id for id in task_ids]
         else:
-            res = GroupResult(id=uuid.uuid4(), results=[
+            res = GroupResult(id=uuid.uuid4().bytes, results=[
                               AsyncResult(id[0]) for id in task_ids])
             while True:
                 ready = res.ready()
