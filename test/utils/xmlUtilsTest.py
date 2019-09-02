@@ -68,7 +68,7 @@ result1 = '''<?xml version="1.0" ?>
 <testRootTag/>
 '''
 result2 = '''<?xml version="1.0" ?><?xml-stylesheet type="text/xsl" href="/genesis/xsl/sciflo.xsl"?><testRootTag xmlns="http://sciflo.jpl.nasa.gov/2006v1/sf"/>'''
-result3 = '''<Rows xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://sciflo.jpl.nasa.gov/2006v1/sf">
+result3 = '''<Rows xmlns="http://sciflo.jpl.nasa.gov/2006v1/sf" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <row>
     <heading1 type="xs:int">1</heading1>
     <heading2 type="xs:int">2</heading2>
@@ -91,7 +91,7 @@ result3 = '''<Rows xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http:/
     <heading5>test5</heading5>
   </row>
 </Rows>\n'''
-result4 = '''<Rows xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://sciflo.jpl.nasa.gov/2006v1/sf">
+result4 = '''<Rows xmlns="http://sciflo.jpl.nasa.gov/2006v1/sf" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <row>
     <heading1 type="xs:int">1</heading1>
     <heading2 type="xs:int">2</heading2>
