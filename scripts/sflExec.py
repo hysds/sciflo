@@ -253,6 +253,7 @@ def configure_logging():
 
 
 if __name__ == '__main__':
+    configure_logging()
     tracebackStrIO = StringIO()
     results = Exception("Preset exception.")
     resStrList = None
