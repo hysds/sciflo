@@ -12,6 +12,7 @@
 import os
 import sys
 import getopt
+import logging
 import types
 import pwd
 import lxml.etree
@@ -192,6 +193,10 @@ def main():
             key, val = argsItem.split('=')
             argsDict[key] = val
 
+    # If verbose or debug flag was specified, enable debug logs on root logger and handlers
+    if verbose or debug:
+        enable_debug_logging()
+
     # get results and ScifloManager
     # (results, m) = sciflo.grid.sflExec(getuser(), xml, argsDict, outDir=outputDir,
     #                                   scifloid=None, config=configFile,
@@ -226,6 +231,25 @@ def restoreScreen():
     curses.nocbreak()
     curses.echo()
     curses.endwin()
+
+
+def enable_debug_logging():
+    logging.getLogger().setLevel(logging.DEBUG)
+    for handler in logging.getLogger().handlers:
+        handler.setLevel(logging.DEBUG)
+
+
+def configure_logging():
+    logformat = '%(asctime)s %(name)s:%(levelname)s [%(filename)s:%(lineno)d] %(message)s'
+    level = logging.INFO
+    datefmt = '%Y-%m-%d %H:%M:%S'
+    if len(logging.getLogger().handlers) == 0:
+        logging.basicConfig(format=logformat, level=level, datefmt=datefmt, stream=sys.stdout)
+    else:
+        formatter = logging.Formatter(fmt=logformat, datefmt=datefmt)
+        for handler in logging.getLogger().handlers:
+            handler.setLevel(level)
+            handler.setFormatter(formatter)
 
 
 if __name__ == '__main__':

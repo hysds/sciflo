@@ -32,8 +32,13 @@ else:
     logging._acquireLock()
     try:
         LOG_FMT = "%(asctime)s %(name)s %(id)s %(levelname)s: %(message)s"
-        logging.basicConfig(format=LOG_FMT)
+        datefmt = '%Y-%m-%d %H:%M:%S'
+        worker_formatter = logging.Formatter(fmt=LOG_FMT, datefmt=datefmt)
+        worker_handler = logging.StreamHandler(stream=sys.stderr)
+        worker_handler.setFormatter(worker_formatter)
+
         WORKER_LOGGER = logging.getLogger('workUnitWorker')
+        WORKER_LOGGER.addHandler(worker_handler)
     finally:
         logging._releaseLock()
 WORKER_LOGGER.setLevel(logging.DEBUG)
