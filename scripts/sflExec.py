@@ -244,7 +244,7 @@ def configure_logging():
     level = logging.INFO
     datefmt = '%Y-%m-%d %H:%M:%S'
     if len(logging.getLogger().handlers) == 0:
-        logging.basicConfig(format=logformat, level=level, datefmt=datefmt, stream=sys.stdout)
+        logging.basicConfig(format=logformat, level=level, datefmt=datefmt, stream=sys.stderr)
     else:
         formatter = logging.Formatter(fmt=logformat, datefmt=datefmt)
         for handler in logging.getLogger().handlers:
