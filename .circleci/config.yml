@@ -10,8 +10,11 @@ jobs:
           command: |
             source $HOME/verdi/bin/activate
             pip install j2cli
-            MOZART_ES_PVT_IP=127.0.0.1 GRQ_ES_PVT_IP=127.0.0.1 $HOME/.local/bin/j2 --undefined $HOME/verdi/ops/hysds/configs/celery/celeryconfig.py.tmpl -o $HOME/verdi/ops/hysds/celeryconfig.py
+            j2 --undefined $HOME/verdi/ops/hysds/configs/celery/celeryconfig.py.tmpl -o $HOME/verdi/ops/hysds/celeryconfig.py
             python setup.py test
+          envrionment:
+            MOZART_ES_PVT_IP: 127.0.0.1
+            GRQ_ES_PVT_IP: 127.0.0.1
 
 workflows:
   version: 2
