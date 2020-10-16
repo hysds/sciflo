@@ -25,7 +25,7 @@ scripts = [os.path.join('scripts', 'sflExec.py'),
 data_files = [('tac', [os.path.join('tac', 'PersistentDictServer.tac')])]
 
 setup(name='sciflo',
-      version = "1.3.3",
+      version = "1.3.4",
       description="SciFlo workflow framework and engine",
       url="https://github.com/hysds/sciflo",
       author='Brian Wilson',
