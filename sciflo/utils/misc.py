@@ -647,8 +647,8 @@ DEFAULT_CONVERSION_FUNCTIONS = '''
       <op from="*:*" to="xs:int">int</op>
       <op from="*:*" to="xs:integer">int</op>
       <op from="*:*" to="xs:boolean">sciflo.utils.smart_bool</op>
-      <op from="*:*" to="xs:base64">base64.decodestr</op>
-      <op from="*:*" to="xs:base64Binary">base64.decodestr</op>
+      <op from="*:*" to="xs:base64">base64.decodebytes</op>
+      <op from="*:*" to="xs:base64Binary">base64.decodebytes</op>
       <op from="*:*" to="sf:string">str</op>
       <op from="*:*" to="sf:float">float</op>
       <op from="*:*" to="sf:double">float</op>
@@ -660,8 +660,8 @@ DEFAULT_CONVERSION_FUNCTIONS = '''
       <op from="*:*" to="sf:int">int</op>
       <op from="*:*" to="sf:integer">int</op>
       <op from="*:*" to="sf:boolean">bool</op>
-      <op from="*:*" to="sf:base64">base64.decodestr</op>
-      <op from="*:*" to="sf:base64Binary">base64.decodestr</op>
+      <op from="*:*" to="sf:base64">base64.decodebytes</op>
+      <op from="*:*" to="sf:base64Binary">base64.decodebytes</op>
       <op from="*:*" to="sf:list">sciflo.utils.getListFromUnknownObject</op>
       <op from="*:*" to="py:list">sciflo.utils.getListFromUnknownObject</op>
       <op from="*:*" to="sf:dict">sciflo.utils.getDictFromUnknownObject</op>
