@@ -14,7 +14,7 @@ jobs:
             source $HOME/verdi/bin/activate
             pip install j2cli
             j2 --undefined $HOME/verdi/ops/hysds/configs/celery/celeryconfig.py.tmpl -o $HOME/verdi/ops/hysds/celeryconfig.py
-            python setup.py test
+            pytest $(find test -name "*Test.py")
           environment:
             MOZART_ES_PVT_IP: 127.0.0.1
             GRQ_ES_PVT_IP: 127.0.0.1

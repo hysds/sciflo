@@ -50,6 +50,5 @@ setup(name='sciflo',
               'subsetAeronet.py=sciflo.data.aeronet.subset:main',
               'hdfMetadata.py=sciflo.data.hdf:main',
           ],
-      },
-      test_suite="runAllTests.getAllTestsTestSuite",
+      }
       )
