@@ -10,11 +10,12 @@ jobs:
       - checkout
       - run:
           name: Test
+          no_output_timeout: 30m
           command: |
             source $HOME/verdi/bin/activate
             pip install j2cli
             j2 --undefined $HOME/verdi/ops/hysds/configs/celery/celeryconfig.py.tmpl -o $HOME/verdi/ops/hysds/celeryconfig.py
-            pytest $(find test -name "*Test.py")
+            pytest -s $(find test -name "*Test.py")
           environment:
             MOZART_ES_PVT_IP: 127.0.0.1
             GRQ_ES_PVT_IP: 127.0.0.1
