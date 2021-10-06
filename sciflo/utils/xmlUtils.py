@@ -903,7 +903,7 @@ XML_DATA_TYPE_MAPPING = {
     'double': float,
     'real': float,
     'boolean': bool,
-    'base64Binary': base64.decodestring,
+    'base64Binary': base64.decodebytes,
     'date': datetime.date,
     'dateTime': datetime.datetime,
     'ISODateTime': datetime.datetime,
