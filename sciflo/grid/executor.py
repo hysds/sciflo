@@ -652,7 +652,7 @@ in runLockedFunction() for sciflo '%s': %s\n%s" %
             self.logger.debug("Got error in shutdown() for sciflo '%s':%s\n%s" %
                               (self.scifloName, str(e), getTb()),
                               extra={'id': self.scifloid})
-            os._exit(0)
+            os._exit(1)
 
     def callback(self, callbackResult):
         """Callback for work unit execution."""
