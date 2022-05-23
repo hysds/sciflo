@@ -100,16 +100,22 @@ def forkChildAndRun(q, func, *args, **kargs):
             else:
                 tres = res[0]
             res = (tres, res[1])
-            with open(pickleFile, 'wb') as p:
-                try:
-                    pickle.dump(res, p)
-                except:
-                    pickle.dump((RuntimeError(str(res[0])), res[1]), p)
+            try:
+                with open(pickleFile, 'wb') as p:
+                    try:
+                        pickle.dump(res, p)
+                    except:
+                        pickle.dump((RuntimeError(str(res[0])), res[1]), p)
+            except OSError as oe:
+                raise
         except Exception as e:
             WORKER_LOGGER.debug("Error in forkChildAndRun: %s" % getTb(),
                                 extra={'id': 'child'})
-            with open(pickleFile, 'wb') as p:
-                pickle.dump(e, p)
+            try:
+                with open(pickleFile, 'wb') as p:
+                    pickle.dump(e, p)
+            except OSError as oe:
+                raise
         os._exit(0)
 
     # install handler for SIGTERM
