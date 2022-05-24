@@ -1,3 +1,4 @@
+import errno
 import os
 import time
 import gc
@@ -653,7 +654,7 @@ in runLockedFunction() for sciflo '%s': %s\n%s" %
             self.logger.debug("Got OSError in shutdown() for sciflo '%s':%s\n%s" %
                               (self.scifloName, str(oe), getTb()),
                               extra={'id': self.scifloid})
-            if oe.errno == 28:
+            if oe.errno == errno.ENOSPC:
                 os._exit(1)
             else:
                 os._exit(0)
