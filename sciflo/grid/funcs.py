@@ -110,7 +110,6 @@ def forkChildAndRun(q, func, *args, **kargs):
                                 extra={'id': 'child'})
             with open(pickleFile, 'wb') as p:
                 pickle.dump(e, p)
-
         os._exit(0)
 
     # install handler for SIGTERM
