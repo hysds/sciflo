@@ -650,7 +650,9 @@ in runLockedFunction() for sciflo '%s': %s\n%s" %
                         f.write("%s\n" % self.output[i])
         except OSError as oe:
             # When disk space fills up during the middle of a Sciflo run, catch it
-            # here and return a non-0 exit code.
+            # here and return a non-0 exit code. To achieve backwards compatability,
+            # we only want to return a non-0 for disk full cases. We'll update
+            # the logic if needed in the future.
             self.logger.debug("Got OSError in shutdown() for sciflo '%s':%s\n%s" %
                               (self.scifloName, str(oe), getTb()),
                               extra={'id': self.scifloid})
