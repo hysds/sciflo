@@ -1,3 +1,4 @@
+import errno
 import os
 import time
 import gc
@@ -647,6 +648,18 @@ in runLockedFunction() for sciflo '%s': %s\n%s" %
                                            'workunit_result-%d.txt' % i)
                     with open(resFile, 'w') as f:
                         f.write("%s\n" % self.output[i])
+        except OSError as oe:
+            # When disk space fills up during the middle of a Sciflo run, catch it
+            # here and return a non-0 exit code. To achieve backwards compatability,
+            # we only want to return a non-0 for disk full cases. We'll update
+            # the logic if needed in the future.
+            self.logger.debug("Got OSError in shutdown() for sciflo '%s':%s\n%s" %
+                              (self.scifloName, str(oe), getTb()),
+                              extra={'id': self.scifloid})
+            if oe.errno == errno.ENOSPC:
+                os._exit(1)
+            else:
+                os._exit(0)
 
         except Exception as e:
             self.logger.debug("Got error in shutdown() for sciflo '%s':%s\n%s" %
