@@ -8,6 +8,7 @@
 # Copyright:   (c) 2005, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
 # -----------------------------------------------------------------------------
+import tempfile
 import types
 import os
 import urllib.parse
@@ -692,7 +693,8 @@ def getUserInfo():
 
     userInfo = pwd.getpwuid(os.getuid())
     userName = userInfo[0]
-    homeDir = userInfo[5]
+    # homeDir = userInfo[5]
+    homeDir = tempfile.gettempdir()
     userScifloDir = os.path.join(homeDir, '.sciflo')
     if not os.path.isdir(userScifloDir):
         os.makedirs(userScifloDir, 0o755)
