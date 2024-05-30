@@ -36,7 +36,9 @@ setup(name='sciflo',
       install_requires=[
           'twisted>=18.9.0', 'pillow>=5.4.1', 'formencode>=1.3.1',
           'sqlobject>=3.7.1', 'service_identity>=18.1.0',
-          'python-magic>=0.4.15'
+          'python-magic>=0.4.15',
+          # pin setuptools until this is fixed: https://github.com/pypa/setuptools/issues/4399
+          "setuptools<70.0.0"
       ],
       packages=packages,
       package_data={
