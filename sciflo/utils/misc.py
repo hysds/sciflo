@@ -851,11 +851,11 @@ SCIFLO_CONFIG_XML_TEMPLATE = Template('''<?xml version="1.0"?>
 ''')
 
 
-def getUserScifloConfig(userConfigFile=None, globalConfigFile=None, workDir=None):
+def getUserScifloConfig(userConfigFile=None, globalConfigFile=None):
     """Return path to user's sciflo config."""
 
     # get user info
-    userName, homeDir, userScifloDir, userConfig = getUserInfo(workDir)
+    userName, homeDir, userScifloDir, userConfig = getUserInfo()
     if userConfigFile is None:
         userConfigFile = userConfig
     userScifloConfigFile = os.path.join(userScifloDir, '.scifloConfig.xml')
