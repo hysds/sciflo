@@ -685,7 +685,7 @@ IMPLICIT_CONVERSIONS = ('sf:localUrlsListNoDods', 'sf:localUrlsList',
                         'sf:localFilesNoDods')
 
 
-def getUserInfo():
+def getUserInfo(workDir=None):
     """Return tuple of (username, home directory, user's sciflo config directory, and
     sciflo config file).  If user sciflo directory does not exist, create it.  If
     config file doesn't exist, generate default file.
@@ -693,11 +693,18 @@ def getUserInfo():
 
     userInfo = pwd.getpwuid(os.getuid())
     userName = userInfo[0]
-    # homeDir = userInfo[5]
-    homeDir = tempfile.gettempdir()
+    homeDir = userInfo[5]
     userScifloDir = os.path.join(homeDir, '.sciflo')
-    if not os.path.isdir(userScifloDir):
-        os.makedirs(userScifloDir, 0o755)
+    try:
+        if not os.path.isdir(userScifloDir):
+            os.makedirs(userScifloDir, 0o755)
+    except PermissionError:
+        # If there were issues creating .sciflo dir in $HOME
+        # then create it in a temp dir.
+        homeDir = tempfile.gettempdir()
+        userScifloDir = os.path.join(homeDir, '.sciflo')
+        if not os.path.isdir(userScifloDir):
+            os.makedirs(userScifloDir, 0o755)
     convFuncDir = os.path.join(userScifloDir, 'conversionFunctions')
     if not os.path.isdir(convFuncDir):
         os.makedirs(convFuncDir, 0o755)
@@ -844,11 +851,11 @@ SCIFLO_CONFIG_XML_TEMPLATE = Template('''<?xml version="1.0"?>
 ''')
 
 
-def getUserScifloConfig(userConfigFile=None, globalConfigFile=None):
+def getUserScifloConfig(userConfigFile=None, globalConfigFile=None, workDir=None):
     """Return path to user's sciflo config."""
 
     # get user info
-    userName, homeDir, userScifloDir, userConfig = getUserInfo()
+    userName, homeDir, userScifloDir, userConfig = getUserInfo(workDir)
     if userConfigFile is None:
         userConfigFile = userConfig
     userScifloConfigFile = os.path.join(userScifloDir, '.scifloConfig.xml')
