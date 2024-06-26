@@ -685,7 +685,7 @@ IMPLICIT_CONVERSIONS = ('sf:localUrlsListNoDods', 'sf:localUrlsList',
                         'sf:localFilesNoDods')
 
 
-def getUserInfo(workDir=None):
+def getUserInfo():
     """Return tuple of (username, home directory, user's sciflo config directory, and
     sciflo config file).  If user sciflo directory does not exist, create it.  If
     config file doesn't exist, generate default file.
