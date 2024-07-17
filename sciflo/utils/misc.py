@@ -8,6 +8,7 @@
 # Copyright:   (c) 2005, California Institute of Technology.
 #              U.S. Government Sponsorship acknowledged.
 # -----------------------------------------------------------------------------
+import tempfile
 import types
 import os
 import urllib.parse
@@ -694,8 +695,16 @@ def getUserInfo():
     userName = userInfo[0]
     homeDir = userInfo[5]
     userScifloDir = os.path.join(homeDir, '.sciflo')
-    if not os.path.isdir(userScifloDir):
-        os.makedirs(userScifloDir, 0o755)
+    try:
+        if not os.path.isdir(userScifloDir):
+            os.makedirs(userScifloDir, 0o755)
+    except PermissionError:
+        # If there were issues creating .sciflo dir in $HOME
+        # then create it in a temp dir.
+        homeDir = tempfile.gettempdir()
+        userScifloDir = os.path.join(homeDir, '.sciflo')
+        if not os.path.isdir(userScifloDir):
+            os.makedirs(userScifloDir, 0o755)
     convFuncDir = os.path.join(userScifloDir, 'conversionFunctions')
     if not os.path.isdir(convFuncDir):
         os.makedirs(convFuncDir, 0o755)
