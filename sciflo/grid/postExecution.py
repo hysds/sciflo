@@ -143,7 +143,7 @@ class PostExecutionHandlerError(Exception):
     pass
 
 
-class PostExecutionHandler(object):
+class PostExecutionHandler:
     """Class that handles the execution of a conversion function on the
     results of a work unit."""
 

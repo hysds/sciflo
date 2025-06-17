@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 from .xmlUtils import getXmlEtree
 
-VIEW_RE = re.compile('^(.+?)\((.*)\)$')
+VIEW_RE = re.compile(r'^(.+?)\((.*)\)$')
 
 
 def parseView(view):
@@ -259,7 +259,7 @@ def getTabConfig(sfl):
             'name': tabName.lower(),
             'title': tabName,
             'validationUrl': 'services/validateSetup',
-            'dbName': ('%s_%s' % (id, tabName)).replace(' ', '_'),
+            'dbName': ('{}_{}'.format(id, tabName)).replace(' ', '_'),
             'items': []
         }
 
@@ -572,7 +572,7 @@ def getTabConfig(sfl):
         for item in cvoTabCfg['items']:
             if 'title' not in item:
                 item['title'] = item['name']
-            groupItem = '%s/%s' % (cvoTabCfg['title'], item['title'])
+            groupItem = '{}/{}'.format(cvoTabCfg['title'], item['title'])
             if groupItem in itemConfig:
                 item['paletteIcon'] = itemConfig[groupItem]['paletteIcon']
 

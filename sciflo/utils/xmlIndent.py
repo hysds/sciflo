@@ -89,9 +89,9 @@ def getInputStream(xml=None):
     if xml is None:
         stream = sys.stdin
     elif isinstance(xml, str):
-        if re.match('\s*<', xml):
+        if re.match(r'\s*<', xml):
             xml = xml.replace('\n', '')
-            if not re.match('(?is)\s*<\?xml', xml):
+            if not re.match(r'(?is)\s*<\?xml', xml):
                 xml = '<?xml version = "1.0"?>\n' + xml
             # print xml
             stream = StringIO(xml)
@@ -116,7 +116,7 @@ def indent(xmls, indent='  ', newline='\n', header=True):
         die(e)
     xmlFragment = outs.getvalue()
     if not header:
-        match = re.match('(?is)\s*<\?xml.*?\?>\s*(.*)$', xmlFragment)
+        match = re.match(r'(?is)\s*<\?xml.*?\?>\s*(.*)$', xmlFragment)
         if match:
             xmlFragment = match.group(1)
     return xmlFragment
@@ -132,4 +132,4 @@ if __name__ == "__main__":
     except:
         url = None
 
-    print((indent(url)))
+    print(indent(url))

@@ -65,7 +65,7 @@ class RdbmsStore(Store):
         """Constructor."""
 
         # call super()
-        super(RdbmsStore, self).__init__(name, fieldsList)
+        super().__init__(name, fieldsList)
 
         # set db attributes
         self._dbHome = dbHome

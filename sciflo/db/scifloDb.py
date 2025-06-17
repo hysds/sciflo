@@ -116,7 +116,7 @@ def getCreateSql(tableName, xml, recordTag, autoKey=False):
     retStr = "create table %s (\n" % tableName
     if autoKey:
         retStr += "    id int primary key auto_increment,\n"
-    fieldStrList = ["    %s %s" % (field, sqltype)
+    fieldStrList = ["    {} {}".format(field, sqltype)
                     for field, sqltype in sqlCreateInfoList]
     return retStr + ",\n".join(fieldStrList) + ")"
 
@@ -175,7 +175,7 @@ class ScifloDbTableError(Exception):
     pass
 
 
-class ScifloDbTable(object):
+class ScifloDbTable:
     """Sciflo database table class."""
 
     def __init__(self, location, xmlSchema):
@@ -245,7 +245,7 @@ class ScifloDbTable(object):
                 raise ScifloDbTableError("Unknown column type: %s" % typ)
 
             # add col string for class
-            colStr = "    %s = %s(" % (id, colClass)
+            colStr = "    {} = {}(".format(id, colClass)
             colArgsList = []
             if alternateID == True:
                 colArgsList.append("alternateID=True")

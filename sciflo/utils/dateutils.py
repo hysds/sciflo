@@ -608,11 +608,11 @@ dateformcon = {'dayofweek': 1, 'addzero': 0,
 ############################################################
 
 if __name__ == "__main__":
-    print((returndate()))
+    print(returndate())
     year, month, day = returndate()
     test = daycount(year, month, day)
     print(test)
-    print((counttodate(test)))
+    print(counttodate(test))
     while True:
         x = eval(input("Enter Year of date (Enter to quit) >> "))
         if x == '':
@@ -621,20 +621,20 @@ if __name__ == "__main__":
         z = eval(input("Enter Day >> "))
         test = daycount(int(x), int(y), int(z))
         print(test)
-        print((counttodate(test)))
+        print(counttodate(test))
 
-    print((realdate(32, 1, 2004)))
+    print(realdate(32, 1, 2004))
     while True:
         x = eval(input("Enter Modifier (0 to quit) >> "))
         if x == '0':
             break
-        print((addnumdays(31, 3, 2004, -int(x))))
+        print(addnumdays(31, 3, 2004, -int(x)))
 
     while True:
         x = eval(input("Enter Day of Week 0-6 (7 to quit) >> "))
         if x == '7':
             break
-        print((nearestday(24, 1, 2004, int(x))))
+        print(nearestday(24, 1, 2004, int(x)))
 
     while True:
         x = eval(input("Enter Years to Add (Enter to quit) >> "))
@@ -642,7 +642,7 @@ if __name__ == "__main__":
             break
         y = eval(input("Enter Months to Add >> "))
         z = eval(input("Enter Days To Add >> "))
-        print((adddate(24, 1, 2004, int(z), int(y), int(x))))
+        print(adddate(24, 1, 2004, int(z), int(y), int(x)))
         year, month, day = adddate(24, 1, 2004, int(z), int(y), int(x))
         print(("The nearest Tuesday after that date is ",
                nearestday(day, month, year)))

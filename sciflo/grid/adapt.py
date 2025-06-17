@@ -252,7 +252,7 @@ class ConversionRegistry:
             warn('Unregistered conversion %s: %s -> %s' %
                  (str(conversionFn), inType, outType))
         try:
-            self.convert[inType][outType].remove((conversionFn))
+            self.convert[inType][outType].remove(conversionFn)
         except:
             warn('Attempt to unregister a conversion function that is not registered: '
                  '%s: %s -> %s' % (str(conversionFn), inType, outType))
@@ -305,7 +305,7 @@ class ConversionRegistry:
         via some candidate chain.
         """
         if verbose:
-            warn('Seeking chain for conversion %s -> %s' % (inType, outType))
+            warn('Seeking chain for conversion {} -> {}'.format(inType, outType))
         typesSeen.add(inType)
         for ty in self.convert[inType]:
             if ty in typesSeen:
@@ -410,7 +410,7 @@ if __name__ == '__main__':
 
     def xml2ListOfDict(xml):
         """Convert an xmlDoc string to a python list of dictionaries."""
-        return [dict([(child.tag, child.text) for child in elt]) for elt in XML(xml)]
+        return [{child.tag: child.text for child in elt} for elt in XML(xml)]
 
     def xml2ListOfDict_Tutorial(xml):
         """Same as previous function, but the hard (wrong) way."""
@@ -425,7 +425,7 @@ if __name__ == '__main__':
 
     def xml2ListOfDict_2step(xml):
         """Same conversion but now input xml must be an ElementTree."""
-        return [dict([(child.tag, child.text) for child in elt]) for elt in xml]
+        return [{child.tag: child.text for child in elt} for elt in xml]
 
     #adapt.registerConversion('str', 'py:ListOfDict', xml2ListOfDict)
     # Register only single-step conversion to test seek of 2-step conversion chain:

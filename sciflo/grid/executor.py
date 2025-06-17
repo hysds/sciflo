@@ -61,15 +61,15 @@ def scifloInfo(info=None, **kargs):
     return info
 
 
-class WuReady(object):
+class WuReady:
     def __init__(self, val): self.val = val
 
 
-class PostExecResult(object):
+class PostExecResult:
     def __init__(self, val): self.val = val
 
 
-class NoResult(object):
+class NoResult:
     pass
 
 
@@ -96,14 +96,14 @@ class NoDaemonContext(type(multiprocessing.get_context())):
 class ScifloPool(multiprocessing.pool.Pool):
     def __init__(self, *args, **kwargs):
         kwargs['context'] = NoDaemonContext()
-        super(ScifloPool, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class ScifloExecutorError(Exception):
     pass
 
 
-class ScifloExecutor(object):
+class ScifloExecutor:
     """Execution engine for sciflo."""
 
     def __init__(self, sflString, args={}, workers=4, workerTimeout=None,
@@ -199,7 +199,7 @@ class ScifloExecutor(object):
                 self.pdict = PersistentDict(self.cacheName, pickleVals=True)
             except Exception as e:
                 self.logger.debug("Got exception trying to get PersistentDict \
-for sciflo '%s': %s.  No cache will be used." % (self.scifloName, e),
+for sciflo '{}': {}.  No cache will be used.".format(self.scifloName, e),
                                   extra={'id': self.scifloid})
                 self.cacheName = None
                 self.pdict = None
@@ -224,7 +224,7 @@ for sciflo '%s': %s.  No cache will be used." % (self.scifloName, e),
             if self.publicize:
                 self.baseUrl = self.gsc.getGridBaseUrl()
             else:
-                self.baseUrl = "file://%s%s" % (getfqdn(), self.workDir)
+                self.baseUrl = "file://{}{}".format(getfqdn(), self.workDir)
         self.ubt = UrlBaseTracker(self.workDir, self.baseUrl)
         if self.publicize:
             self.publicizeUbt = self.ubt
@@ -249,7 +249,7 @@ for sciflo '%s': %s.  No cache will be used." % (self.scifloName, e),
                                      configDict=self.configDict)
                 except Exception as e:
                     raise ScifloExecutorError("Encountered error calling \
-getWorkUnit(): %s\n%s" % (str(e), getTb()))
+getWorkUnit(): {}\n{}".format(str(e), getTb()))
                 wuid = wu.getWuid()
                 appRes = WuReady(wu)
                 # update info in work unit json for monitoring
@@ -424,8 +424,8 @@ getWorkUnit(): %s\n%s" % (str(e), getTb()))
                 resolvingRes = rewriteFile
             return resolvingRes
         except Exception as e:
-            self.logger.debug("Got error in resolveArg() method for '%s' in \
-sciflo '%s': %s\n%s" % (resolvingId, self.scifloName, str(e), getTb()),
+            self.logger.debug("Got error in resolveArg() method for '{}' in \
+sciflo '{}': {}\n{}".format(resolvingId, self.scifloName, str(e), getTb()),
                 extra={'id': self.scifloid})
             raise
 
@@ -520,8 +520,8 @@ sciflo '%s': %s\n%s" % (resolvingId, self.scifloName, str(e), getTb()),
         try:
             linkFile(workDir, linkDir)
         except Exception as e:
-            self.logger.debug("Got error trying to link work dir '%s' to '%s' \
-for '%s' in sciflo '%s': %s\n%s" % (workDir, linkDir, procId, self.scifloName,
+            self.logger.debug("Got error trying to link work dir '{}' to '{}' \
+for '{}' in sciflo '{}': {}\n{}".format(workDir, linkDir, procId, self.scifloName,
                                     str(e), getTb()), extra={'id': self.scifloid})
 
         # lookup cache?
@@ -625,8 +625,8 @@ in runLockedFunction() for sciflo '%s': %s\n%s" %
             self.pool.close()
             self.pool.join()
             endTime = time.time()
-            self.logger.debug("done.  Shutdown took %s seconds for sciflo \
-'%s'." % ((endTime - startTime), self.scifloName), extra={'id': self.scifloid})
+            self.logger.debug("done.  Shutdown took {} seconds for sciflo \
+'{}'.".format((endTime - startTime), self.scifloName), extra={'id': self.scifloid})
 
             # update sciflo info
             self.updateScifloInfo(endTime=time.time(), status=finalStatus,
@@ -673,7 +673,7 @@ in runLockedFunction() for sciflo '%s': %s\n%s" %
             runLockedFunction(self.lock, self.handle, callbackResult)
         except Exception as e:
             emessage = "Error running callback in runLockedFunction() for \
-sciflo '%s':%s\n%s" % (self.scifloName, str(e), getTb())
+sciflo '{}':{}\n{}".format(self.scifloName, str(e), getTb())
             self.logger.debug(emessage, extra={'id': self.scifloid})
             self.executionError = ('callback', ScifloExecutorError(emessage),
                                    getTb())
@@ -681,7 +681,7 @@ sciflo '%s':%s\n%s" % (self.scifloName, str(e), getTb())
                 runFuncWithRetries(5, self.event.set)
             except Exception as e:
                 emessage = "Got error setting event from callback() exception \
-in sciflo '%s': %s\n%s" % (self.scifloName, str(e), getTb())
+in sciflo '{}': {}\n{}".format(self.scifloName, str(e), getTb())
                 self.logger.debug(emessage, extra={'id': self.scifloid})
                 raise ScifloExecutorError(emessage)
 
@@ -726,7 +726,7 @@ with status '%s'.  Handling result." %
         f = open(info['executionLog'])
         wuLog = f.read()
         f.close()
-        self.logger.debug("Execution log for '%s': %s" % (
+        self.logger.debug("Execution log for '{}': {}".format(
             procId, wuLog), extra={'id': self.scifloid})
 
         # add provenance info for workUnit execution started
@@ -848,7 +848,7 @@ for handleResult() for procId '%s' in sciflo '%s': %s.  No cache will be used."
                     pePklFile = pdict[postExecHex]
                 except Exception as e:
                     self.logger.debug("Got error trying to retrieve cached \
-post execution for '%s' in sciflo '%s': %s\n%s" % (procId, self.scifloName,
+post execution for '{}' in sciflo '{}': {}\n{}".format(procId, self.scifloName,
                                                    str(e), getTb()),
                                       extra={'id': self.scifloid})
                     pePklFile = None
@@ -859,8 +859,8 @@ post execution for '%s' in sciflo '%s': %s\n%s" % (procId, self.scifloName,
 
             # otherwise just run it
             if postExecResult is None:
-                self.logger.debug("Running post execution for '%s' in sciflo \
-'%s': %s" % (procId, self.scifloName, (resIdx, funcStr)),
+                self.logger.debug("Running post execution for '{}' in sciflo \
+'{}': {}".format(procId, self.scifloName, (resIdx, funcStr)),
                     extra={'id': self.scifloid})
                 try:
                     postExecHandler = PostExecutionHandler(resIdx, funcStr,
@@ -887,11 +887,11 @@ post execution results for '%s' to cache under '%s' in sciflo '%s': %s\n%s" %
                 except Exception as e:
                     postExecResult = PostExecResult(e)
                     self.logger.debug("Got error running post execution for \
-'%s' in sciflo '%s': %s" % (procId, self.scifloName, res),
+'{}' in sciflo '{}': {}".format(procId, self.scifloName, res),
                         extra={'id': self.scifloid})
             else:
                 self.logger.debug("Using cached post execution result for \
-'%s' in sciflo '%s': %s" % (procId, self.scifloName, (resIdx, funcStr)),
+'{}' in sciflo '{}': {}".format(procId, self.scifloName, (resIdx, funcStr)),
                     extra={'id': self.scifloid})
 
             # set it; not if we need to publicize
@@ -903,8 +903,8 @@ post execution results for '%s' to cache under '%s' in sciflo '%s': %s\n%s" %
                 self.postExecResultsDict[procId][i] = \
                     getAbsPathForResultFiles(
                         postExecResult.val, dir=info['workDir'])
-            self.logger.debug("Finished post execution for '%s' in sciflo '%s':\
- %s" % (procId, self.scifloName, (resIdx, funcStr)),
+            self.logger.debug("Finished post execution for '{}' in sciflo '{}':\
+ {}".format(procId, self.scifloName, (resIdx, funcStr)),
                 extra={'id': self.scifloid})
 
         # write result to annotated doc and set to done;
@@ -935,12 +935,12 @@ post execution results for '%s' to cache under '%s' in sciflo '%s': %s\n%s" %
         if pdict is not None and info['workerStatus'] == doneStatus:
             try:
                 updatePdict(pdict, self.hexDict[procId], info['jsonFile'])
-                self.logger.debug("Wrote info for '%s' to cache under '%s' \
-in sciflo '%s'." % (procId, self.hexDict[procId], self.scifloName),
+                self.logger.debug("Wrote info for '{}' to cache under '{}' \
+in sciflo '{}'.".format(procId, self.hexDict[procId], self.scifloName),
                     extra={'id': self.scifloid})
             except Exception as e:
                 self.logger.debug("Got exception trying to write info for \
-'%s' to cache under '%s' in sciflo '%s': %s\n%s" % (procId,
+'{}' to cache under '{}' in sciflo '{}': {}\n{}".format(procId,
                                                     self.hexDict[procId], self.scifloName, str(e), getTb()),
                                   extra={'id': self.scifloid})
 
@@ -973,16 +973,16 @@ in sciflo '%s'." % (procId, self.hexDict[procId], self.scifloName),
             self.updateStatus('WorkUnit status for "%s": %s' %
                               (procId, status), info)
         except Exception as e:
-            self.logger.debug("Got error in handleError() for '%s' in sciflo \
-'%s': %s\n%s" % (procId, self.scifloName, str(e), getTb()),
+            self.logger.debug("Got error in handleError() for '{}' in sciflo \
+'{}': {}\n{}".format(procId, self.scifloName, str(e), getTb()),
                 extra={'id': self.scifloid})
 
         # set event
         try:
             self.event.set()
-        except IOError as e:
+        except OSError as e:
             self.logger.debug("Got IOError setting event from handleError() \
-for '%s' in sciflo '%s': %s\n%s" % (procId, self.scifloName, str(e), getTb()),
+for '{}' in sciflo '{}': {}\n{}".format(procId, self.scifloName, str(e), getTb()),
                               extra={'id': self.scifloid})
 
     def updateGlobalOutputs(self, procId):
@@ -1057,7 +1057,7 @@ def _runSciflo(sflStr, args={}, workers=4, timeout=None, workDir=None,
         result = s.output
     except Exception as e:
         result = e
-        print((getTb()))
+        print(getTb())
 
     notifyByEmail(emailNotify, result, s)
     return result
@@ -1112,6 +1112,6 @@ def notifyByEmail(address, result, executor):
 
             send_email(getuser(), [address], [], title, message)
         except Exception as e:
-            print(("Got error trying to notify %s by email: %s" %
-                   (address, getTb())))
+            print("Got error trying to notify %s by email: %s" %
+                   (address, getTb()))
             pass

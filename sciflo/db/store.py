@@ -17,7 +17,7 @@ class StoreError(Exception):
     pass
 
 
-class Store(object):
+class Store:
     """Store base class."""
 
     def __init__(self, name, fieldsList):
@@ -197,7 +197,7 @@ class Store(object):
 
         # print info
         print(sep)
-        print(("Name: %s" % self._name))
+        print("Name: %s" % self._name)
         print(("Fields:", self._fieldsList))
         print(sep3)
 

@@ -37,10 +37,10 @@ badxmlFile = os.path.join(dirName, 'test_bad.xml')
 unwellformedxmlFile = os.path.join(dirName, 'test_notwellformed.xml')
 
 # crawler xml as string
-crawlerSchemaXml = open(schemaFile, 'r').read()
+crawlerSchemaXml = open(schemaFile).read()
 
 # xml as string
-xmlString = open(xmlFile, 'r').read()
+xmlString = open(xmlFile).read()
 
 
 class utilsTestCase(unittest.TestCase):

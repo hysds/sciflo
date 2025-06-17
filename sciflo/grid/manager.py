@@ -85,7 +85,7 @@ class WorkUnitExecutionHandlerError(Exception):
     pass
 
 
-class WorkUnitExecutionHandler(object):
+class WorkUnitExecutionHandler:
     """WorkUnitExecutionHandler base class."""
 
     def __init__(self, workUnitOwner, workUnitType, workUnitCall, workUnitArgs, wuStoreConfig,
@@ -352,7 +352,7 @@ class WorkUnitExecutionHandler(object):
             emessage += etb
             self._result = e
 
-            print(("Encountered exception during staging: %s" % emessage))
+            print("Encountered exception during staging: %s" % emessage)
 
             # set status to exception and write error
             self._wuHexDigest = None
@@ -429,7 +429,7 @@ class WorkUnitExecutionHandler(object):
                 emessage += etb
                 self._result = e
 
-                print(("Encountered exception during post execution: %s" % emessage))
+                print("Encountered exception during post execution: %s" % emessage)
 
                 # set status to exception and write error
                 self._wuHexDigest = None
@@ -490,7 +490,7 @@ class WorkUnitDied(Exception):
     pass
 
 
-class WorkUnitManager(object):
+class WorkUnitManager:
     """Class that manages the WorkUnitExecutionHandler object."""
 
     def __init__(self, owner, type, call, args, storeConfig, workRootDir, stageFiles=None,

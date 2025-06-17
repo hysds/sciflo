@@ -52,7 +52,7 @@ def create_map_job(startdate, enddate, segmentBy, arg1, arg2, wuid=None, job_num
             # sciflo tracking info
             "_sciflo_wuid": wuid,
             "_sciflo_job_num": job_num,
-            "_command": "/usr/bin/echo {} {} {} {}".format(start.year, start.month, arg1, arg2),
+            "_command": f"/usr/bin/echo {start.year} {start.month} {arg1} {arg2}",
 
             # job params
             "year": start.year,
@@ -88,14 +88,14 @@ def create_reduce_job(results, wuid=None, job_num=None):
 def get_reduce_job_result(result):
     """Test function for processing a reduced job result."""
 
-    print(("got result: {}".format(json.dumps(result, indent=2))))
+    print(f"got result: {json.dumps(result, indent=2)}")
     return result['payload_id']
 
 
 def join_map_jobs(task_ids):
     """Test reduce function that manually joins all mapped jobs."""
 
-    print(("task_ids: {}".format(json.dumps(task_ids, indent=2))))
+    print(f"task_ids: {json.dumps(task_ids, indent=2)}")
     res = GroupResult(id=uuid.uuid4().bytes, results=[
                       AsyncResult(id[0]) for id in task_ids])
     while True:

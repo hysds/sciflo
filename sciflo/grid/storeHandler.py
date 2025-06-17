@@ -42,7 +42,7 @@ class WorkUnitStoreHandlerError(Exception):
     pass
 
 
-class WorkUnitStoreHandler(object):
+class WorkUnitStoreHandler:
     """WorkUnitStoreHandler base class.  Work unit metadata stored in the WorkUnitStore
     include: id, hex digest, owner, status, type, call, args, work directory, entry time,
     start time, end time, result, exception message, post execution results, cancelFlag,
@@ -488,7 +488,7 @@ class ScheduleStoreHandlerError(Exception):
     pass
 
 
-class ScheduleStoreHandler(object):
+class ScheduleStoreHandler:
     """ScheduleStoreHandler base class."""
 
     def __init__(self, storeConfig):
@@ -763,7 +763,7 @@ class ScheduleStoreHandler(object):
                 return wuConfigIds[0]
 
         raise ScheduleStoreHandlerError(
-            "Cannot find procId %s in scifloid %s." % (procId, scifloId))
+            "Cannot find procId {} in scifloid {}.".format(procId, scifloId))
 
     def getScifloidInfo(self, scifloId, fields):
         """Return sorted list of dicts containing field info.  Sorted by

@@ -732,7 +732,7 @@ def binunleave(data):
 # Included for reference is the bf object and the binary operations as functions.
 
 
-class bf(object):
+class bf:
     """the bf(object) from activestate python cookbook - by Sebastien Keim - Many Thanks
     http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/113799"""
 

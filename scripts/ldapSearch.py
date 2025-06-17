@@ -45,10 +45,10 @@ except ldap.LDAPError as e:
 
 if len(result_set) > 0:
     for result in result_set:
-        print(("#" * 80))
-        print((result[0][0]))
+        print("#" * 80)
+        print(result[0][0])
         for key in list(result[0][1].keys()):
-            print(("%s: %s" % (key, '\n\t'.join(result[0][1][key]))))
-        print(("#" * 80))
+            print("{}: {}".format(key, '\n\t'.join(result[0][1][key])))
+        print("#" * 80)
 else:
     print("No entries found.")

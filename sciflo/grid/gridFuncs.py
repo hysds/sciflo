@@ -40,20 +40,20 @@ def getGridSoapMethods(protocol, addr, port, ns, configFile=None):
     #    proxy=getGSISOAPProxy("https://%s:%s" % (addr, port), ns)
 
     if protocol == 'ssl':
-        proxy = SOAPProxy("https://%s:%s" % (addr, port), ns)
+        proxy = SOAPProxy("https://{}:{}".format(addr, port), ns)
     elif protocol == 'http':
-        proxy = SOAPProxy("http://%s:%s" % (addr, port), ns)
+        proxy = SOAPProxy("http://{}:{}".format(addr, port), ns)
     else:
         raise RuntimeError("Failed to recognize protocol type: %s" % protocol)
 
     # get add, cancel and query workunit methodnames from configuration file
     parserObj = ScifloConfigParser(configFile)
     addStr = parserObj.getMandatoryParameterViaXPath(
-        './/{%s}addWorkUnitMethod/{%s}exposedName' % (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
+        './/{{{}}}addWorkUnitMethod/{{{}}}exposedName'.format(SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
     queryStr = parserObj.getMandatoryParameterViaXPath(
-        './/{%s}queryWorkUnitMethod/{%s}exposedName' % (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
+        './/{{{}}}queryWorkUnitMethod/{{{}}}exposedName'.format(SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
     cancelStr = parserObj.getMandatoryParameterViaXPath(
-        './/{%s}cancelWorkUnitMethod/{%s}exposedName' % (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
+        './/{{{}}}cancelWorkUnitMethod/{{{}}}exposedName'.format(SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
 
     # add work unit method
     addWorkUnitMethod = eval("proxy.%s" % addStr)
@@ -114,7 +114,7 @@ def getGridLocalMethods(configFile, debug=False):
     return (addWorkUnitMethod, cancelWorkUnitMethod, queryMethod)
 
 
-class GridFunction(object):
+class GridFunction:
     """Base class for grid functions."""
 
     def __init__(self, func, configFile=None):
@@ -129,4 +129,4 @@ class GridFunction(object):
 
 class WorkUnitCallback(GridFunction):
     def __init__(self, configFile=None):
-        super(WorkUnitCallback, self).__init__(workUnitCallback, configFile)
+        super().__init__(workUnitCallback, configFile)

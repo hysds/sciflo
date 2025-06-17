@@ -20,9 +20,9 @@ import sciflo
 
 def usage():
     """Print usage info."""
-    print(("""%s [-l|--location <location>] [-t|--table <table>] [-u|--update] \
+    print("""%s [-l|--location <location>] [-t|--table <table>] [-u|--update] \
 [-r|--recordTag <tag>] [-k|--keyTags <tag1,tag2,tag3,...>] [-d|--debug] \
-[-h|--help] <xml doc>""" % sys.argv[0]))
+[-h|--help] <xml doc>""" % sys.argv[0])
 
 
 def main():
@@ -113,7 +113,7 @@ def main():
 
     # xml doc
     doc = args[0]
-    f = open(doc, 'r')
+    f = open(doc)
     xml = f.read()
     f.close()
 
@@ -131,7 +131,7 @@ def main():
         ret = sciflo.db.insertXml(location, table, xml, **kargs)
     except etree.XMLSyntaxError as e:
         print("Got XMLSyntaxError:")
-        print((e.error_log.filter_levels(etree.ErrorLevels.FATAL)))
+        print(e.error_log.filter_levels(etree.ErrorLevels.FATAL))
         print("Please check xml.")
     except sciflo.db.NoIndexedFieldsInXmlError as e:
         print(

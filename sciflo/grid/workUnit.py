@@ -59,7 +59,7 @@ class WorkUnitError(Exception):
     pass
 
 
-class WorkUnit(object):
+class WorkUnit:
     """Sciflo WorkUnit base class."""
 
     def __init__(self, call, args, workDir, verbose=False, wuid=None,
@@ -109,7 +109,7 @@ class WorkUnit(object):
         userPvtPackagesDir = getUserPvtPackagesDir()
         origEnvPath = os.environ['PATH']
         origSysPath = sys.path
-        os.environ['PATH'] = '.:%s:%s:%s' % (
+        os.environ['PATH'] = '.:{}:{}:{}'.format(
             userPvtPackagesDir, userPubPackagesDir, os.environ['PATH'])
         sys.path.insert(1, userPubPackagesDir)
         sys.path.insert(1, userPvtPackagesDir)
@@ -346,7 +346,7 @@ class RestWorkUnit(WorkUnit):
         f, h = urllib.request.urlretrieve(encodedUrl)
         mimeType = h.gettype()
         mimeMainType, mimeSubType = mimeType.split('/')
-        newFile = '%s.%s' % (os.path.basename(f), mimeSubType)
+        newFile = '{}.{}'.format(os.path.basename(f), mimeSubType)
         shutil.move(f, newFile)
         os.chmod(newFile, 0o644)
         return newFile
@@ -426,7 +426,7 @@ class PostWorkUnit(WorkUnit):
         headersDict = self._args[0]
         postData = self._args[1]
         if self._verbose:
-            print("PostWorkUnit: %s %s %s" % (url, str(headersDict), postData))
+            print("PostWorkUnit: {} {} {}".format(url, str(headersDict), postData))
         return postCall(url, postData, headersDict, self._verbose)
 
 
@@ -441,7 +441,7 @@ class ScifloWorkUnit(WorkUnit):
     def __init__(self, call, args, workDir, verbose=False, wuid=None,
                  procId=None, hexDigest=None, scifloid=None, configDict={}):
 
-        super(ScifloWorkUnit, self).__init__(call, args, workDir, verbose, wuid,
+        super().__init__(call, args, workDir, verbose, wuid,
                                              procId, hexDigest, configDict=configDict)
         if scifloid is None:
             self._scifloid = generateScifloId()
@@ -493,7 +493,7 @@ class ParMapWorkUnit(PythonFunctionWorkUnit):
         else:
             print("No HySDS context JSON found at %s. Proceeding without it." % ctx_file)
 
-        super(ParMapWorkUnit, self).__init__(call, args, workDir, verbose, wuid,
+        super().__init__(call, args, workDir, verbose, wuid,
                                              procId, hexDigest, configDict=configDict)
 
     def _run(self):
@@ -505,7 +505,7 @@ class ParMapWorkUnit(PythonFunctionWorkUnit):
         # get list of jobs
         jobs = []
         if not isinstance(self._args[0], (list, tuple)):
-            raise ParMapWorkUnitError("Invalid type for ParWorkUnit argument 1: %s\n%s" % (
+            raise ParMapWorkUnitError("Invalid type for ParWorkUnit argument 1: {}\n{}".format(
                 type(self._args[0]), self._args[0]))
 
         for i, arg in enumerate(self._args[0]):
@@ -593,9 +593,9 @@ class ParWorkUnit(ParMapWorkUnit):
     def __init__(self, call, args, workDir, verbose=False, wuid=None,
                  procId=None, hexDigest=None, configDict={}):
         args[0] = [args[0]]
-        super(ParWorkUnit, self).__init__(call, args, workDir, verbose, wuid,
+        super().__init__(call, args, workDir, verbose, wuid,
                                           procId, hexDigest, configDict=configDict)
 
     def _run(self):
-        results = super(ParWorkUnit, self)._run()
+        results = super()._run()
         return results[0]

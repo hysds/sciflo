@@ -115,7 +115,7 @@ def getScheduleConfigFromConfiguration(file=None):
             "Unknown scheduleStoreType %s in configuration." % scheduleStoreType)
 
 
-class GridServiceConfig(object):
+class GridServiceConfig:
     """Class representing the soap grid service configuration for this node.
     """
 
@@ -144,7 +144,7 @@ class GridServiceConfig(object):
             './/{%s}cancelWorkUnitMethod/{%s}exposedName' %
             (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
         self._callbackMethod = parserObj.getMandatoryParameterViaXPath(
-            './/{%s}callbackMethod/{%s}exposedName' % (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
+            './/{{{}}}callbackMethod/{{{}}}exposedName'.format(SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
         self._addWorkUnitPythonMethod = parserObj.getMandatoryParameterViaXPath(
             './/{%s}addWorkUnitMethod/{%s}pythonFunction' %
             (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
@@ -155,7 +155,7 @@ class GridServiceConfig(object):
             './/{%s}cancelWorkUnitMethod/{%s}pythonFunction' %
             (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
         self._callbackPythonMethod = parserObj.getMandatoryParameterViaXPath(
-            './/{%s}callbackMethod/{%s}pythonFunction' % (SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
+            './/{{{}}}callbackMethod/{{{}}}pythonFunction'.format(SCIFLO_NAMESPACE, SCIFLO_NAMESPACE))
         self._workUnitWorkDir = parserObj.getMandatoryParameter(
             'workUnitRootWorkDir')
 
@@ -166,10 +166,10 @@ class GridServiceConfig(object):
             prot = 'http'
 
         # grid base url
-        self._gridBaseUrl = "%s://%s:%s" % (prot, getfqdn(), self._gridPort)
+        self._gridBaseUrl = "{}://{}:{}".format(prot, getfqdn(), self._gridPort)
 
         # callback wsdl
-        self._gridWsdl = "%s/wsdl?%s" % (self._gridBaseUrl,
+        self._gridWsdl = "{}/wsdl?{}".format(self._gridBaseUrl,
                                          self._gridNamespace)
 
     def getWorkUnitWorkDir(self):

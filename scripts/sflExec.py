@@ -31,9 +31,9 @@ import sciflo
 def usage():
     """Print usage info."""
 
-    print(("""%s [-c|--configFile <config file>] [-i|--init] [-o|--outputDir <output dir>]\
+    print("""%s [-c|--configFile <config file>] [-i|--init] [-o|--outputDir <output dir>]\
 [-s|--status] [-f|--force] [-d|--debug] [--nocache] [-t|--timeout <seconds>]\
-[-a|--args <input1=val1,input2=val2,...>] [-v|--verbose] [-h|--help] <sciflo doc>""" % sys.argv[0]))
+[-a|--args <input1=val1,input2=val2,...>] [-v|--verbose] [-h|--help] <sciflo doc>""" % sys.argv[0])
 
 
 def main():
@@ -152,8 +152,8 @@ def main():
             usage()
             sys.exit(2)
         userScifloConfig = sciflo.utils.getUserScifloConfig(configFile)
-        print(("Your sciflo configuration directory has been initialized: %s" %
-               os.path.dirname(userScifloConfig)))
+        print("Your sciflo configuration directory has been initialized: %s" %
+               os.path.dirname(userScifloConfig))
         sys.exit(0)
 
     # if showStatus, do debug mode since stderr and stdout won't be put to the screen
@@ -181,7 +181,7 @@ def main():
 
     # sciflo doc
     doc = args[0]
-    f = open(doc, 'r')
+    f = open(doc)
     xml = f.read()
     f.close()
 
@@ -268,7 +268,7 @@ if __name__ == '__main__':
             sys.exit(0)
         if sys.exc_info()[0] is not None and sys.exc_info()[0] != _curses.error:
             traceback.print_exc(file=tracebackStrIO)
-            print((tracebackStrIO.getvalue()))
+            print(tracebackStrIO.getvalue())
     # if resStrList: print '\n'.join(resStrList)
     print(("Results:", results))
     if isinstance(results, Exception):

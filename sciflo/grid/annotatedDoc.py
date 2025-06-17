@@ -16,7 +16,7 @@ class AnnotatedDocError(Exception):
     pass
 
 
-class AnnotatedDoc(object):
+class AnnotatedDoc:
     def __init__(self, sflDoc, outputDir):
         """Constructor."""
 
@@ -139,7 +139,7 @@ class AnnotatedDoc(object):
         """Add info for a processing step that finished."""
 
         try:
-            with open(pidFile, 'r') as f:
+            with open(pidFile) as f:
                 pid = f.read()
         except:
             pid = 'unknown'

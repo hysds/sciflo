@@ -24,15 +24,15 @@ def authenticate(user, passwd):
     except ldap.NO_SUCH_OBJECT as e:
         info = e.args[0]['info']
         desc = e.args[0]['desc']
-        print(("%s: %s" % (info, desc)))
+        print("{}: {}".format(info, desc))
     except ldap.INVALID_CREDENTIALS as e:
         info = e.args[0]['info']
         desc = e.args[0]['desc']
-        print(("%s: %s" % (info, desc)))
+        print("{}: {}".format(info, desc))
     except ldap.INAPPROPRIATE_AUTH as e:
         info = e.args[0]['info']
         desc = e.args[0]['desc']
-        print(("%s: %s" % (info, desc)))
+        print("{}: {}".format(info, desc))
     os.unlink(certFile)
 
 
