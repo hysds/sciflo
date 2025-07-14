@@ -43,7 +43,7 @@ def translatePrefixes(xpath, namespaces):
                 elts.append(namespaces[prefix] + tag)
             else:
                 raise RuntimeError(
-                    'Unknown namespace with prefix %s in XPath: %s' % (prefix, xpath))
+                    'Unknown namespace with prefix {} in XPath: {}'.format(prefix, xpath))
         else:
             elts.append(elt)
     return '/'.join(elts)
@@ -56,7 +56,7 @@ def ns(xpath): return translatePrefixes(xpath, namespaces=NS)
 SCIFLO_SCHEMA_XML = resource_string(__name__, 'sciflo.xsl').decode()
 
 
-class WorkUnitConfig(object):
+class WorkUnitConfig:
     """Class containing work unit configuration."""
 
     def __init__(self, procCount, id, typ, call, args, stageFiles=[],
@@ -116,7 +116,7 @@ class UnresolvedArgumentError(Exception):
     pass
 
 
-class UnresolvedArgument(object):
+class UnresolvedArgument:
     """Class representing an unresolved argument."""
 
     def __init__(self, procId, outputIndex=None):
@@ -157,7 +157,7 @@ class DocumentArgsList(list):
 
     def __init__(self, docStr, *args, **kwargs):
         self.docStr = docStr
-        super(DocumentArgsList, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class ScifloError(Exception):
@@ -165,7 +165,7 @@ class ScifloError(Exception):
     pass
 
 
-class Sciflo(object):
+class Sciflo:
     """Class representing a SciFlo document."""
     # Class attributes
     typeAttribute = 'type'
@@ -247,7 +247,7 @@ class Sciflo(object):
                 o = doc.find(ns('sf:flow/sf:inputs/%s' % k))
                 if o is None:
                     raise ScifloError(
-                        "Unknown global input %s (%s)." % (k, self._inputDict[k]))
+                        "Unknown global input {} ({}).".format(k, self._inputDict[k]))
                 o.text = str(self._inputDict[k])
 
         # Make sure that global output tagnames were not used more than once
@@ -350,7 +350,7 @@ class Sciflo(object):
             if job_queue is None:
                 raise ScifloError(
                     "You must specify 'job_queue' attribute for binding type 'map'.")
-            call = '%s|%s|%s' % (val, job_queue, async_flag)
+            call = '{}|{}|{}'.format(val, job_queue, async_flag)
             return (wuType, endpoint, call)
         # parallel python
         elif typ == 'parallel':
@@ -361,7 +361,7 @@ class Sciflo(object):
             if job_queue is None:
                 raise ScifloError(
                     "You must specify 'job_queue' attribute for binding type 'parallel'.")
-            call = '%s|%s|%s' % (val, job_queue, async_flag)
+            call = '{}|{}|{}'.format(val, job_queue, async_flag)
             return (wuType, endpoint, call)
         # handle python function, soap, binary, script, xquery, and bindings
         else:
@@ -386,7 +386,7 @@ class Sciflo(object):
                 call = method
             else:
                 raise ScifloError(
-                    "Failed to parse %s binding: %s" % (typ, val))
+                    "Failed to parse {} binding: {}".format(typ, val))
         # import and eval python if debugMode
         if self._debugMode:
             sys.path.insert(1, getUserPubPackagesDir())
@@ -395,14 +395,14 @@ class Sciflo(object):
                 try:
                     getFunction(call)
                 except Exception as e:
-                    print(('''Got exception trying to load module in debug mode.  \
-This module may be a staged file or bundle: %s''' % str(e)))
+                    print('''Got exception trying to load module in debug mode.  \
+This module may be a staged file or bundle: %s''' % str(e))
             elif wuType == 'inline python function':
                 try:
                     eval(call)
                 except Exception as e:
                     print(
-                        ('''Got exception trying to eval inline python in debug mode: %s''' % str(e)))
+                        '''Got exception trying to eval inline python in debug mode: %s''' % str(e))
         isBundle(endpoint)
         return (wuType, endpoint, call)
 
@@ -1141,7 +1141,7 @@ This module may be a staged file or bundle: %s''' % str(e)))
                     if resolvingProcOutputIndex is None:
                         resolvingProcOutputIndex = '0'
                     inputsElt[i].set('from', 'process')
-                    inputsElt[i].set('val', '%s:%s' % (
+                    inputsElt[i].set('val', '{}:{}'.format(
                         resolvingProcId, resolvingProcOutputIndex))
                 else:
                     if i in wuConfig.argIdxsResolvedGloballyDict:
@@ -1171,7 +1171,7 @@ This module may be a staged file or bundle: %s''' % str(e)))
             resProcOutputIdx = resProcConfig.getOutputIndex()
             if resProcOutputIdx is None:
                 resProcOutputIdx = '0'
-            outputElt.set('val', '%s:%s' % (resProcId, resProcOutputIdx))
+            outputElt.set('val', '{}:{}'.format(resProcId, resProcOutputIdx))
             globalOutputIdx += 1
 
         self.fullDot = fullDotFlowChartFromDependencies(rtElt)

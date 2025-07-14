@@ -195,13 +195,13 @@ The client only has four useful methods:  ping, get, delete, insert.
         self.soc = self._openLocalSocket(self.port)
         if not self.ping():
             raise PersistentDictClientException(
-                'Error, server for %s on port %s does not return ping' % (dictName, self.port))
+                'Error, server for {} on port {} does not return ping'.format(dictName, self.port))
 
     def close(self):
         self.soc.close()
         if DEBUG:
-            print(('PersistentDictClient: Closed socket connection to dictName, port: %s, %d' % (
-                self.dictName, self.port)))
+            print('PersistentDictClient: Closed socket connection to dictName, port: %s, %d' % (
+                self.dictName, self.port))
 
     def ping(self):
         """Ping server to ensure it's alive."""
@@ -216,7 +216,7 @@ The client only has four useful methods:  ping, get, delete, insert.
         cmd = 'get' + NNL + key + NNL
         try:
             soc.sendall(cmd)
-        except socket.error as msg:
+        except OSError as msg:
             soc.close()
             raise PersistentDictClientException(
                 'Error, cannot send to socket: %s' % cmd)
@@ -227,7 +227,7 @@ The client only has four useful methods:  ping, get, delete, insert.
                 data += soc.recv(self.bufsize)
                 if DEBUG:
                     print(('Got data:', data))
-            except socket.error as msg:
+            except OSError as msg:
                 soc.close()
                 raise PersistentDictClientException(
                     'Error, no data received from socket, sent: %s' % cmd)
@@ -271,10 +271,10 @@ The client only has four useful methods:  ping, get, delete, insert.
             soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             soc.connect(('127.0.0.1', port))
             soc.settimeout(self.timeout)
-        except socket.error as e:
+        except OSError as e:
             soc.close()
             print(
-                ('PersistentDictClient: Error, cannot connect socket to local port: %s' % port))
+                'PersistentDictClient: Error, cannot connect socket to local port: %s' % port)
             raise e
         return soc
 
@@ -285,16 +285,16 @@ The client only has four useful methods:  ping, get, delete, insert.
             cmd += NNL
         try:
             soc.sendall(cmd)
-        except socket.error as msg:
+        except OSError as msg:
             soc.close()
             raise RuntimeError(
                 'PersistentDictClient: Error, cannot send to socket: %s' % cmd)
         try:
             data = soc.recv(self.bufsize)
-        except socket.error as e:
+        except OSError as e:
             soc.close()
             print(
-                ('PersistentDictClient: Error, no data received from socket, sent: %s' % cmd))
+                'PersistentDictClient: Error, no data received from socket, sent: %s' % cmd)
             raise e
         data = data[-len(NNL):]
         if data == OkMsg:
@@ -365,25 +365,25 @@ def startPersistentDictServer():
 
 def testClientSimple():
     dic = PersistentDict("Test")
-    print((dic['foo']))
+    print(dic['foo'])
     del dic['foo']
     dic['you'] = 'tube'
-    print((dic['you']))
+    print(dic['you'])
     del dic
 
 
 def testClient():
     dic = PersistentDict("EventStore")
-    print((len(dic)))
-    print((dic['foo']))
+    print(len(dic))
+    print(dic['foo'])
     dic['foo'] = 'bar'
     dic['bush'] = 'sucks'
     dic['fool'] = 'no money'
-    print((dic['foo']))
+    print(dic['foo'])
     del dic['foo']
     dic['you'] = 'tube'
-    print((dic['you']))
-    print((len(dic)))
+    print(dic['you'])
+    print(len(dic))
 
 
 def main():

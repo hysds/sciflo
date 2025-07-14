@@ -23,14 +23,14 @@ from sciflo.utils import *
 lockFile = os.path.join(tempfile.gettempdir(),
                         'crawler.%s.lck' % getpass.getuser())
 if os.path.exists(lockFile):
-    lockingPid = open(lockFile, 'r').read()
+    lockingPid = open(lockFile).read()
     if os.path.isdir(os.path.join('/proc', lockingPid)) and lockingPid != '':
-        print(("%s: Process %s already running." %
-               (DT.utcfromtimestamp(time.time()).isoformat(), lockingPid)))
+        print("%s: Process %s already running." %
+               (DT.utcfromtimestamp(time.time()).isoformat(), lockingPid))
         sys.exit(0)
     else:
-        print(("%s: Zombie process?  Removed lock with pid %s." %
-               (DT.utcfromtimestamp(time.time()).isoformat(), lockingPid)))
+        print("%s: Zombie process?  Removed lock with pid %s." %
+               (DT.utcfromtimestamp(time.time()).isoformat(), lockingPid))
         os.unlink(lockFile)
 
 # create lock file
@@ -48,9 +48,9 @@ if dbUser in [None, 'None', '']:
     schema = 'mysql://127.0.0.1:%s/urlCatalog' % dbPort
 else:
     if dbPassword in [None, 'None', '']:
-        schema = 'mysql://%s@127.0.0.1:%s/urlCatalog' % (dbUser, dbPort)
+        schema = 'mysql://{}@127.0.0.1:{}/urlCatalog'.format(dbUser, dbPort)
     else:
-        schema = 'mysql://%s:%s@127.0.0.1:%s/urlCatalog' % (
+        schema = 'mysql://{}:{}@127.0.0.1:{}/urlCatalog'.format(
             dbUser, dbPassword, dbPort)
 crawlerConfigDir = os.path.join(sys.prefix, 'etc', 'crawler')
 
@@ -75,5 +75,5 @@ for xmlConfigFile in xmlConfigFiles:
 
 # remove lock file
 os.unlink(lockFile)
-print(("%s: Script finished.  Removed lock with pid %s." %
-       (DT.utcfromtimestamp(time.time()).isoformat(), currentPid)))
+print("%s: Script finished.  Removed lock with pid %s." %
+       (DT.utcfromtimestamp(time.time()).isoformat(), currentPid))

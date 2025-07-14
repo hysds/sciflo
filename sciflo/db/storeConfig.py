@@ -17,7 +17,7 @@ class StoreConfigError(Exception):
     pass
 
 
-class StoreConfig(object):
+class StoreConfig:
     """Class representing the configuration for a Store object."""
 
     def __init__(self, storeType, storeName, storeFieldsList, *args, **kargs):

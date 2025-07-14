@@ -75,7 +75,7 @@ def getXmlEtree(xml):
     else:
         protocol, netloc, path, params, query, frag = urlparse(xml)
         if protocol == '':
-            xml = "file://{}".format(xml)
+            xml = f"file://{xml}"
         xmlStr = urlopen(xml).read().decode('utf-8')
         return (lxml.etree.parse(StringIO(xmlStr), parser).getroot(), getNamespacePrefixDict(xmlStr))
 
@@ -137,12 +137,12 @@ def runXpath(xml, xpathStr, nsDict={}):
                     pass
                 else:
                     raise RuntimeError(
-                        "Error in xpath expression %s: %s" % (xpathStr, e.error_log))
+                        "Error in xpath expression {}: {}".format(xpathStr, e.error_log))
             try:
                 res = root.xpath(xpathStr, namespaces=nsDict)
             except lxml.etree.XPathSyntaxError as e:
                 raise RuntimeError(
-                    "Error in xpath expression %s: %s" % (xpathStr, e.error_log))
+                    "Error in xpath expression {}: {}".format(xpathStr, e.error_log))
             except:
                 gotException = True
                 res = []
@@ -153,7 +153,7 @@ def runXpath(xml, xpathStr, nsDict={}):
                 res = root.xpath(xpathStr, namespaces=nsDict)
             except lxml.etree.XPathSyntaxError as e:
                 raise RuntimeError(
-                    "Error in xpath expression %s: %s" % (xpathStr, e.error_log))
+                    "Error in xpath expression {}: {}".format(xpathStr, e.error_log))
             except:
                 raise
     if isinstance(res, (list, tuple)):
@@ -776,7 +776,7 @@ class ScifloConfigParserError(Exception):
     pass
 
 
-class ScifloConfigParser(object):
+class ScifloConfigParser:
     """Class that parses the sciflo configuration xml file and provides
     parameter values.
     """
@@ -801,7 +801,7 @@ class ScifloConfigParser(object):
     def getParameter(self, param):
         """Return the parameter value.  Returns None if not specified."""
 
-        param2Get = ".//{%s}%s" % (SCIFLO_NAMESPACE, param)
+        param2Get = ".//{{{}}}{}".format(SCIFLO_NAMESPACE, param)
         result = self._xmlDoc.find(param2Get)
         if result in [None, 'None', ''] or result.text in [None, 'None', '']:
             return None
@@ -949,7 +949,7 @@ def getTypedValue(typ, val):
     # For now we'll leave it up to the endpoint (soap service,
     # function, etc.) to handle type conversion.
     ##########################################################
-    '''
+    r'''
     #return typed val
     #if date
     if xsdType == 'date':

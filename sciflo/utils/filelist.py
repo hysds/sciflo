@@ -27,7 +27,7 @@ import sys
 from . import dataenc
 from ftplib import FTP
 from fnmatch import fnmatchcase
-USAGE = """
+USAGE = r"""
 filelist.py [--help] [--bottomUp] [--directory] [--delete]
             [--fetchDir <outputDir>] [--fetchWitSubDirs]
             [--list] [--matchUrl] --quiet] [--regex '.*\.[cC]']
@@ -361,7 +361,7 @@ class FileInfo:
         self.protectMode = protectMode
 
 
-class UserCredential(object):
+class UserCredential:
     """Container for user credential info. like username, password, certificate, etc.
     """
 
@@ -552,7 +552,7 @@ class FtpDirectoryWalker(DirectoryWalker):
         return (dirs, files, infos)
 
 
-class DirListingParser(object):
+class DirListingParser:
     """Base class for directory listing parsers."""
 
     def __init__(self, regex):
@@ -685,7 +685,7 @@ class HttpDirectoryWalker(DirectoryWalker):
                     response = self.opener.open(url)
                 else:
                     response = urllib.request.urlopen(url)
-            except IOError as e:
+            except OSError as e:
                 if hasattr(e, 'reason'):
                     warn(
                         'HttpDirectoryWalker: Error, failed to reach server because: %s' % e.reason)
@@ -711,11 +711,11 @@ class HttpDirectoryWalker(DirectoryWalker):
         if path:
             match = HttpDirectoryWalker.reDirPath.search(dir)
             if not match:
-                die('HttpDirectoryWalker: Cannot find directory name %s in HTML listing:\n%s' % (
+                die('HttpDirectoryWalker: Cannot find directory name {} in HTML listing:\n{}'.format(
                     path, dir))
             dirName = match.group(1)
             if dirName not in path:
-                warn('HttpDirectoryWalker: Directory name %s in HTML listing does not agree with path %s:\n%s' % (
+                warn('HttpDirectoryWalker: Directory name {} in HTML listing does not agree with path {}:\n{}'.format(
                     dirName, path, dir))
 
         # Try to find directory lines that contain file info
@@ -856,7 +856,7 @@ def main():
                                     'url', 'verbose', 'wildcard=', 'xml'])
     except getopt.GetoptError as xxx_todo_changeme:
         (msg, bad_opt) = xxx_todo_changeme.args
-        die("%s error: Bad option: %s, %s" % (argv[0], bad_opt, msg))
+        die("{} error: Bad option: {}, {}".format(argv[0], bad_opt, msg))
 
     regSpecs = []
     wildCards = []

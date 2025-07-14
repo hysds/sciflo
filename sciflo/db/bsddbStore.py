@@ -32,7 +32,7 @@ class BsddbStore(Store):
         """Constructor."""
 
         # call super()
-        super(BsddbStore, self).__init__(name, fieldsList)
+        super().__init__(name, fieldsList)
 
         # set db attributes
         self._dbHome = dbHome

@@ -159,7 +159,7 @@ class XmlDb:
         if namespaces is not None:
             for prefix, uri in namespaces.items():
                 if self.verbose:
-                    warn('xmldb: setNamespace %s: %s' % (prefix, uri))
+                    warn('xmldb: setNamespace {}: {}'.format(prefix, uri))
                 queryContext.setNamespace(prefix, uri)
         self.queryContext = queryContext
         return self
@@ -260,7 +260,7 @@ def xquerySingleDoc(doc, query, namespaces={}, verbose=False):
     namespaces.update(extractNamespaces(doc))
     for prefix, uri in namespaces.items():
         if verbose:
-            warn('xmldb: setNamespace %s: %s' % (prefix, uri))
+            warn('xmldb: setNamespace {}: {}'.format(prefix, uri))
         queryContext.setNamespace(prefix, uri)
 
     queryProlog = 'declare namespace my = "http://fubar.net/my";\n'
@@ -332,8 +332,8 @@ def extractNamespaces3(doc):
         else:
             return '_default'
 
-    return dict([(getPrefix(attrib), ns) for attrib, ns in elt.attrib.items()
-                 if attrib.startswith('xmlns') for elt in XML(doc).getiterator()])
+    return {getPrefix(attrib): ns for attrib, ns in elt.attrib.items()
+                 if attrib.startswith('xmlns') for elt in XML(doc).getiterator()}
 
 
 # Utilities follow.
@@ -358,7 +358,7 @@ if __name__ == "__main__":
                                    ['help', 'namespace', 'prefix', 'query', 'queryUrl', 'verbose'])
     except getopt.GetoptError as xxx_todo_changeme:
         (msg, bad_opt) = xxx_todo_changeme.args
-        die("%s error: Bad option: %s, %s" % (argv[0], bad_opt, msg))
+        die("{} error: Bad option: {}, {}".format(argv[0], bad_opt, msg))
 
     query = None
     queryUrl = None

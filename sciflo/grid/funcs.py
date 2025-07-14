@@ -179,7 +179,7 @@ def workUnitWorker(wu, cacheName, timeout):
                 pdict = PersistentDict(cacheName, pickleVals=True)
             except Exception as e:
                 WORKER_LOGGER.debug("Caught exception trying to create pdict \
-for '%s': %s\n%s" % (procId, str(e), getTb()), extra={'id': wuid})
+for '{}': {}\n{}".format(procId, str(e), getTb()), extra={'id': wuid})
                 pdict = None
 
         # if cache was not found or if it was and there was no cached value,
@@ -188,8 +188,8 @@ for '%s': %s\n%s" % (procId, str(e), getTb()), extra={'id': wuid})
             try:
                 jsonFile = pdict[hex]
             except Exception as e:
-                WORKER_LOGGER.debug("Caught exception for '%s' trying to query \
-pdict with key '%s': %s\n%s" % (procId, hex, str(e), getTb()),
+                WORKER_LOGGER.debug("Caught exception for '{}' trying to query \
+pdict with key '{}': {}\n{}".format(procId, hex, str(e), getTb()),
                     extra={'id': wuid})
                 jsonFile = None
             if jsonFile is not None and os.path.exists(jsonFile):
@@ -199,8 +199,8 @@ pdict with key '%s': %s\n%s" % (procId, hex, str(e), getTb()),
             else:
                 info = None
             if info is not None and info['status'] == doneStatus:
-                WORKER_LOGGER.debug("Returning cached results for '%s' under \
-key '%s'." % (procId, hex), extra={'id': wuid})
+                WORKER_LOGGER.debug("Returning cached results for '{}' under \
+key '{}'.".format(procId, hex), extra={'id': wuid})
                 if not os.path.exists(wu._logFile):
                     with open(wu._logFile, 'w') as logFh:
                         logFh.write("This work unit's result was retrieved from a \
@@ -251,7 +251,7 @@ previously cached execution: %s" % info['executionLog'])
         gotError = False
     except Empty as e:
         res = (ExecuteWorkUnitTimeoutError("Got timeout error executing work \
-unit %s: %s" % (procId, e)), None)
+unit {}: {}".format(procId, e)), None)
     except Exception as e:
         res = (e, getTb())
     WORKER_LOGGER.debug("Finished waiting on process for '%s'." % procId,

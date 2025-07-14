@@ -48,6 +48,7 @@ class ExecutorTestCase(unittest.TestCase):
         # run
         return sciflo.grid.executor.runSciflo(sfl, {}, timeout=None,
                                               outputDir=self.outputDir,
+                                              workers=2,
                                               configDict={'isLocal': True})
 
     def testAll(self):

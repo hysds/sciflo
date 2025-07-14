@@ -85,7 +85,7 @@ immediately synched to disk.
     def insert(key, data):
         if key in self.dic:
             raise RuntimeError(
-                'Persistent dict %s already has key: %s' % (self.path, key))
+                'Persistent dict {} already has key: {}'.format(self.path, key))
         if self.lock():
             self.dic.close()
             dic = shelve.open(self.path, flag='r', writeback=False, *options)
@@ -98,7 +98,7 @@ immediately synched to disk.
     def delete(key):
         if key not in self.dic:
             raise RuntimeError(
-                'Persistent dict %s: attempt to delte missing key: %s' % (self.path, key))
+                'Persistent dict {}: attempt to delte missing key: {}'.format(self.path, key))
         if self.lock():
             del self.dic[key]
             self.dic.close()
@@ -114,7 +114,7 @@ immediately synched to disk.
                 return True
             except:
                 os.sleep(1)
-        raise RuntimeError('Cannot acquire lock %s to update persistent dict %s' % (
+        raise RuntimeError('Cannot acquire lock {} to update persistent dict {}'.format(
             self.lockFile, self.path))
 
     def unlock():

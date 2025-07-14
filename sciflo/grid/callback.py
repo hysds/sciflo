@@ -32,7 +32,7 @@ def getCallback(config):
     print "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
     '''
     if not isinstance(config, tuple) and not isinstance(config, list):
-        raise RuntimeError("Argument must be a tuple, list, or ArrayType.  Got %s %s." % (
+        raise RuntimeError("Argument must be a tuple, list, or ArrayType.  Got {} {}.".format(
             type(config), config))
 
     # get type
@@ -56,7 +56,7 @@ def getCallback(config):
     return callbackObj
 
 
-class ScifloCallback(object):
+class ScifloCallback:
     """Base class for ScifloCallback classes."""
 
     def __init__(self, args=[]):
@@ -85,7 +85,7 @@ class FunctionCallback(ScifloCallback):
         """Constructor."""
 
         # call super
-        super(FunctionCallback, self).__init__(args)
+        super().__init__(args)
 
         # arg is function call
         if len(self._args) == 1:

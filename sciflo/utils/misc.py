@@ -144,7 +144,7 @@ def getHostIp(host=None):
             host = socket.gethostname()
         return socket.gethostbyname(host)
     except Exception as e:
-        print(("Got exception resolving ip address for host %s: %s" % (host, e)))
+        print("Got exception resolving ip address for host {}: {}".format(host, e))
         return ''
 
 
@@ -296,7 +296,7 @@ in your sciflo configuration." % loc)
 
                 else:
                     print(
-                        ("Package %s already installed and is the latest version." % packageDir))
+                        "Package %s already installed and is the latest version." % packageDir)
         finally:
             if dir:
                 os.chdir(curDir)
@@ -352,8 +352,8 @@ in your sciflo configuration." % loc)
                 # localize
                 dest = sciflo.data.localize.localizeUrl(item, destDir)
             except Exception as e:
-                print(("Got exception trying to retrieve url %s to %s: %s" %
-                       (item, destDir, e)))
+                print("Got exception trying to retrieve url %s to %s: %s" %
+                       (item, destDir, e))
                 continue
         else:
             dest = os.path.join(destDir, os.path.basename(item))
@@ -387,7 +387,7 @@ def resolvePath(file, pathEnviron):
 
     # if nothing came up, raise error
     raise RuntimeError(
-        "Couldn't resolve file %s to a path using %s." % (file, pathEnviron))
+        "Couldn't resolve file {} to a path using {}.".format(file, pathEnviron))
 
 
 def pidIsRunning(pid):
@@ -430,7 +430,7 @@ class UrlBaseTrackerError(Exception):
     pass
 
 
-class UrlBaseTracker(object):
+class UrlBaseTracker:
     """Class that encapsulates the mapping between local dir/files under a
     server root directory and the url of those dir/files."""
 
@@ -455,7 +455,7 @@ class UrlBaseTracker(object):
         # make sure path starts with rootDir
         if not absPath.startswith(self._rootDir):
             if returnFileUrl:
-                return 'file://%s%s' % (socket.getfqdn(), absPath)
+                return 'file://{}{}'.format(socket.getfqdn(), absPath)
             else:
                 return absPath
 
@@ -474,12 +474,12 @@ class UrlBaseTracker(object):
             alreadyLocal = False
         retUrl = url.replace(self._urlBase, self._rootDir)
         if returnFileUrl:
-            return 'file://%s%s' % (socket.getfqdn(), retUrl)
+            return 'file://{}{}'.format(socket.getfqdn(), retUrl)
         else:
             return retUrl
 
 
-class LocalizingFunctionWrapper(object):
+class LocalizingFunctionWrapper:
     """Function wrapper class."""
 
     def __init__(self, func):
@@ -511,7 +511,7 @@ def runCommandLine(cmd):
         if re.search(r'No child processes', str(e), re.IGNORECASE):
             retcode = 0
         else:
-            raise RuntimeError("Execution failed for %s: %s" % (cmd, str(e)))
+            raise RuntimeError("Execution failed for {}: {}".format(cmd, str(e)))
     if retcode < 0:
         raise RuntimeError(
             "Execution failed for %s: Child was terminated by signal %d" % (cmd, -retcode))
@@ -543,15 +543,15 @@ def convertImage(inputFile, outputFile, format=None, convert=None,
                 im.save(*(outputFile, format), **options)
             else:
                 im.save(*(outputFile,), **options)
-    except IOError:
+    except OSError:
         #print >>sys.stderr, "Error using PIL to convert image: %s" % traceback.format_exc()
         #print >>sys.stderr, "Trying convert."
         # try using convert
         if rotate:
-            cmd = "convert -rotate %s -crop 0x0 -size 1280x1024 %s %s" % (
+            cmd = "convert -rotate {} -crop 0x0 -size 1280x1024 {} {}".format(
                 abs(rotate), inputFile, outputFile)
         else:
-            cmd = "convert -crop 0x0 -size 1280x1024 %s %s" % (
+            cmd = "convert -crop 0x0 -size 1280x1024 {} {}".format(
                 inputFile, outputFile)
         runCommandLine(cmd)
     return True
@@ -591,7 +591,7 @@ def getFlashMovie(imageFiles, outputFile=None):
         pngFiles.append(pngFile)
     movieFile = outputFile + '.tmp1.swf'
     output = runCommandLine(
-        'png2swf -o %s -X 700 -Y 500 -j 100 %s' % (movieFile, ' '.join(pngFiles)))
+        'png2swf -o {} -X 700 -Y 500 -j 100 {}'.format(movieFile, ' '.join(pngFiles)))
     movieFile2 = outputFile + '.tmp2.swf'
     output = runCommandLine('swfcombine -o %s -X 700 -Y 500 %s viewport=%s' %
                             (movieFile2, os.path.join(sys.prefix, 'share', 'swftools', 'swfs',
@@ -992,7 +992,7 @@ def getUserScifloConfig(userConfigFile=None, globalConfigFile=None):
     # write config file if it doesn't exist, otherwise check if it needs to be updated
     configStr_from_file = None
     if os.path.exists(userScifloConfigFile):
-        with open(userScifloConfigFile, 'r') as f:
+        with open(userScifloConfigFile) as f:
             configStr_from_file = f.read()
     if configStr_from_file is None or configStr_from_file != configStr:
         with open(userScifloConfigFile, 'w') as f:
@@ -1204,7 +1204,7 @@ def runDot(dot, outputFile=None, outputType=None):
     try:
         dotFile, headers = urlllib.urlretrieve(dot)
     except:
-        if re.search('}\s*$', dot):
+        if re.search(r'}\s*$', dot):
             tmpFlag = True
             dotFile = getTempfileName(suffix='.dot')
             with open(dotFile, 'w') as f:
@@ -1217,7 +1217,7 @@ def runDot(dot, outputFile=None, outputType=None):
             outputType = ext
         else:
             raise RuntimeError("Unknown extension %s." % ext)
-    runCommandLine("dot -T%s -o %s %s" % (ext, outputFile, dotFile))
+    runCommandLine("dot -T{} -o {} {}".format(ext, outputFile, dotFile))
     if headers:
         urllib.request.urlcleanup()
     try:

@@ -278,9 +278,9 @@ class xmlUtilsTestCase(unittest.TestCase):
         """Test XSLT transformation using xml string and xsl string."""
 
         # get strings
-        with open(xmlFile, 'r') as f:
+        with open(xmlFile) as f:
             xmlString = f.read()
-        with open(xslFile, 'r') as f:
+        with open(xslFile) as f:
             xslString = f.read()
 
         # get transformed xml
@@ -293,7 +293,7 @@ class xmlUtilsTestCase(unittest.TestCase):
         """Test XSLT transformation using xml string and xsl file."""
 
         # get strings
-        with open(xmlFile, 'r') as f:
+        with open(xmlFile) as f:
             xmlString = f.read()
 
         # get transformed xml
@@ -306,7 +306,7 @@ class xmlUtilsTestCase(unittest.TestCase):
         """Test XSLT transformation using xml file and xsl string."""
 
         # get strings
-        with open(xslFile, 'r') as f:
+        with open(xslFile) as f:
             xslString = f.read()
 
         # get transformed xml

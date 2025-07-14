@@ -1,4 +1,3 @@
-
 import sys
 import os
 from bsddb import dbshelve

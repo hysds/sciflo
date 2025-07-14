@@ -41,10 +41,10 @@ def run_query(url, idx, query, doc_type=None):
     else:
         query_url = "{}/{}/{}/_search?search_type=scan&scroll=60&size=100".format(
             url, idx, doc_type)
-    logger.info("url: {}".format(url))
-    logger.info("idx: {}".format(idx))
-    logger.info("doc_type: {}".format(doc_type))
-    logger.info("query: {}".format(json.dumps(query, indent=2)))
+    logger.info(f"url: {url}")
+    logger.info(f"idx: {idx}")
+    logger.info(f"doc_type: {doc_type}")
+    logger.info(f"query: {json.dumps(query, indent=2)}")
     r = requests.post(query_url, data=json.dumps(query))
     r.raise_for_status()
     scan_result = r.json()
@@ -76,13 +76,13 @@ def job_done(url, idx, task_id, doc_type=None):
         },
         "fields": [ "status" ],
     }
-    logger.info("query_status: {}".format(json.dumps(query_status, indent=2)))
+    logger.info(f"query_status: {json.dumps(query_status, indent=2)}")
     res = run_query(url, idx, query_status)
-    logger.info("got res: {}".format(json.dumps(res, indent=2)))
+    logger.info(f"got res: {json.dumps(res, indent=2)}")
     status = res[0]['fields']['status'][0]
-    logger.info("got status: {}".format(json.dumps(status, indent=2)))
+    logger.info(f"got status: {json.dumps(status, indent=2)}")
     if status == 'job-started':
-        raise RuntimeError("Job with task ID {} still in 'job-started' state.".format(task_id))
+        raise RuntimeError(f"Job with task ID {task_id} still in 'job-started' state.")
     return True
 
 
@@ -100,13 +100,13 @@ def create_job(arg, job_queue, wuid=None, job_num=None):
         "dt": datetime.utcnow().isoformat(),
     }
     job = resolve_hysds_job(job_type, job_queue, priority=0, params=params,
-                            job_name="%s-%s" % (job_type, params['dt']),
+                            job_name="{}-{}".format(job_type, params['dt']),
                             payload_hash=get_payload_hash(params))
 
     # add workflow info
     job['payload']['_sciflo_wuid'] = wuid
     job['payload']['_sciflo_job_num'] = job_num
-    logger.info("job: {}".format(json.dumps(job, indent=2)))
+    logger.info(f"job: {json.dumps(job, indent=2)}")
 
     return job
 
@@ -125,13 +125,13 @@ def create_merge_job(arg1, arg2, job_queue, wuid=None, job_num=None):
         "dt": datetime.utcnow().isoformat(),
     }
     job = resolve_hysds_job(job_type, job_queue, priority=0, params=params,
-                            job_name="%s-%s" % (job_type, params['dt']),
+                            job_name="{}-{}".format(job_type, params['dt']),
                             payload_hash=get_payload_hash(params))
 
     # add workflow info
     job['payload']['_sciflo_wuid'] = wuid
     job['payload']['_sciflo_job_num'] = job_num
-    logger.info("job: {}".format(json.dumps(job, indent=2)))
+    logger.info(f"job: {json.dumps(job, indent=2)}")
 
     return job
 
@@ -139,7 +139,7 @@ def create_merge_job(arg1, arg2, job_queue, wuid=None, job_num=None):
 def get_result(result):
     """Evaluator function for processing a job result."""
 
-    logger.info("got result: {}".format(json.dumps(result, indent=2)))
+    logger.info(f"got result: {json.dumps(result, indent=2)}")
     task_id = result[0]
     done = job_done(app.conf['JOBS_ES_URL'], 'job_status-current', task_id)
     query = {
@@ -150,9 +150,9 @@ def get_result(result):
         }
     }
     jobs = run_query(app.conf['JOBS_ES_URL'], 'job_status-current', query)
-    logger.info("got job: {}".format(json.dumps(jobs[0], indent=2)))
+    logger.info(f"got job: {json.dumps(jobs[0], indent=2)}")
     dataset_id = jobs[0]['_source']['job']['job_info']['metrics']['products_staged'][0]['id']
-    logger.info("got dataset_id: {}".format(dataset_id))
+    logger.info(f"got dataset_id: {dataset_id}")
     return dataset_id
 
 

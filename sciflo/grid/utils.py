@@ -174,7 +174,7 @@ def updatePdict(pdict, k, v):
         if pdict is not None:
             pdict[k] = v
     except Exception as e:
-        print(("Got exception trying to update pdict key '%s': %s" % (k, str(e))))
+        print("Got exception trying to update pdict key '{}': {}".format(k, str(e)))
 
 
 def runFuncWithRetriesAndSleep(retries, sleep, f, *args, **kargs):
@@ -185,8 +185,8 @@ def runFuncWithRetriesAndSleep(retries, sleep, f, *args, **kargs):
         try:
             return f(*args, **kargs)
         except Exception as e:
-            print(("Got error in runFuncWithRetriesAndSleep() on try %i for \
-function '%s': %s\n%s" % (i + 1, str(f), str(e), getTb())))
+            print("Got error in runFuncWithRetriesAndSleep() on try %i for \
+function '%s': %s\n%s" % (i + 1, str(f), str(e), getTb()))
         time.sleep(sleep)
     raise e
 
@@ -206,8 +206,8 @@ def runLockedFunction(mutex, f, *args, **kargs):
     except Exception as e:
         gotError = True
         res = e
-        print(("Got error in runLockedFunction() for function '%s': %s\n%s" %
-               (str(f), str(e), getTb())))
+        print("Got error in runLockedFunction() for function '%s': %s\n%s" %
+               (str(f), str(e), getTb()))
     finally:
         runFuncWithRetriesAndSleep(3, 1, mutex.release)
     if gotError:
@@ -275,7 +275,7 @@ def getArgsString(args):
         keys = list(args.keys())
         keys.sort()
         for key in keys:
-            retString += "%s|%s" % (key, getArgsString(args[key]))
+            retString += "{}|{}".format(key, getArgsString(args[key]))
         return retString
     else:
         return str(args)
@@ -297,7 +297,7 @@ def generateWorkUnitHexDigest(owner, type, call, args, stageFiles, postExecIds):
     """Return a md5 hex digest of the objects passed in."""
 
     # get md5 hex digest
-    return hashlib.md5("%s %s %s %s %s %s" % (owner, type, call, getArgsString(args),
+    return hashlib.md5("{} {} {} {} {} {}".format(owner, type, call, getArgsString(args),
                                               getStageFilesString(
                                                   getListFromUnknownObject(stageFiles)),
                                               getArgsString(postExecIds))).hexdigest()
@@ -393,7 +393,7 @@ class StdIOFaker(StringIO):
         return StringIO.write(self, strToWrite)
 
 
-class Tee(object):
+class Tee:
     def __init__(self, stream, *args, **kargs):
         self.stream = stream
         self.file = open(*args, **kargs)
@@ -577,7 +577,7 @@ def fullDotFlowChartFromDependencies(dotInfoElt):
         resOutputId = dotInfoElt.xpath('./processes/process[@id="%s"]/outputs/output' %
                                        resProcId)[resOutputIdx].get('id')
         process2GlobalOutputEdgesList.append(
-            '  %s:%s:e -> %s:w ;' % (resProcId, resOutputId, goElt.get('id')))
+            '  {}:{}:e -> {}:w ;'.format(resProcId, resOutputId, goElt.get('id')))
     globalOutputs = '\n'.join(globalOutputsList)
 
     # get edges

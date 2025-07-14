@@ -1,4 +1,3 @@
-
 import sys
 import os
 from bsddb import dbshelve
@@ -17,7 +16,7 @@ def test(filename):
         key = abc+'%4.4d' % i
 #        print key
         db[key] = val1
-    print((clock() - t0))
+    print(clock() - t0)
 
     t0 = clock()
     for i in range(10000):
@@ -26,7 +25,7 @@ def test(filename):
         tmp = db[key]
         db[key] = val2
         tmp = db[key]
-    print((clock() - t0))
+    print(clock() - t0)
 
     t0 = clock()
     for i in range(10000):
@@ -39,7 +38,7 @@ def test(filename):
 #            db.sync()
         except:
             pass
-    print((clock() - t0))
+    print(clock() - t0)
 
 #    db.close()
 
