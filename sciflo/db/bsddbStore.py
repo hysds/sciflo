@@ -13,7 +13,10 @@ import types
 import re
 import time
 import pickle
-from bsddb3 import db
+try:
+    from bsddb3 import db
+except ImportError:
+    db = None  # BsddbStore will fail if instantiated
 
 from .store import *
 from . import dbtablesCDB

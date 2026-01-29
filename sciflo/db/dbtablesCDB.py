@@ -15,8 +15,11 @@
 # This provides a simple database table interface built on top of
 # the Python BerkeleyDB 3 interface.
 #
-from bsddb3.dbutils import *
-from bsddb3.db import *
+try:
+    from bsddb3.dbutils import *
+    from bsddb3.db import *
+except ImportError:
+    pass  # dbtablesCDB will fail if used
 import time
 import traceback
 import pickle as pickle
