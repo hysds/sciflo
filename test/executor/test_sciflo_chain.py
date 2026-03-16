@@ -32,18 +32,15 @@ BACKOFF_MAX_TRIES = 10
                       Exception,
                       max_tries=BACKOFF_MAX_TRIES,
                       max_value=BACKOFF_MAX_VALUE)
-def run_query(url, idx, query, doc_type=None):
-    """Query ES index."""
+def run_query(url, idx, query):
+    """Query OpenSearch index.
+    Note: doc_type parameter removed in OpenSearch 3.0.
+    search_type=scan is also deprecated; using scroll API directly.
+    """
 
-    if doc_type is None:
-        query_url = "{}/{}/_search?search_type=scan&scroll=60&size=100".format(
-            url, idx)
-    else:
-        query_url = "{}/{}/{}/_search?search_type=scan&scroll=60&size=100".format(
-            url, idx, doc_type)
+    query_url = "{}{}/_search?scroll=60s&size=100".format(url, idx)
     logger.info(f"url: {url}")
     logger.info(f"idx: {idx}")
-    logger.info(f"doc_type: {doc_type}")
     logger.info(f"query: {json.dumps(query, indent=2)}")
     r = requests.post(query_url, data=json.dumps(query))
     r.raise_for_status()
@@ -65,8 +62,8 @@ def run_query(url, idx, query, doc_type=None):
                       Exception,
                       max_tries=BACKOFF_MAX_TRIES,
                       max_value=BACKOFF_MAX_VALUE)
-def job_done(url, idx, task_id, doc_type=None):
-    """Return True when job has transitioned away from "job-started"."""
+def job_done(url, idx, task_id):
+    """Return True when job has transitioned away from 'job-started'."""
 
     query_status = {
         "query": {
