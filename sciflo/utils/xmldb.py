@@ -20,9 +20,15 @@ from lxml.etree import XML
 from urllib.request import urlopen
 from datetime import datetime
 from io import StringIO
-from dbxml import XmlManager, XmlValue
-import dbxml
-from bsddb3 import *
+try:
+    from dbxml import XmlManager, XmlValue
+    import dbxml
+    from bsddb3 import *
+except ImportError:
+    # dbxml/bsddb3 not available - XqueryWorkUnit will fail if used
+    XmlManager = None
+    XmlValue = None
+    dbxml = None
 USAGE = """
 xmldb.py [-q <xquery>] [-u <xqueryUrl>] xmlDocUrls . . . [< <xmlDoc>] [> <queryResults>]
 

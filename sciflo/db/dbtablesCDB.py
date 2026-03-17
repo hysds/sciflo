@@ -15,8 +15,18 @@
 # This provides a simple database table interface built on top of
 # the Python BerkeleyDB 3 interface.
 #
-from bsddb3.dbutils import *
-from bsddb3.db import *
+try:
+    from bsddb3.dbutils import *
+    from bsddb3.db import *
+    BSDDB3_AVAILABLE = True
+except ImportError:
+    # Provide dummy constants so class definitions don't fail
+    # Classes will fail at instantiation if actually used
+    BSDDB3_AVAILABLE = False
+    DB_THREAD = 0
+    DB_INIT_CDB = 0
+    DB_INIT_MPOOL = 0
+    DB_BTREE = 0
 import time
 import traceback
 import pickle as pickle
@@ -161,6 +171,8 @@ class bsdTableDB:
         Open database name in the dbhome BerkeleyDB directory.
         Use keyword arguments when calling this constructor.
         """
+        if not BSDDB3_AVAILABLE:
+            raise ImportError("bsddb3 is not available. This functionality requires bsddb3 to be installed.")
 
         '''
         self.db = None
