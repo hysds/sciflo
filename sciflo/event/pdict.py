@@ -17,7 +17,10 @@ from twisted.python import log
 import os
 import sys
 import socket
-from bsddb3 import dbshelve
+try:
+    from bsddb3 import dbshelve
+except ImportError:
+    dbshelve = None  # Will fail at runtime if PersistentDict is instantiated
 import pickle as pickle
 try:
     from UserDict import DictMixin

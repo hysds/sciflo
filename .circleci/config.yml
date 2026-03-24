@@ -14,7 +14,9 @@ jobs:
           command: |
             source $HOME/verdi/bin/activate
             pip install jinjanator
+            pip install pytest
             jinjanate --undefined $HOME/verdi/ops/hysds/configs/celery/celeryconfig.py.tmpl -o $HOME/verdi/ops/hysds/celeryconfig.py
+            export PYTHONPATH=$HOME/verdi/ops/hysds:$PYTHONPATH
             pytest -s $(find test -name "*Test.py")
           environment:
             MOZART_ES_PVT_IP: 127.0.0.1
