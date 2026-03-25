@@ -19,7 +19,7 @@ import urllib.error
 from urllib.parse import urlparse
 import sys
 import lxml.etree
-from pkg_resources import resource_string
+from importlib.resources import files
 
 from sciflo.utils import (validateXml, getXmlEtree, SCIFLO_NAMESPACE,
                           XSD_NAMESPACE, PY_NAMESPACE, parseTag, isBundle, parseElement, getTypedValue,
@@ -53,7 +53,7 @@ def ns(xpath): return translatePrefixes(xpath, namespaces=NS)
 
 
 # sciflo schema xml
-SCIFLO_SCHEMA_XML = resource_string(__name__, 'sciflo.xsl').decode()
+SCIFLO_SCHEMA_XML = files('sciflo.grid').joinpath('sciflo.xsl').read_text()
 
 
 class WorkUnitConfig:
