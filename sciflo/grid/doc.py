@@ -52,8 +52,24 @@ def translatePrefixes(xpath, namespaces):
 def ns(xpath): return translatePrefixes(xpath, namespaces=NS)
 
 
-# sciflo schema xml
-SCIFLO_SCHEMA_XML = files('sciflo.grid').joinpath('sciflo.xsl').read_text()
+# sciflo schema xml - try multiple approaches for backward compatibility
+try:
+    # Modern approach using importlib.resources (Python 3.9+)
+    SCIFLO_SCHEMA_XML = files('sciflo.grid').joinpath('sciflo.xsl').read_text()
+except (FileNotFoundError, TypeError, AttributeError):
+    # Fallback: try loading from file system relative to this module
+    try:
+        schema_path = os.path.join(os.path.dirname(__file__), 'sciflo.xsl')
+        with open(schema_path, 'r') as f:
+            SCIFLO_SCHEMA_XML = f.read()
+    except FileNotFoundError:
+        # Last resort: try pkg_resources for older installations
+        try:
+            from pkg_resources import resource_string
+            SCIFLO_SCHEMA_XML = resource_string(__name__, 'sciflo.xsl').decode()
+        except (ImportError, FileNotFoundError):
+            # If all else fails, set to None and let runtime handle it
+            SCIFLO_SCHEMA_XML = None
 
 
 class WorkUnitConfig:
