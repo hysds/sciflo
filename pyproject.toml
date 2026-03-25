@@ -28,7 +28,7 @@ classifiers = [
 
 dependencies = [
     # HySDS sibling packages (undeclared in original setup.py - now added)
-    "hysds-commons~=7.0",
+    "hysds-commons>=7.0,<8.0",
     
     # Core dependencies - matching original setup.py order and pins exactly
     "twisted>=18.9.0",
