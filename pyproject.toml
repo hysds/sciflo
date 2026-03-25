@@ -27,9 +27,6 @@ classifiers = [
 ]
 
 dependencies = [
-    # HySDS sibling packages (undeclared in original setup.py - now added)
-    "hysds-commons>=7.0,<8.0",
-    
     # Core dependencies - matching original setup.py order and pins exactly
     "twisted>=18.9.0",
     "pillow>=5.4.1",
@@ -37,6 +34,14 @@ dependencies = [
     "sqlobject>=3.7.1",
     "service_identity>=18.1.0",
     "python-magic>=0.4.15",
+]
+
+[project.optional-dependencies]
+test = [
+    "hysds-commons>=7.0,<8.0",
+    "hysds-core>=7.0,<8.0",
+    "pytest>=7.0",
+    "pytest-cov",
 ]
 
 [project.scripts]

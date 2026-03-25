@@ -32,7 +32,13 @@ import urllib.parse
 import contextlib
 from pprint import pprint, pformat
 import base64
-import magic
+
+# Import magic with fallback for environments without libmagic
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
 
 from sciflo.utils import (getListFromUnknownObject, ScifloConfigParser, SCIFLO_NAMESPACE,
                           linkFile, runDot, getXmlEtree, validateDirectory,
@@ -307,7 +313,18 @@ def verifyExecutable(path):
     """Return 1 if path specifies a binary executable or a script with proper interpreter
     declaration, i.e. #!/bin/sh.  Otherwise, return None."""
 
-    # get type
+    # Fallback if magic is not available: check for shebang line
+    if not MAGIC_AVAILABLE:
+        try:
+            with open(path) as f:
+                first_line = f.readline()
+            if re.match(r'^#!.+$', first_line):
+                return 1
+        except:
+            pass
+        return None
+    
+    # get type using magic
     type = magic.from_file(path)
 
     # if binary executable, return 1
